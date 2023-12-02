@@ -1,0 +1,52 @@
+﻿List of commands and their compatible nouns:
+
+
+Lobby Name: Get's the Name of the current lobby
+-lobby
+-lobby name
+-name lobby (not sure about this combination, both words are designated as verbs)
+
+Quit: Quit's terminal in the same way esc or tab will
+-exit
+-quit
+*Note, there is a known bug with this command where after using the command the next time you enter the terminal you have to hit enter before any input will register.
+**Update, this was fixed with a yield for 1 second
+
+Loot: Get's current value of all loot on ship (thanks to tinyhoot for their ShipLoot plugin. I used their code for reference however their plugin is not required.)
+-loot
+-shiploot
+
+Cams: Displays the Camera View of the other monitor in the ship. (Works with the Helmet Cameras mod by Rick Arg. I also used this code for reference so thank you!)
+-cams
+-cameras
+*Note, works in the same way as view monitor. 
+
+lol: Command to display a funny video from the web on the monitor, doesn't work at the moment.
+-lol
+-hampter
+*Just a fun thing I wanted to get working to surprise some friends. Having issues with Unity's play video from URL at the moment. Might try loading it as an asset and seeing if that works.
+**disabled in config by default as this doesn't work.
+
+Clear: Command to clear screen.
+-clear
+
+Heal: Command to heal self.
+-heal
+-healme
+
+
+
+
+
+Planned command not yet implemented:
+Roulette: Gamble credits, will need to query for gamble amount maybe?
+Fov: Had issues implementing before, should be rather easy now with the current implementation of code
+Teleport: I know this has already been done but wouldn't hurt to create this for my plugin anyway?
+Enemies: Scan for enemy count, maybe makes the game too easy?
+Ally Status: Check health/weight/battery status of all players, also might make the game too easy? Maybe implement a scan only for target player and range within vicinity?
+Danger Level: Game tells you this at the beginning so I don't think this is too bad to add.
+Heal Command: Could implement similar to the flashlight plugin that we have, heals player that types the command.
+Start Ship Command: For the laziest of lazy, no longer needing to pull the lever :)
+Change flashlight Color: Unsure how i'd implement this, might not be possible?
+
+
