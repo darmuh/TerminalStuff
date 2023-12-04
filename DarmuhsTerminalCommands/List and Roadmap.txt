@@ -20,6 +20,7 @@ Cams: Displays the Camera View of the other monitor in the ship. (Works with the
 -cams
 -cameras
 *Note, works in the same way as view monitor. 
+**FYI works with both currently available player cam mods. Both Helmet Cameras by Rick Arg and Solo's Body Cameras
 
 lol: Command to display a funny video from the web on the monitor, doesn't work at the moment.
 -lol
@@ -33,20 +34,29 @@ Clear: Command to clear screen.
 Heal: Command to heal self.
 -heal
 -healme
+*Thanks to Thorlar for their HealthStation mod. Used their code for reference (not required for this mod)
 
+Fov: Command to change FOV from terminal
+-fov
+*Usage: Fov <number between 66 and 130.
+**Requires Fov_Adjust mod by Rozebud
+
+Gamble: Command to gamble credits by percentage
+*Usage: gamble <number between 1 and 100>
+**Does not count towards quota, this is only credits that you can use to buy things
+
+Lever: Command to pull the lever from terminal.
+*WARNING: This does not ask the user to confirm whether they want to pull the lever or not. I want to add this later but haven't quite figured it out yet.
 
 
 
 
 Planned command not yet implemented:
-Roulette: Gamble credits, will need to query for gamble amount maybe?
-Fov: Had issues implementing before, should be rather easy now with the current implementation of code
+Split view for cams/radar to show both simultaneously? Maybe impossible?
 Teleport: I know this has already been done but wouldn't hurt to create this for my plugin anyway?
 Enemies: Scan for enemy count, maybe makes the game too easy?
 Ally Status: Check health/weight/battery status of all players, also might make the game too easy? Maybe implement a scan only for target player and range within vicinity?
 Danger Level: Game tells you this at the beginning so I don't think this is too bad to add.
-Heal Command: Could implement similar to the flashlight plugin that we have, heals player that types the command.
-Start Ship Command: For the laziest of lazy, no longer needing to pull the lever :)
 Change flashlight Color: Unsure how i'd implement this, might not be possible?
 
 

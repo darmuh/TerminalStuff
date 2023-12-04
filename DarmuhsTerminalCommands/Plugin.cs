@@ -34,7 +34,7 @@ namespace TerminalStuff
             Plugin.Log.LogInfo((object)"--------I don't know what i'm doing smile.---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-
+            //LeaveTerminal.leverKeywords();
             AddKeywords();
         }
 

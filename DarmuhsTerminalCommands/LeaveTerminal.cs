@@ -12,6 +12,8 @@ using BepInEx;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FovAdjust;
+using Steamworks;
 
 namespace TerminalStuff
 {
@@ -19,9 +21,18 @@ namespace TerminalStuff
     {
         public static string TotalValueFormat = "";
         public static string VideoErrorMessage = "";
+
+        public static TerminalNode GetNodeAfterConfirmation(this TerminalNode node)
+        {
+            var confirmationNoun = ((IEnumerable<CompatibleNoun>)node.terminalOptions)
+                .FirstOrDefault(cn => cn.noun.name == "Confirm");
+
+            return confirmationNoun?.result;
+        }
+
         [HarmonyPatch(typeof(Terminal))]
         [HarmonyPatch("RunTerminalEvents")]
-        class Terminal_RunTerminalEvents_Patch
+        public class Terminal_RunTerminalEvents_Patch : MonoBehaviour
         {
             static IEnumerator PostfixCoroutine(Terminal __instance, TerminalNode node)
             {
@@ -29,6 +40,7 @@ namespace TerminalStuff
                 {
                     if (node.terminalEvent == "quit")
                     {
+                        
                         string text = "goodbye!\n";
                         node.displayText = text;
 
@@ -80,31 +92,91 @@ namespace TerminalStuff
                     {
                         node.clearPreviousText = true;
                     }
+                    if (node.terminalEvent == "gamble")
+                    {
+                        node.clearPreviousText = true;
+                        // Example: Get the percentage from the ParsedValue
+                        float percentage = Terminal_ParseWord_Patch.ParsedValue;
+
+                        // Check if the percentage is within the valid range (0-100)
+                        if (!Terminal_ParseWord_Patch.newParsedValue || (percentage < 0 || percentage > 100))
+                        {
+                            // Handle the case when percentage is outside the valid range
+                            Debug.Log("Invalid percentage value. Telling user.");
+                            node.displayText = ("Invalid gamble percentage, please input a value between 0 and 100.\n");
+                        }
+                        else
+                        {
+                            // Make the gamble and get the result
+                            var gambleResult = Gamble(__instance.groupCredits, percentage);
+
+                            // Assign the result values to appropriate variables
+                            __instance.groupCredits = gambleResult.newGroupCredits;
+                            Terminal_ParseWord_Patch.newParsedValue = false;
+                            node.displayText = gambleResult.displayText;
+                        }
+                        
+                    }
                     if (node.terminalEvent == "healme")
                     {
                         //this code snippet is slightly modified from Octolar's Healing Mod, credit to them
                         GameNetworkManager.Instance.localPlayerController.DamagePlayer(-100, false);
                         if (GameNetworkManager.Instance.localPlayerController.health < 10 || !GameNetworkManager.Instance.localPlayerController.criticallyInjured)
-                            node.displayText = "You are full health!";
+                            node.displayText = "You are full health!\n";
                         else
                         {
                             GameNetworkManager.Instance.localPlayerController.MakeCriticallyInjured(false);
-                            node.displayText = "The terminal healed you?!?";
+                            node.displayText = "The terminal healed you?!?\n";
                         }
+                    }
+       /*             if (node.terminalEvent == "leverask") //planned feature for lever command
+                    {
+                        node.displayText = "Pull the Lever?\n\n\n\n\n\n\n\n";
+                        node.displayText = "Please CONFIRM or DENY.\n";
+                        TerminalNode nextNode = node.GetNodeAfterConfirmation();
+                        nextNode.terminalEvent = "leverdo";
+                    }
+                    if (node.terminalEvent == "leverdont")
+                    {
+                        node.displayText = "NOT pulling the lever, smile.";
+                    } */
+                    if (node.terminalEvent == "leverdo")
+                    {
+                        node.displayText = "PULLING THE LEVER!!!\n";
+                        
+                        // Delay for 1 second
+                        yield return new WaitForSeconds(1);
+
+                        // Assuming there is an existing instance of StartMatchLever in your scene
+                        StartMatchLever leverInstance = FindObjectOfType<StartMatchLever>();
+
+                        if (leverInstance != null)
+                        {
+                            leverInstance.LeverAnimation();
+                            // Delay for 1 second
+                            yield return new WaitForSeconds(1);
+                            leverInstance.PullLever();
+                        }
+                        else
+                        {
+                            Debug.LogError("StartMatchLever instance not found!");
+                        }
+
                     }
                     if (node.terminalEvent == "cams")
                     {
                         bool isOnCamera = __instance.terminalImage.enabled;
                         if (GameObject.Find("Environment/HangarShip/Cameras/ShipCamera") != null && isOnCamera == false)
                         {
-                            // ... (other code)
-
+                            
+                            node.clearPreviousText = true;
                             // Get the main texture from "Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001"
                             Texture renderTexture = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture;
                             node.displayTexture = renderTexture;
                             __instance.terminalImage.enabled = true;
                             //isOnCamera = true;
                             Plugin.Log.LogInfo("cam added to terminal screen");
+                            node.displayText = ("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n <Cameras Toggled>\n"); //the excessive n's are to get the text to display under the cams
                             // Now you can use 'yourTexture' in your own code
                         }
                         else if (isOnCamera == true)
@@ -122,27 +194,64 @@ namespace TerminalStuff
 
                     if (node.terminalEvent =="test")
                     {
-                        //int newGroupCredits = __instance.groupCredits;
-                        //newGroupCredits
-                        //node.displayText = ("Whatever you type here should be relayed back to you:\n");
-                        __instance.screenText.Select();
-                        string s = __instance.screenText.text.Substring(__instance.screenText.text.Length - __instance.textAdded);
-                        string digitsOnly = Regex.Replace(s, @"\D", "");
-                        node.displayText = ("Your input: " + digitsOnly + "\n");
-                        //string numbers = new string(existingString.Where(char.IsDigit).ToArray());
-                        // groupCredits = Mathf.Clamp(groupCredits - totalCostOfItems, 0, 10000000);
+                        node.displayText = "this shouldn't be enabled lol\n";
+                    }
+                    if (node.terminalEvent == "fov")
+                    {
+                        int num = Terminal_ParseWord_Patch.ParsedValue;
+                        float number = num;
+                        if (number != 0 && number >= 66f && number <= 130f && Terminal_ParseWord_Patch.newParsedValue)  // Or use an appropriate default value
+                        {
+                            node.clearPreviousText = true;
+                            node.displayText = ("Setting FOV to - " + num.ToString() + "\n");
+                            // Delay for 1 second
+                            yield return new WaitForSeconds(1);
 
+                            Debug.Log("After 1 second");
+
+                            // Now, call QuitTerminal on the original instance
+                            __instance.QuitTerminal();
+                            number = Mathf.Clamp(number, 66f, 130f);
+                            PlayerControllerBPatches.newTargetFovBase = number;
+                            Terminal_ParseWord_Patch.newParsedValue = false;
+                        }
+                        else
+                        {
+                            node.displayText = "Fov can only be set between 66 and 130\n"; //not sure why this isn't 66 to 130 lol
+                        }
                     }
                 }
                 // Ensure all code paths return a value in a coroutine
                 yield break;
             }
+
+            private static (int newGroupCredits, string displayText) Gamble(int currentGroupCredits, float percentage)
+            {
+                // Ensure the percentage is within a valid range (0-100)
+                percentage = Mathf.Clamp(percentage, 0, 100);
+
+                // Calculate the gamble amount as a percentage of the total credits
+                int gambleAmount = (int)(currentGroupCredits * (percentage / 100.0f));
+
+                // Check if the gamble is successful
+                if (UnityEngine.Random.Range(0, 100) < 50) // 50% chance of winning (adjust as needed)
+                {
+                    string displayText = $"Congratulations! You won {gambleAmount} credits!\n";
+                    return (currentGroupCredits + gambleAmount, displayText);
+                }
+                else
+                {
+                    string displayText = $"Sorry, you lost {gambleAmount} credits.\n";
+                    return (currentGroupCredits - gambleAmount, displayText);
+                }
+            }
+
             static void Postfix(Terminal __instance, TerminalNode node)
             {
                 // Start the coroutine
                 __instance.StartCoroutine(PostfixCoroutine(__instance, node));
             }
-                       
+
         }
 
 
@@ -224,7 +333,18 @@ namespace TerminalStuff
             TerminalKeyword healKeyword = CreateTerminalKeyword("heal", true, healNode);
             TerminalKeyword healmeKeyword = CreateTerminalKeyword("healme", true, healNode);
             AddTerminalKeyword(healKeyword);
+            AddTerminalKeyword(healmeKeyword);
             Plugin.Log.LogInfo("Added Heal Keywords");
+        }
+        public static void leverKeywords()
+        {
+            TerminalNode leverNode = CreateTerminalNode($"\n", true, "leverdo");
+            TerminalKeyword leverKeyword = CreateTerminalKeyword("lever", true, leverNode);
+            AddTerminalKeyword(leverKeyword);
+            AddCompatibleNoun(leverKeyword, "confirm", "leverdo");
+            AddCompatibleNoun(leverKeyword, "deny", "leverdont");
+            Plugin.Log.LogInfo("Added Lever Keyword");
+            
         }
         public static void lootKeywords()
         {
@@ -238,7 +358,7 @@ namespace TerminalStuff
 
         public static void camsKeywords()
         {
-            TerminalNode camsNode = CreateTerminalNode($"Attempting to grab active Cameras.\n", true, "cams");
+            TerminalNode camsNode = CreateTerminalNode($"Toggling Cameras View.\n", true, "cams");
             TerminalKeyword camsKeyword = CreateTerminalKeyword("cams", true, camsNode);
             TerminalKeyword camerasKeyword = CreateTerminalKeyword("cameras", false, camsNode);
             AddCompatibleNoun("check", "cameras", camsNode);
