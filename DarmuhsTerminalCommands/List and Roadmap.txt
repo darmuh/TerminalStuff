@@ -55,8 +55,10 @@ Planned command not yet implemented:
 Split view for cams/radar to show both simultaneously? Maybe impossible?
 Teleport: I know this has already been done but wouldn't hurt to create this for my plugin anyway?
 Enemies: Scan for enemy count, maybe makes the game too easy?
-Ally Status: Check health/weight/battery status of all players, also might make the game too easy? Maybe implement a scan only for target player and range within vicinity?
+Ally Status(vitals): Check health/weight/battery status of all players, also might make the game too easy? Maybe implement a scan only for target player and range within vicinity?
 Danger Level: Game tells you this at the beginning so I don't think this is too bad to add.
 Change flashlight Color: Unsure how i'd implement this, might not be possible?
+shipdoor controls maybe?
+modlist?
 
 

@@ -12,7 +12,7 @@ using static TerminalStuff.Getlobby;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "1.0.0")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "1.1.2")]
     [BepInDependency("atomic.terminalapi")]
 
     public class Plugin : BaseUnityPlugin //renamed project
@@ -22,7 +22,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.DarmuhsTerminalCommands";
             public const string PLUGIN_NAME = "DarmuhsTerminalCommands";
-            public const string PLUGIN_VERSION = "1.0.0";
+            public const string PLUGIN_VERSION = "1.1.2";
         }
 
         internal static new ManualLogSource Log;
@@ -30,7 +30,7 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin DarmuhsTerminalCommands is loaded with version 1.0.0!");
+            Plugin.Log.LogInfo((object)"Plugin DarmuhsTerminalCommands is loaded with version 1.1.2!");
             Plugin.Log.LogInfo((object)"--------I don't know what i'm doing smile.---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());

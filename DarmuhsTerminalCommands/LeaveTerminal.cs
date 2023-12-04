@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FovAdjust;
 using Steamworks;
+using Unity.Netcode;
 
 namespace TerminalStuff
 {
@@ -109,9 +110,12 @@ namespace TerminalStuff
                         {
                             // Make the gamble and get the result
                             var gambleResult = Gamble(__instance.groupCredits, percentage);
+                            
 
                             // Assign the result values to appropriate variables
                             __instance.groupCredits = gambleResult.newGroupCredits;
+                            __instance.SyncGroupCreditsClientRpc(gambleResult.newGroupCredits, __instance.numberOfItemsInDropship);  //localhost
+                            __instance.SyncGroupCreditsServerRpc(gambleResult.newGroupCredits, __instance.numberOfItemsInDropship);  //server
                             Terminal_ParseWord_Patch.newParsedValue = false;
                             node.displayText = gambleResult.displayText;
                         }
@@ -142,26 +146,57 @@ namespace TerminalStuff
                     } */
                     if (node.terminalEvent == "leverdo")
                     {
-                        node.displayText = "PULLING THE LEVER!!!\n";
-                        
-                        // Delay for 1 second
-                        yield return new WaitForSeconds(1);
+                        NetworkManager networkManager = __instance.NetworkManager;
+                        if (!GameNetworkManager.Instance.gameHasStarted && ((object)networkManager != null && networkManager.IsHost))
+                            {
+                            node.displayText = "PULLING THE LEVER!!!\n";
 
-                        // Assuming there is an existing instance of StartMatchLever in your scene
-                        StartMatchLever leverInstance = FindObjectOfType<StartMatchLever>();
-
-                        if (leverInstance != null)
-                        {
-                            leverInstance.LeverAnimation();
                             // Delay for 1 second
                             yield return new WaitForSeconds(1);
-                            leverInstance.PullLever();
+
+                            // Assuming there is an existing instance of StartMatchLever in your scene
+                            StartMatchLever leverInstance = FindObjectOfType<StartMatchLever>();
+
+                            if (leverInstance != null)
+                            {
+                                leverInstance.LeverAnimation();
+                                // Delay for 1 second
+                                yield return new WaitForSeconds(1);
+                                leverInstance.PullLever();
+                            }
+                            else
+                            {
+                                Debug.LogError("StartMatchLever instance not found!");
+                            }
+                        }
+                        else if (GameNetworkManager.Instance.gameHasStarted)
+                        {
+                            node.displayText = "PULLING THE LEVER!!!\n";
+
+                            // Delay for 1 second
+                            yield return new WaitForSeconds(1);
+
+                            // Assuming there is an existing instance of StartMatchLever in your scene
+                            StartMatchLever leverInstance = FindObjectOfType<StartMatchLever>();
+
+                            if (leverInstance != null)
+                            {
+                                leverInstance.LeverAnimation();
+                                // Delay for 1 second
+                                yield return new WaitForSeconds(1);
+                                leverInstance.PullLever();
+                            }
+                            else
+                            {
+                                Debug.LogError("StartMatchLever instance not found!");
+                            }
                         }
                         else
                         {
-                            Debug.LogError("StartMatchLever instance not found!");
+                            node.displayText = "Cannot pull the lever at this time.\n\n";
+                            node.displayText = "If game has not been started, only the host can do this.\n";
                         }
-
+                    //end of lever event    
                     }
                     if (node.terminalEvent == "cams")
                     {
@@ -233,14 +268,22 @@ namespace TerminalStuff
                 // Calculate the gamble amount as a percentage of the total credits
                 int gambleAmount = (int)(currentGroupCredits * (percentage / 100.0f));
 
-                // Check if the gamble is successful
-                if (UnityEngine.Random.Range(0, 100) < 50) // 50% chance of winning (adjust as needed)
+                // Generate two separate random floats
+                float randomValue1 = UnityEngine.Random.value;
+                float randomValue2 = UnityEngine.Random.value;
+
+                // Determine the outcome based on a fair comparison of the two random values
+                bool isWinner = randomValue1 < randomValue2;
+
+                if (isWinner)
                 {
+                    // Code for winning scenario
                     string displayText = $"Congratulations! You won {gambleAmount} credits!\n";
                     return (currentGroupCredits + gambleAmount, displayText);
                 }
                 else
                 {
+                    // Code for losing scenario
                     string displayText = $"Sorry, you lost {gambleAmount} credits.\n";
                     return (currentGroupCredits - gambleAmount, displayText);
                 }
