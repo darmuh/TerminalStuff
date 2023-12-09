@@ -40,11 +40,11 @@ This project does not adhere to Semantic Versioning at this time.
 ## Planned features/ideas
 
 ### Work for future updates
-Split view for cams/radar to show both simultaneously? Maybe impossible?
-Enemies: Scan for enemy count, may implement config values for varying degrees of information availability.
-Change flashlight Color: Still haven't looked into this yet, seems possible but may run into issues.
-Control ship doors from terminal
-Update lol command to allow configuration of videos folder path.
+ - Split view for cams/radar to show both simultaneously? Maybe impossible?
+ - Enemies: Scan for enemy count, may implement config values for varying degrees of information availability.
+ - Change flashlight Color: Still haven't looked into this yet, seems possible but may run into issues.
+ - Control ship doors from terminal
+ - Update lol command to allow configuration of videos folder path.
 
 ### Requested Features from Community
  - flashlight colors 
