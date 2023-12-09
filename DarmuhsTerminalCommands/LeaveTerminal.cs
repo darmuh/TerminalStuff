@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BepInEx.Bootstrap;
+using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 using static TerminalApi.TerminalApi;
 using static TerminalStuff.MyTerminalAwakePatch;
-using UnityEngine.Video;
+using GameNetcodeStuff;
 using System.Collections;
-using System.Runtime.CompilerServices;
-using BepInEx;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using FovAdjust;
-using Steamworks;
 using Unity.Netcode;
 
 namespace TerminalStuff
@@ -22,6 +18,8 @@ namespace TerminalStuff
     {
         public static string TotalValueFormat = "";
         public static string VideoErrorMessage = "";
+        private static Dictionary<string, PluginInfo> PluginsLoaded = new Dictionary<string, PluginInfo>();
+
 
         public static TerminalNode GetNodeAfterConfirmation(this TerminalNode node)
         {
@@ -35,6 +33,7 @@ namespace TerminalStuff
         [HarmonyPatch("RunTerminalEvents")]
         public class Terminal_RunTerminalEvents_Patch : MonoBehaviour
         {
+            private static VideoController videoController;
             static IEnumerator PostfixCoroutine(Terminal __instance, TerminalNode node)
             {
                 if (!string.IsNullOrWhiteSpace(node.terminalEvent))
@@ -55,30 +54,52 @@ namespace TerminalStuff
                         // Now, call QuitTerminal on the original instance
                         __instance.QuitTerminal();
                     }
-                    if (node.terminalEvent == "lolevent") //trying to play custom media on the terminal
+                    if (node.terminalEvent == "kickYes")
+                        node.displayText = "Player has been kicked.\n";
+                    if (node.terminalEvent == "kickNo")
+                        node.displayText = "Unable to kick, player not found.\n";
+                    if (node.terminalEvent == "NotHost")
+                        node.displayText = "You do not have access to this command.\n";
+                    if (node.terminalEvent == "modlist")
                     {
-                        if (__instance.videoPlayer.clip != null)
+                        PluginsLoaded = Chainloader.PluginInfos;
+                        string concatenatedString = string.Join("\n",
+                        PluginsLoaded.Select(kvp =>
+                        $"{kvp.Value.Metadata.Name}, Version: {kvp.Value.Metadata.Version}"));
+                        node.displayText = $"Mod List:\n\n{concatenatedString}\n";
+                    }
+                    if (node.terminalEvent == "lolevent")
+                    {
+
+                        if (videoController == null)
                         {
-                            __instance.videoPlayer.clip = (VideoClip)null;
-                            Plugin.Log.LogInfo("videoPlayer.clip was not null");
+                            videoController = new VideoController();
+
+                            // Get the shared render texture from the existing VideoPlayer
+                            //RenderTexture sharedRenderTexture = __instance.videoPlayer.targetTexture;
+
+                            // Call the Initialize method with the desired GameObject and shared render texture
+                            GameObject terminalImage = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer/Image (1)");
+                            videoController.Initialize(terminalImage);
                         }
-                            __instance.terminalImage.enabled = true;
-                            //__instance.videoPlayer.errorReceived += MyTerminalAwakePatch.OnVideoErrorReceived;
-                            __instance.videoPlayer.enabled = true;
-                            __instance.videoPlayer.Play();
-                            Plugin.Log.LogInfo("" + __instance.videoPlayer.url + " <-- That should show the link");
-                            Texture renderTexture = __instance.videoPlayer.texture;
-                            node.displayTexture = renderTexture;
-                            Plugin.Log.LogInfo("Target Texture:" + __instance.videoPlayer.targetTexture + " <-- That should show the texture it should be playing on");
-                            Plugin.Log.LogInfo("Video Length:" + __instance.videoPlayer.length + ".");
 
-                            node.displayText = "hi lol.\n";   
-
-                        //Debug log commands
-                        Plugin.Log.LogInfo("URL:" + __instance.videoPlayer.url);
-                        Plugin.Log.LogInfo("Render Mode:" + __instance.videoPlayer.renderMode);
-                        Plugin.Log.LogInfo("Prepared Value:" + __instance.videoPlayer.isPrepared);
-
+                        // Check if the video is currently playing
+                        if (VideoController.isVideoPlaying)
+                        {
+                            // Stop the video if it's playing
+                            videoController.StopAdditionalVideo();
+                            VideoController.isVideoPlaying = false;
+                            node.clearPreviousText = true;
+                            node.displayText = "No more lol.\n";
+                        }
+                        else
+                        {
+                            // Play the next video if not playing
+                            videoController.PlayNextVideo();
+                            VideoController.isVideoPlaying = true;
+                            node.clearPreviousText = true;
+                            node.displayText = "lol.\n";
+                        }
                     }
 
                     if (node.terminalEvent == "loot")
@@ -92,6 +113,92 @@ namespace TerminalStuff
                     if (node.terminalEvent == "clear")
                     {
                         node.clearPreviousText = true;
+                        Plugin.Log.LogInfo("text cleared");
+                        //this function broke in an update
+                    }
+                    if (node.terminalEvent == "teleport")
+                    {
+                        ShipTeleporter[] objectsOfType = UnityEngine.Object.FindObjectsOfType<ShipTeleporter>();
+                        ShipTeleporter tp = (ShipTeleporter)null;
+                        foreach (ShipTeleporter normaltp in objectsOfType)
+                        {
+                            if (!normaltp.isInverseTeleporter)
+                            {
+                                tp = normaltp;
+                                break;
+                            }
+                        }
+                        if ((UnityEngine.Object)tp != (UnityEngine.Object)null)
+                        {
+                            if (tp.IsSpawned && tp.isActiveAndEnabled)
+                            {
+                                tp.PressTeleportButtonOnLocalClient();
+                                node.displayText = "Teleport Button pressed.\n";
+                            }
+                            else node.displayText = "Can't teleport at this time. Is it on cooldown?\n";
+                        }
+                        else node.displayText = "Can't teleport at this time. Do you have a teleporter?\n";
+                    }
+                    //end of teleport command
+                            
+                    if (node.terminalEvent == "vitals")
+                    {
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
+
+                        int getCreds = __instance.groupCredits;
+                        int playerHealth = 0;
+                        float playerWeight = 0;
+                        int costCreds = ConfigSettings.vitalsCost.Value;
+                        string playername = getPlayerInfo.playerUsername;
+                        Plugin.Log.LogInfo("playername: " + playername);
+                        if (getCreds >= costCreds) //checks if you can spend enough
+                        {
+                            if (!getPlayerInfo.isPlayerDead)
+                            {
+                                playerHealth = getPlayerInfo.health;
+                                playerWeight = getPlayerInfo.carryWeight;
+                                float playerSanity = getPlayerInfo.insanityLevel;
+                                bool hasFlash = getPlayerInfo.ItemSlots.Any(item => item is FlashlightItem);
+
+                                float realWeight = Mathf.RoundToInt(Mathf.Clamp(playerWeight - 1f, 0f, 100f) * 105f);
+                                int newCreds = getCreds - costCreds; //replace with config value after testing
+                                __instance.SyncGroupCreditsClientRpc(newCreds, __instance.numberOfItemsInDropship);  //localhost
+                                __instance.SyncGroupCreditsServerRpc(newCreds, __instance.numberOfItemsInDropship);  //server
+
+                                if(hasFlash)
+                                {
+                                    Plugin.Log.LogInfo("flashlight found");
+                                    float flashCharge = Mathf.RoundToInt((getPlayerInfo.pocketedFlashlight.insertedBattery.charge)*100);
+                                    node.displayText = "Charged " + costCreds + " Credits. \n" + playername + " Vitals:\n\n Health: " + playerHealth.ToString() + "\n Weight: " + realWeight.ToString() + "\n Sanity: " + playerSanity.ToString() + "\n Flashlight Battery Percentage: " + flashCharge.ToString() + "%\n";
+                                }
+                                else //no flashlight
+                                node.displayText = "Charged " + costCreds + " Credits. \n" + playername + " Vitals:\n\n Health: " + playerHealth.ToString() + "\n Weight: " + realWeight.ToString() + "\n Sanity: " + playerSanity.ToString() + "\n";
+                            }
+                            else
+                            {
+                                int newCreds = getCreds - 10; //replace with config value after testing
+                                __instance.SyncGroupCreditsClientRpc(newCreds, __instance.numberOfItemsInDropship);  //localhost
+                                __instance.SyncGroupCreditsServerRpc(newCreds, __instance.numberOfItemsInDropship);  //server
+                                node.displayText = ("Charged 10 Credits. \n Unable to get +" + playername + "vitals...\n");
+                            }
+
+                        }
+                        else
+                        {
+                            node.displayText = "You can't afford to run this command.\n";
+                        }
+                    }
+                    if (node.terminalEvent == "danger")
+                    {
+                        if(StartOfRound.Instance.shipHasLanded)
+                        {
+                            string dangerLevel = RoundStartPatch.getDangerLevel;
+                            node.displayText = ("Current Danger Level: " + dangerLevel + "\n");
+                        }
+                        else
+                        {
+                            node.displayText = ("Ship has not landed.\n");
+                        }
                     }
                     if (node.terminalEvent == "gamble")
                     {
@@ -193,8 +300,7 @@ namespace TerminalStuff
                         }
                         else
                         {
-                            node.displayText = "Cannot pull the lever at this time.\n\n";
-                            node.displayText = "If game has not been started, only the host can do this.\n";
+                            node.displayText = "Cannot pull the lever at this time.\n\nIf game has not been started, only the host can do this.\n";
                         }
                     //end of lever event    
                     }
@@ -212,7 +318,7 @@ namespace TerminalStuff
                             //isOnCamera = true;
                             Plugin.Log.LogInfo("cam added to terminal screen");
                             node.displayText = ("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n <Cameras Toggled>\n"); //the excessive n's are to get the text to display under the cams
-                            // Now you can use 'yourTexture' in your own code
+                            
                         }
                         else if (isOnCamera == true)
                         {
@@ -230,6 +336,8 @@ namespace TerminalStuff
                     if (node.terminalEvent =="test")
                     {
                         node.displayText = "this shouldn't be enabled lol\n";
+                        __instance.SyncGroupCreditsClientRpc(999999, __instance.numberOfItemsInDropship);
+
                     }
                     if (node.terminalEvent == "fov")
                     {
@@ -345,6 +453,33 @@ namespace TerminalStuff
 
         //keywords
 
+        public static void AddTest()
+        {
+            TerminalNode test = CreateTerminalNode("test\n", true, "test");
+            TerminalKeyword testKeyword = CreateTerminalKeyword("test", true, test);
+            AddTerminalKeyword(testKeyword);
+            Plugin.Log.LogInfo("This should only be enabled for dev testing");
+        }
+        public static void AddModListKeywords()
+        {
+            TerminalNode modList = CreateTerminalNode("grabbing mods\n", true, "modlist");
+            TerminalKeyword modlistKeyword = CreateTerminalKeyword("modlist", true, modList);
+            TerminalKeyword modsKeyword = CreateTerminalKeyword("mods", true, modList);
+            AddTerminalKeyword(modlistKeyword);
+            AddTerminalKeyword(modsKeyword);
+            Plugin.Log.LogInfo("Added Modlist keywords");
+        }
+
+        public static void AddTeleportKeywords()
+        {
+            TerminalNode tpNode = CreateTerminalNode("teleporter initiatied.\n", true, "teleport");
+            TerminalKeyword teleportKeyword = CreateTerminalKeyword("teleport", true, tpNode);
+            TerminalKeyword tpKeyword = CreateTerminalKeyword("tp", true, tpNode);
+            AddTerminalKeyword(teleportKeyword);
+            AddTerminalKeyword(tpKeyword);
+            Plugin.Log.LogInfo("---------Teleport & TP Keywords added!---------");
+        }
+
         public static void AddQuitKeywords()
         {
             TerminalNode quitNode = CreateTerminalNode("leaving.\n", true, "quit");
@@ -365,10 +500,24 @@ namespace TerminalStuff
         }
         public static void clearKeywords()
         {
-            TerminalNode clearNode = CreateTerminalNode($"\n", true, "clear");
+            TerminalNode clearNode = CreateTerminalNode($"\n", true); //clear terminal event was not needed
             TerminalKeyword clearKeyword = CreateTerminalKeyword("clear", true, clearNode);
             AddTerminalKeyword(clearKeyword);
             Plugin.Log.LogInfo("Adding Clear keywords");
+        }
+        public static void dangerKeywords()
+        {
+            TerminalNode dangerNode = CreateTerminalNode($"\n", true, "danger");
+            TerminalKeyword dangerKeyword = CreateTerminalKeyword("danger", true, dangerNode);
+            AddTerminalKeyword(dangerKeyword);
+            Plugin.Log.LogInfo("Adding danger keywords");
+        }
+        public static void vitalsKeywords()
+        {
+            TerminalNode vitalsNode = CreateTerminalNode($"\n", true, "vitals");
+            TerminalKeyword vitalsKeyword = CreateTerminalKeyword("vitals", true, vitalsNode);
+            AddTerminalKeyword(vitalsKeyword);
+            Plugin.Log.LogInfo("Adding vitals keywords");
         }
         public static void healKeywords()
         {

@@ -4,6 +4,7 @@ using System.IO;
 using TerminalApi;
 using static TerminalApi.TerminalApi;
 using static TerminalStuff.Plugin;
+using UnityEngine;
 using UnityEngine.Video;
 using System;
 using static TerminalStuff.Getlobby;
@@ -15,15 +16,19 @@ using System.Net;
 using System.Reflection;
 using System.Linq;
 using System.Text;
+using System.CodeDom;
+using Unity.Netcode;
+using BepInEx.Bootstrap;
+using Steamworks;
 
 namespace TerminalStuff
 {
     [HarmonyPatch(typeof(Terminal), "Start")]
     public class MyTerminalAwakePatch
     {
-        // Shared variable to store the 'array'
         public static void Postfix(ref Terminal __instance) // Note the 'static' keyword
         {
+            
             if (ConfigSettings.terminalGamble.Value)
             {
                 AddGambleKeyword();
@@ -36,28 +41,58 @@ namespace TerminalStuff
             {
                 LeaveTerminal.leverKeywords();
             }
-            if (__instance.videoPlayer.source != VideoSource.Url || __instance.videoPlayer.url == "")
+
+            //room for more
+
+        }
+
+        private int CheckForPlayerName(string firstWord, string secondWord)
+        {
+
+            if (secondWord.Length <= 2)
             {
-                __instance.videoPlayer.enabled = true;
-
-                // Create an instance of the videoHandler class
-                var handler = new VideoHandler();
-
-                // Subscribe to the errorReceived event using the instance method
-                __instance.videoPlayer.errorReceived += handler.OnVideoErrorReceived;
-
-                __instance.videoPlayer.clip = (VideoClip)null;
-                string vfileName1 = $"file://{Paths.PluginPath.Substring(Path.GetPathRoot(Paths.PluginPath).Length)}".TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/');
-                string vfileName2 = "/darmuh-TerminalStuff/lol.mp4";
-                Plugin.Log.LogInfo("---------" + vfileName1 + vfileName2);
-                __instance.videoPlayer.url = vfileName1 + vfileName2;
-                __instance.videoPlayer.source = VideoSource.Url;
-                __instance.videoPlayer.Prepare();
-                __instance.videoPlayer.Stop();
-                //Plugin.Log.LogInfo("this should break");
+                return -1;
             }
 
+            Debug.Log("first word: " + firstWord + "; second word: " + secondWord);
+            List<string> list = new List<string>();
+            for (int i = 0; i < StartOfRound.Instance.mapScreen.radarTargets.Count; i++)
+            {
+                list.Add(StartOfRound.Instance.mapScreen.radarTargets[i].name);
+                Debug.Log($"name {i}: {list[i]}");
+            }
 
+            secondWord = secondWord.ToLower();
+            Debug.Log($"Target names length: {list.Count}");
+            for (int j = 0; j < list.Count; j++)
+            {
+                Debug.Log("A");
+                string text = list[j].ToLower();
+                Debug.Log($"Word #{j}: {text}; length: {text.Length}");
+                for (int num = secondWord.Length; num > 2; num--)
+                {
+                    Debug.Log($"c: {num}");
+                    Debug.Log(secondWord.Substring(0, num));
+                    if (text.StartsWith(secondWord.Substring(0, num)))
+                    {
+                        return j;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+
+        [HarmonyPatch(typeof(Terminal), "BeginUsingTerminal")]
+        public class Terminal_Begin_Patch
+        {
+            private static VideoController videoController;
+
+            static void Postfix(ref Terminal __instance)
+            {
+                VideoController.isVideoPlaying = false;
+            }
         }
 
         [HarmonyPatch(typeof(Terminal), "ParseWord")]
@@ -101,6 +136,7 @@ namespace TerminalStuff
                 }
             }
 
+            
             private static TerminalKeyword ProcessWord(Terminal __instance, string[] array, string targetString)
             {
                 string firstWord = array.Length > 0 ? array[0] : null;
@@ -140,8 +176,61 @@ namespace TerminalStuff
             static void Postfix(Terminal __instance, ref TerminalNode __result)
             {
                 // Access the array from ParsePlayerSentence method
+                if (ConfigSettings.terminalKick.Value == true && (__instance.screenText.text.Substring(__instance.screenText.text.Length - __instance.textAdded).ToLower().Contains("kick")))
+                {
+                    //add config check here I think
+                    
+                    string cleanedText = GetCleanedScreenText(__instance);
+                    string[] words = cleanedText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    TerminalNode kickYes = CreateTerminalNode("Player has been kicked.\n", false, "kickyes");
+                    TerminalNode kickNo = CreateTerminalNode("Cannot find player.\n", false, "kickno");
+                    TerminalNode notHost = CreateTerminalNode("You are not the host and cannot kick.\n", false, "nothost");
 
-                // Check if you want to modify the result or perform additional actions
+                    if (words.Length >= 2 && words[0].ToLower() == "kick")
+                    {
+                        string targetPlayerName = words[1];
+
+                        if (GameNetworkManager.Instance.localPlayerController.isHostPlayerObject)
+                        {
+                            if (targetPlayerName.Length >= 3)
+                            {
+                                // Check if the targetPlayerName starts with the input
+                                var matchingPlayer = GameNetworkManager.Instance.currentLobby.Value.Members.FirstOrDefault(player =>
+                                player.Name.IndexOf(targetPlayerName, StringComparison.OrdinalIgnoreCase) != -1);
+
+                                if (!EqualityComparer<Friend>.Default.Equals(matchingPlayer, default(Friend)))
+                                {
+                                    // Get the player's ID
+                                    ulong targetPlayerId = matchingPlayer.Id.Value;
+
+                                    // Perform kick action
+                                    if (!StartOfRound.Instance.KickedClientIds.Contains(targetPlayerId))
+                                    {
+                                        StartOfRound.Instance.KickedClientIds.Add(targetPlayerId);
+                                    }
+
+                                    NetworkManager.Singleton.DisconnectClient(targetPlayerId);
+                                    Plugin.Log.LogInfo($"Kick command detected for player: {targetPlayerName}, ID: {targetPlayerId}");
+                                    __result = kickYes;
+                                }
+                                else
+                                {
+                                    Plugin.Log.LogInfo($"Player {targetPlayerName} not found in the lobby.");
+                                    __result = kickNo;
+                                    // Handle case where the player is not found
+                                }
+                            }
+                            else
+                            {
+                                Plugin.Log.LogInfo($"Input must be at least 3 characters long.");
+                                __result = kickNo;
+                                // Handle case where the input is too short
+                            }
+                        }
+                        else __result = notHost; //handles when person entering command is not the host
+                    }
+                } 
+                    // Check if you want to modify the result or perform additional actions
                 if (__result != null && __result == __instance.terminalNodes.specialNodes[10])
                 {
                     string s = GetCleanedScreenText(__instance);

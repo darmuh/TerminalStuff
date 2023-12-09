@@ -75,6 +75,10 @@
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
@@ -87,6 +91,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OtherPatches.cs" />
+    <Compile Include="VideoManager.cs" />
     <Compile Include="ConfigSettings.cs" />
     <Compile Include="MyTerminalPatcher.cs" />
     <Compile Include="LeaveTerminal.cs" />
@@ -95,7 +101,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="List and Roadmap.txt" />
+    <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
