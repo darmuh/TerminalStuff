@@ -1,0 +1,33 @@
+﻿Basegame Special nodes
+
+0 - WelcomeNode
+1 - Start
+2 - CannotAfford
+3 - CouldNotReroute
+4 - TooManyItems
+5 - GeneralError
+6 - NoCreatureData
+7 - MustBeInOrbit
+8 - AlreadyOnThisPlanet
+9 - NoUnlockedStoryLogs
+10 - ParserError1
+11 - ParserError2
+12 - ParserError3
+13 - HelpCommands
+14 - AlreadyUnlocked
+15 - ShipInMotion
+16 - NotInStock
+17 - ReturnedFromStorage
+18 - LockedForDemo
+19 - EnteredCode
+20 - SwitchedCam
+21 - PingedRadarBooster
+22 - SendSignalTranslator
+23 - FinishedRadarBooster
+
+
+Plugin.instance.confirmationNodeNum List:
+0 - No confirm action at this time
+1 - Lever
+2 - Gamble
+3 - Buy Vitals Scanner Upgrade

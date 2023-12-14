@@ -1,39 +1,37 @@
 ﻿using BepInEx;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine.Video;
-using UnityEngine.Audio;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Video;
 
 namespace TerminalStuff
 {
     internal static class VideoManager //grabbed this whole bit of code from TVLoader by Rattenbonkers, credit to them
     {
         public static List<string> Videos = new List<string>();
-        
+
 
         public static void Load()
         {
             foreach (string directory in Directory.GetDirectories(Paths.PluginPath))
             {
                 //Plugin.Log.LogInfo(")))))))))))))))))Setting directory for terminal videos");
-                string path = Path.Combine(Paths.PluginPath, directory, "darmuh-darmuhsTerminalStuff");
+                string path = Path.Combine(Paths.PluginPath, directory, $"{ConfigSettings.videoFolderPath.Value}");
                 if (Directory.Exists(path))
                 {
-                    Plugin.Log.LogInfo(")))))))))))))))))directory already exists!!!");
+                    //Plugin.Log.LogInfo(")))))))))))))))))directory already exists!!!");
                     string[] files = Directory.GetFiles(path, "*.mp4");
-                    Plugin.Log.LogInfo(")))))))))))))))))getting files");
+                    //Plugin.Log.LogInfo(")))))))))))))))))getting files");
                     VideoManager.Videos.AddRange((IEnumerable<string>)files);
                     Plugin.Log.LogInfo((object)string.Format("{0} has {1} videos.", (object)directory, (object)files.Length));
                 }
             }
-            string path1 = Path.Combine(Paths.PluginPath, "darmuh-darmuhsTerminalStuff");
+            string path1 = Path.Combine(Paths.PluginPath, $"{ConfigSettings.videoFolderPath.Value}");
             if (!Directory.Exists(path1))
                 Directory.CreateDirectory(path1);
             Plugin.Log.LogInfo(")))))))))))))))))Creating directory if doesn't exist");
             string[] files1 = Directory.GetFiles(path1, "*.mp4");
-            Plugin.Log.LogInfo(")))))))))))))))))getting files again");
+            //Plugin.Log.LogInfo(")))))))))))))))))getting files again");
             VideoManager.Videos.AddRange((IEnumerable<string>)files1);
             Plugin.Log.LogInfo((object)string.Format("Global has {0} videos.", (object)files1.Length));
             Plugin.Log.LogInfo((object)string.Format("Loaded {0} total.", (object)VideoManager.Videos.Count));
@@ -70,7 +68,7 @@ namespace TerminalStuff
 
                     // Create a new VideoPlayer component for the additional VideoPlayer
                     additionalVideoPlayer = targetGameObject.AddComponent<VideoPlayer>();
-                    //additionalVideoPlayer.renderMode = VideoRenderMode.CameraNearPlane;  // Set render mode to CameraNearPlane
+                    
                     Plugin.Log.LogInfo(">>>>>>>>>CREATING MY OWN VIDEO PLAYER FOR TERMINAL<<<<<<<<<");
                     additionalVideoPlayer.loopPointReached += OnVideoFinished; // Subscribe to the loopPointReached event
                     GameObject terminalCanvas = GameObject.Find("Environment/HangarShip/Terminal/Canvas");
@@ -81,34 +79,11 @@ namespace TerminalStuff
                         Debug.LogError("No Canvas found in the scene.");
                         return;
                     }
-                    /*
-                    rawImage = terminalCanvas.gameObject.AddComponent<RawImage>();
-
-
-                    // Set the size, position, and other properties as needed
-                    // Copy size and position from the Canvas's RectTransform
-                    RectTransform canvasRectTransform = terminalCanvas.GetComponent<RectTransform>();
-                    RectTransform rawImageRectTransform = rawImage.rectTransform;
-
-                    // Copy size
-                    rawImageRectTransform.sizeDelta = canvasRectTransform.sizeDelta;
-
-                    // Copy position
-                    rawImageRectTransform.anchoredPosition = canvasRectTransform.anchoredPosition;
-
-                    rawImage.color = Color.white; //make the rawimage visible for debugging
-                    
-                    Plugin.Log.LogInfo(">>>>>>>>>CANVAS CREATED<<<<<<<<<");
-
-                    */
                 }
                 else
                 {
                     Plugin.Log.LogInfo("Additional VideoPlayer already exists. Skipping creation.");
                 }
-
-                // Log additional information for debugging
-                //Plugin.Log.LogInfo($"VideoPlayer URL: {additionalVideoPlayer.url}");
             }
             else
             {
@@ -132,7 +107,7 @@ namespace TerminalStuff
                 lastPlayedIndex = randomIndex;
 
                 Terminal terminalInstance = GameObject.FindObjectOfType<Terminal>();
-                
+
 
                 Plugin.Log.LogInfo($"Random Clip: {randomIndex} - {VideoManager.Videos[randomIndex]}");
 
@@ -140,14 +115,14 @@ namespace TerminalStuff
                 additionalVideoPlayer.url = "file://" + VideoManager.Videos[randomIndex];
                 Plugin.Log.LogInfo("URL:" + additionalVideoPlayer.url);
 
-                
+
 
                 additionalVideoPlayer.enabled = true;
                 //Plugin.Log.LogInfo(">>>>>>>>>CUSTOM VIDEO PLAYER ENABLED FOR TERMINAL<<<<<<<<<");
 
                 additionalVideoPlayer.renderMode = VideoRenderMode.CameraNearPlane;
                 additionalVideoPlayer.aspectRatio = VideoAspectRatio.NoScaling;
-                additionalVideoPlayer.transform.localScale = new Vector3(350f,350f);
+                additionalVideoPlayer.transform.localScale = new Vector3(350f, 350f);
                 additionalVideoPlayer.transform.localPosition = new Vector3(0f, 0f);
                 additionalVideoPlayer.isLooping = false;
                 additionalVideoPlayer.playOnAwake = false;

@@ -1,15 +1,10 @@
 ﻿using HarmonyLib;
-using JetBrains.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static TerminalStuff.LeaveTerminal;
 
 namespace TerminalStuff
 {
     [HarmonyPatch(typeof(StartOfRound), "openingDoorsSequence")]
-    public class RoundStartPatch
+    public class OpeningDoorsPatch
     {
         public static string getDangerLevel = "";
         public static void Postfix(ref StartOfRound __instance)
@@ -18,4 +13,16 @@ namespace TerminalStuff
             getDangerLevel = dangerLevel;
         }
     }
+    [HarmonyPatch(typeof(StartOfRound), "Start")]
+    public class StartRoundPatch
+    {
+        public static void Postfix(ref StartOfRound __instance)
+        {
+            Plugin.instance.splitViewCreated = false;
+            Terminal_RunTerminalEvents_Patch.AddDuplicateRenderObjects(); //addSplitViewObjects
+        }
+
+    }
+
+    
 }

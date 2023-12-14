@@ -1,11 +1,4 @@
-﻿using System;
-using BepInEx.Logging;
-using BepInEx.Configuration;
-using HarmonyLib;
-using Steamworks.Data;
-using TerminalApi;
-using static TerminalApi.TerminalApi;
-using static TerminalStuff.Plugin;
+﻿using HarmonyLib;
 
 namespace TerminalStuff
 {
@@ -39,7 +32,7 @@ namespace TerminalStuff
                 {
                     Plugin.AddLobbyKeywords();
                 }
-                
+
                 Plugin.Log.LogInfo("---------Lobby & Name Keywords updated!---------");
             }
         }
@@ -68,7 +61,7 @@ namespace TerminalStuff
             {
                 LastLobbyName = __instance.lobbyName;
                 Plugin.Log.LogInfo("---------Lobby & Name Keywords updated!---------");
-                
+
                 if (ConfigSettings.terminalLobby.Value)
                 {
                     Plugin.AddLobbyKeywords();
