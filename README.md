@@ -94,7 +94,23 @@ This project does not adhere to Semantic Versioning at this time.
  - Custom keywords for commands
  - Control terminal via chat, believe this has already been done by another mod
 
-## [2.0.0] **CURENT VERSION**
+
+## [2.0.1] **CURENT VERSION**
+
+ ### Fixed
+ - devtest: Removed my devtest command from active released patch. Luckily was linked to door command in 2.0.0 so no real damage could be done.
+ - fcolor: Fixed missing null check handling case where player has never held a flashlight.
+ - (fcolor) Also fixed flashlight colors not updating for your specific flashlight, was originally just looking for ANY flashlight.
+ - config: Updated config description for enemyScanCost to actively reflect that it is for the "bioscan" command to avoid confusion.
+
+ ### Known issues/bugs
+ - Lever seems to require two pulls from terminal sometimes.
+ - (lever) Only way I can recreate this is immediately leaving the terminal as soon as I confirm.
+ - (fcolor) Flashlight colors are only client side. I want to try to fix this but will make my attempt after this hotfix.
+
+
+
+## [2.0.0] 
 
 ### Added
  - MAJOR REWORK OF COMMAND HANDLING: Removed some convuluted logic in handling digits, added confirmation checks, and overall improved command to command interactions.
@@ -151,11 +167,6 @@ This project does not adhere to Semantic Versioning at this time.
  - kick: Base game pushed out a hotfix for the kick function and I believe this has resolved any issues with the kick command in current mod.
  - (kick) will leave disabled by default as there doesn't seem to be too much demand for this feature anymore.
  - modlist: Config was not set up properly and this command was always enabled regardless of config option.
-
-  ### Known issues/bugs
- - Lever seems to require two pulls from terminal sometimes.
- - (lever) I think this has to do with leaving the terminal before it processes the full action. Hoping to have fixed it in this update but needs more testing.
-
 
 ## [1.2.1] 
  ### Fixed
