@@ -72,15 +72,18 @@ This project does not adhere to Semantic Versioning at this time.
  - Please feel free to request changes or new features at my github [here](https://github.com/darmuh/TerminalStuff)
  - Also please do report any bugs you find there as well.
  - If you're not a fan of GitHub, I'm also fairly active on the LethalCompany Modding Discord managed by Thunderstore. I post updates on WIP features there whenever i'm messing with something new.
+ - Flashlight colors are CLIENT SIDE ONLY. You will not see other player's color change.
+ - If your flashlight color isn't changing try the following. (1) Make sure you have a flashlight in your inventory. (2) Turn on the flashlight and switch to something else to also tell the game you have a helmet light.
 
 ### Work for future updates
  - lol: think I might revist trying to get videos to display on the terminal itself after some findings in developing the splitview commands.
  - proview/overlay: Configuration options to make these purchasable upgrades
- - more door commands: Purchasable upgrade for the door open/close system (maybe)
+ - more door commands: Purchasable upgrade for the door open/close system (maybe, this might only be possible for the host player)
  - Ship Light controls and color change commands
  - Terminal customization (colors, etc.)
  - Terminal screen Always-On (does not turn black after leaving)
  - Custom keywords for commands (need to see if this is possible first)
+ - Networked flashlight colors if I ever figure out custom networking for this mod :)
 
  
 
@@ -94,20 +97,25 @@ This project does not adhere to Semantic Versioning at this time.
  - Custom keywords for commands
  - Control terminal via chat, believe this has already been done by another mod
 
+## [2.0.2] **CURENT VERSION**
 
-## [2.0.1] **CURENT VERSION**
+ ### Fixed
+ - heal/healme: Fixed typo in command causing heal function to not properly heal.
+ - door: Fixed door command not opening the door for non-host players.
+
+ ### Known issues/bugs
+ - Lever sometimes requires two pulls.
+ - (lever) Now i'm thinking it might have to do with the fact that after picking a moon there is a delay loading the level for it...
+ - (fcolor) Flashlight colors are only client side. I want to try to fix this but will make my attempt after this hotfix.
+
+
+## [2.0.1] 
 
  ### Fixed
  - devtest: Removed my devtest command from active released patch. Luckily was linked to door command in 2.0.0 so no real damage could be done.
  - fcolor: Fixed missing null check handling case where player has never held a flashlight.
  - (fcolor) Also fixed flashlight colors not updating for your specific flashlight, was originally just looking for ANY flashlight.
  - config: Updated config description for enemyScanCost to actively reflect that it is for the "bioscan" command to avoid confusion.
-
- ### Known issues/bugs
- - Lever seems to require two pulls from terminal sometimes.
- - (lever) Only way I can recreate this is immediately leaving the terminal as soon as I confirm.
- - (fcolor) Flashlight colors are only client side. I want to try to fix this but will make my attempt after this hotfix.
-
 
 
 ## [2.0.0] 
