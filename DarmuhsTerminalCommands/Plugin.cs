@@ -8,10 +8,11 @@ using UnityEngine.UI;
 using UnityEngine;
 using static TerminalApi.TerminalApi;
 using static TerminalStuff.Getlobby;
+using Unity.Netcode;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.0.1")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.0.2")]
     [BepInDependency("atomic.terminalapi")]
     [BepInDependency("Rozebud.FovAdjust")]
 
@@ -22,7 +23,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.DarmuhsTerminalCommands";
             public const string PLUGIN_NAME = "darmuhsTerminalCommands";
-            public const string PLUGIN_VERSION = "2.0.1";
+            public const string PLUGIN_VERSION = "2.0.2";
         }
 
         internal static new ManualLogSource Log;
@@ -45,19 +46,48 @@ namespace TerminalStuff
         public Vector2 originalTopPosition;
         public Vector2 originalBottomSize;
         public Vector2 originalBottomPosition;
+        public GameObject myNetworkPrefab;
 
         private void Awake()
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.0.1!");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.0.2!");
             Plugin.Log.LogInfo((object)"--------ChatGPT goes craaaaaazy.---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-            //LeaveTerminal.AddTest(); //this command is only for devtesting costly items
+            //LeaveTerminal.AddTest(); //this command is only for devtesting
             AddKeywords();
             VideoManager.Load();
+
+            //start of networking stuff
+            /*
+
+            //var MainAssetBundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("darmuhsTerminalStuff.darmuhngo"));
+            var MainAssetBundle = AssetBundle.LoadFromMemory(TerminalStuff.Properties.Resources.darmuhngo);
+            myNetworkPrefab = MainAssetBundle.LoadAsset<GameObject>("darmuhNGO");
+
+
+            var types = Assembly.GetExecutingAssembly().GetTypes();
+            foreach (var type in types)
+            {
+                var methods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                foreach (var method in methods)
+                {
+                    var attributes = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
+                    if (attributes.Length > 0)
+                    {
+                        method.Invoke(null, null);
+                    }
+                }
+            }
+
+            //end of networking stuff
+
+            */
         }
+
+
 
         public static void AddKeywords()
         {
@@ -111,4 +141,5 @@ namespace TerminalStuff
         }
 
     }
+
 }

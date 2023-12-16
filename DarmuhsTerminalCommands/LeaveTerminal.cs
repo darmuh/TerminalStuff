@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
 using System.Text.RegularExpressions;
 using Unity.Netcode;
 using UnityEngine;
@@ -15,7 +14,6 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using static TerminalApi.TerminalApi;
 using static TerminalStuff.AllMyTerminalPatches;
-using static UnityEngine.EventSystems.EventTrigger;
 
 namespace TerminalStuff
 {
@@ -218,24 +216,57 @@ namespace TerminalStuff
 
                     if (node.terminalEvent == "door")
                     {
-
                         if (!StartOfRound.Instance.inShipPhase)
                         {
-                            HangarShipDoor door = UnityEngine.Object.FindObjectOfType<HangarShipDoor>();
-                            if (!StartOfRound.Instance.hangarDoorsClosed && door.overheated == false)
+                            //thanks chatgpt for the breakdown
+
+                            // Determine the button name based on the hangar doors state
+                            string buttonName = StartOfRound.Instance.hangarDoorsClosed ? "StartButton" : "StopButton";
+
+                            // Find the corresponding button GameObject
+                            GameObject buttonObject = GameObject.Find(buttonName);
+
+                            // Get the InteractTrigger component from the button
+                            InteractTrigger interactTrigger = buttonObject.GetComponentInChildren<InteractTrigger>();
+
+                            // Determine the action based on the hangar doors state
+                            string action = StartOfRound.Instance.hangarDoorsClosed ? "opened" : "closed";
+
+                            // Log the door state
+                            Plugin.Log.LogInfo($"Hangar doors are {action}.");
+
+                            // Invoke the onInteract event if the button and event are found
+                            if (interactTrigger != null)
                             {
-                                node.displayText = $"{ConfigSettings.doorCloseString.Value}\n";
-                                ((UnityEvent<PlayerControllerB>)(object)door.triggerScript.onInteract).Invoke(GameNetworkManager.Instance.localPlayerController); //creds to NavarroTech, used their code for reference here
+                                UnityEvent<PlayerControllerB> onInteractEvent = interactTrigger.onInteract as UnityEvent<PlayerControllerB>;
+
+                                if (onInteractEvent != null)
+                                {
+                                    onInteractEvent.Invoke(GameNetworkManager.Instance.localPlayerController);
+
+                                    // Log individual messages for open and close events
+                                    if (action == "opened")
+                                    {
+                                        node.displayText = $"{ConfigSettings.doorOpenString.Value}\n";
+                                        Plugin.Log.LogInfo($"Hangar doors {action} successfully by interacting with button {buttonName}.");
+                                    }
+                                    else if (action == "closed")
+                                    {
+                                        node.displayText = $"{ConfigSettings.doorCloseString.Value}\n";
+                                        Plugin.Log.LogInfo($"Hangar doors {action} successfully by interacting with button {buttonName}.");
+                                    }
+                                }
+                                else
+                                {
+                                    // Log if onInteractEvent is null
+                                    Plugin.Log.LogWarning($"Warning: onInteract event is null for button {buttonName}.");
+                                }
                             }
                             else
                             {
-                                float pwrVal = door.doorPower;
-                                door.doorPower = 0f;
-                                node.displayText = $"{ConfigSettings.doorOpenString.Value}\n";
-                                yield return 0.1;
-                                door.doorPower = pwrVal;
-                            }
-                                
+                                // Log if interactTrigger is null
+                                Plugin.Log.LogWarning($"Warning: InteractTrigger not found on button {buttonName}.");
+                            }   
                         }
                         else
                         {
@@ -324,17 +355,17 @@ namespace TerminalStuff
 
                     if (node.terminalEvent == "flashlight")
                     {
-                        if (GameNetworkManager.Instance.localPlayerController.pocketedFlashlight != (UnityEngine.Object)null) //maybe get player holding items
+                        string playerName = GameNetworkManager.Instance.localPlayerController.playerUsername;
+                        if (GameNetworkManager.Instance.localPlayerController.pocketedFlashlight != (UnityEngine.Object)null && GameNetworkManager.Instance.localPlayerController.pocketedFlashlight.playerHeldBy.playerUsername == playerName) //maybe get player holding items
                         {
                             FlashlightItem flashlight = GameNetworkManager.Instance.localPlayerController.pocketedFlashlight.gameObject.GetComponent<FlashlightItem>();
                             //string playerFlash = flashlight.playerHeldBy.playerUsername;
                             Color flashlightColor = Terminal_ParsePlayerSentence_Patch.FlashlightColor ?? Color.red; // Use red as a default color
-                            flashlight.flashlightBulb.color = flashlightColor;
-                            flashlight.flashlightBulbGlow.color = flashlightColor;
-                            Plugin.Log.LogInfo($"Setting flashlight color to {Terminal_ParsePlayerSentence_Patch.FlashlightColor}");
-                            //Color flashlightColor = Color.green;
-                            GameNetworkManager.Instance.localPlayerController.helmetLight.color = flashlightColor;
-                            node.displayText = "Flashlight color set.\n";
+                                flashlight.flashlightBulb.color = flashlightColor;
+                                flashlight.flashlightBulbGlow.color = flashlightColor;
+                                Plugin.Log.LogInfo($"Setting flashlight color to {flashlightColor} for player {playerName}");
+                                GameNetworkManager.Instance.localPlayerController.helmetLight.color = flashlightColor;
+                                // Additional logic if needed...
                         }
                         else
                         {
@@ -528,14 +559,22 @@ namespace TerminalStuff
                     }
                     if (node.terminalEvent == "healme")
                     {
+                        int getPlayerHealth = GameNetworkManager.Instance.localPlayerController.health;
                         //this code snippet is slightly modified from Octolar's Healing Mod, credit to them
-                        if (GameNetworkManager.Instance.localPlayerController.health < 100 || !GameNetworkManager.Instance.localPlayerController.criticallyInjured)
+                        if (getPlayerHealth >= 100)
+                        {
+                            Plugin.Log.LogInfo($"Health = {getPlayerHealth}");
                             node.displayText = $"{ConfigSettings.healIsFullString.Value}\n";
+                        }
+                            
                         else
                         {
-                            GameNetworkManager.Instance.localPlayerController.DamagePlayer(-100, false);
+                            Plugin.Log.LogInfo($"Health before = {getPlayerHealth}");
+                            GameNetworkManager.Instance.localPlayerController.DamagePlayer(-100, false, true);
                             GameNetworkManager.Instance.localPlayerController.MakeCriticallyInjured(false);
-                            node.displayText = $"{ConfigSettings.healString.Value}\nHealth: {GameNetworkManager.Instance.localPlayerController.health.ToString()}";
+                            int getNewHealth = GameNetworkManager.Instance.localPlayerController.health;
+                            node.displayText = $"{ConfigSettings.healString.Value}\nHealth: {GameNetworkManager.Instance.localPlayerController.health.ToString()}\r\n";
+                            Plugin.Log.LogInfo($"Health now = {getNewHealth}");
                         }
                     }
                     if (node.terminalEvent == "mapEvent")
@@ -716,7 +755,7 @@ namespace TerminalStuff
                     {
                         node.displayText = "this shouldn't be enabled lol\n";
                         __instance.SyncGroupCreditsClientRpc(999999, __instance.numberOfItemsInDropship);
-
+                        //rpcPatchStuff.instance.Test();
                     }
                     if (node.terminalEvent == "fov")
                     {
@@ -916,7 +955,7 @@ namespace TerminalStuff
 
         public static void AddTest()
         {
-            TerminalNode test = CreateTerminalNode("test\n", true, "door");
+            TerminalNode test = CreateTerminalNode("test\n", true, "test");
             TerminalKeyword testKeyword = CreateTerminalKeyword("test", true, test);
             AddTerminalKeyword(testKeyword);
             Plugin.Log.LogInfo("This should only be enabled for dev testing");
