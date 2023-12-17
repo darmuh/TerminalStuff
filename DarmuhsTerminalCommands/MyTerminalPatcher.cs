@@ -37,6 +37,9 @@ namespace TerminalStuff
             static void Postfix(ref Terminal __instance)
             {
                 VideoController.isVideoPlaying = false;
+                LeaveTerminal.checkForSplitView("neither");
+                Plugin.instance.isOnCamera = false;
+                Plugin.instance.isOnMap = false;
                 //patches in when terminal starts getting used
             }
         }
@@ -47,6 +50,7 @@ namespace TerminalStuff
 
             public static int playerObjIdForTerminal; //needed for terminalEvent
             public static Color? FlashlightColor { get; private set; } // Public static variable to store the flashlight color
+            public static string flashLightColor;
 
             // Define a public static property to hold the parsed values
             public static int ParsedValue { get; private set; }
@@ -59,6 +63,9 @@ namespace TerminalStuff
             {
                 switch (colorKeyword.ToLower())
                 {
+                    case "normal":
+                        FlashlightColor = Color.white;
+                        break;
                     case "red":
                         FlashlightColor = Color.red;
                         break;
@@ -93,7 +100,7 @@ namespace TerminalStuff
                         FlashlightColor = new Color32(180, 203, 240, 1);
                         break;
                     default:
-                        FlashlightColor = null;
+                        FlashlightColor = Color.white;
                         break;
                 }
             }
@@ -156,7 +163,7 @@ namespace TerminalStuff
                     Plugin.Log.LogInfo("disabled confirmation check, checked __result at __result");
 
                     //if we want to keep consistency with actively displayed objects
-                    if (__result.terminalEvent == "switchCamera" || (__instance.terminalNodes.specialNodes.Contains(__result) && !(__result == __instance.terminalNodes.specialNodes[0] || __result == __instance.terminalNodes.specialNodes[1] || __result == __instance.terminalNodes.specialNodes[13])))//anything in here will not have the below applied (too much text)
+                 /*   if ((__instance.terminalNodes.specialNodes.Contains(__result) && !(__result == __instance.terminalNodes.specialNodes[0] || __result == __instance.terminalNodes.specialNodes[1] || __result == __instance.terminalNodes.specialNodes[13])))//anything in here will not have the below applied (too much text)
                     {
                         Plugin.Log.LogInfo("patched into specialnodes that are not big long commands!");
                         if (Plugin.instance.isOnCamera)
@@ -190,7 +197,7 @@ namespace TerminalStuff
                         else
                             Plugin.Log.LogInfo("no active screen of any kind (cams, map, etc.)");
                         return;
-                    }
+                    } */
                         
                 }
 
@@ -419,12 +426,13 @@ namespace TerminalStuff
 
                     }
 
-                    if (words.Length >= 2 && words[0].ToLower() == "fcolor" && ConfigSettings.terminalFcolor.Value == true)
+                    if (words.Length >= 2 && words[0].ToLower() == "fcolor" && words[1].ToLower() != "list" && ConfigSettings.terminalFcolor.Value == true)
                     {
                         Plugin.Log.LogInfo("fcolor command detected!");
                         string targetColor = words[1];
 
                         SetFlashlightColor(targetColor);
+                        flashLightColor = targetColor;
 
                         if (FlashlightColor.HasValue)
                         {
@@ -439,8 +447,14 @@ namespace TerminalStuff
                             return;
                         }
                     }
+                    if (words.Length >= 2 && words[0].ToLower() == "fcolor" && words[1].ToLower() == "list" && ConfigSettings.terminalFcolor.Value == true) //get list of colors
+                    {
+                        TerminalNode fList = CreateTerminalNode("========= Flashlight Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"fcolor normal\" or \"fcolor default\"\r\nRed: \"fcolor red\"\r\nGreen: \"fcolor green\"\r\nBlue: \"fcolor blue\"\r\nYellow: \"fcolor yellow\"\r\nCyan: \"fcolor cyan\"\r\nMagenta: \"fcolor magenta\"\r\nPurple: \"fcolor purple\"\r\nLime: \"fcolor lime\"\r\nPink: \"fcolor pink\"\r\nSasstro's Color: \"fcolor sasstro\"\r\nSamstro's Color: \"fcolor samstro\"\r\n\r\n", true);
+                        __result = fList;
+                        return;
+                    }
 
-                    if (words.Length >= 2 && words[0].ToLower() == "kick" && ConfigSettings.terminalKick.Value == true)
+                        if (words.Length >= 2 && words[0].ToLower() == "kick" && ConfigSettings.terminalKick.Value == true)
                     {
                         string targetPlayerName = words[1];
 
@@ -667,7 +681,11 @@ namespace TerminalStuff
                         StringBuilder funString = new StringBuilder("=== Category 4: Fun Stuff ===\r\n\r\n");
 
                         if (ConfigSettings.terminalFcolor.Value)
+                        {
                             funString.AppendLine("> fcolor <color>\r\nUpgrade your flashlight with a new color.\r\n");
+                            funString.AppendLine("> fcolor list\r\nView available colors.\r\n");
+                        }    
+                            
                         if (ConfigSettings.terminalGamble.Value)
                             funString.AppendLine("> gamble <percentage>\r\nGamble a percentage of your credits.\r\n");
                         if (ConfigSettings.terminalLol.Value)

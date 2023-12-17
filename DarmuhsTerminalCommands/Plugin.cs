@@ -12,7 +12,7 @@ using Unity.Netcode;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.0.2")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.0.3")]
     [BepInDependency("atomic.terminalapi")]
     [BepInDependency("Rozebud.FovAdjust")]
 
@@ -21,9 +21,9 @@ namespace TerminalStuff
         public static Plugin instance;
         public static class PluginInfo
         {
-            public const string PLUGIN_GUID = "darmuh.lethalcompany.DarmuhsTerminalCommands";
-            public const string PLUGIN_NAME = "darmuhsTerminalCommands";
-            public const string PLUGIN_VERSION = "2.0.2";
+            public const string PLUGIN_GUID = "darmuh.lethalcompany.darmuhsTerminalStuff";
+            public const string PLUGIN_NAME = "darmuhsTerminalStuff";
+            public const string PLUGIN_VERSION = "2.0.3";
         }
 
         internal static new ManualLogSource Log;
@@ -52,7 +52,7 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.0.2!");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.0.3!");
             Plugin.Log.LogInfo((object)"--------ChatGPT goes craaaaaazy.---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());

@@ -57,13 +57,18 @@
 
  -BioScanPatch (bioscanpatch)
 
+ -Flashlight Color (fcolor "colorname")
+
+ -Flashlight Color List (fcolor list) *info command*
 
 
 # Change Log
+
 All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does not adhere to Semantic Versioning at this time.
+ 
  
 ## FYI Section
 
@@ -88,26 +93,41 @@ This project does not adhere to Semantic Versioning at this time.
  
 
 ### Requested Features from Community
- - late join command: a feature similar to latecompany that can be toggled? 
- - ^(late join command) definitely not simple, Latecompany has about 6 different patches to work (without toggling)
- - ^(late join command) probably not going to implement this due to the complexity.
+ - ~~late join command: a feature similar to latecompany that can be toggled~~
  - Ship Lights (on/off)
  - Terminal customization (colors, etc.)
  - Terminal Always-On display
  - Custom keywords for commands
  - Control terminal via chat, believe this has already been done by another mod
 
-## [2.0.2] **CURENT VERSION**
+## [2.0.3] *CURRENT VERSION*
+
+ ### Added
+ - fcolor: added command "fcolor list" to see what colors are available to choose from per request.
+ - (fcolor) also added normal/default color keywords to set back to "normal" flashlight color (white)
+
+ ### Fixed
+ - switch: This base command was having weird interactions with all the different cams commands
+ - (switch) Also a popular mod "FastSwitchPlayerViewInRadarMOD" was having some compatability issues with the new cams hooking logic
+ - (switch) I've fixed all of these issues and hopefully this mod should remain compatible with any other mods that utilize the vanilla "ViewInsideShipCam 1" object name.
+ - lever: Pretty sure I fixed having to pull the lever twice.
+ - (lever) Turns out the reason for this was that the game requires a wait between changing levels (moons) and starting the game
+ - fcolor: Reworked command so that it works without errors. As long as you have a flashlight in your inventory it will change the color.
+ - (fcolor) If you have two flashlights on you it will only change the color for one. This is intended.
+
+
+ ### Known issues/bugs
+ - fcolor: Flashlight colors are only client side. Fixing this would require adding networking to this mod.
+ - (fcolor networking) This probably won't be implemented any time soon. I've done some internal testing but still running into issues with this implementation.
+ - radar switch in terminal is not synced with other players (client only)
+ <details open>
+ <summary>Historical Patch Notes</summary>
+
+## [2.0.2]
 
  ### Fixed
  - heal/healme: Fixed typo in command causing heal function to not properly heal.
  - door: Fixed door command not opening the door for non-host players.
-
- ### Known issues/bugs
- - Lever sometimes requires two pulls.
- - (lever) Now i'm thinking it might have to do with the fact that after picking a moon there is a delay loading the level for it...
- - (fcolor) Flashlight colors are only client side. I want to try to fix this but will make my attempt after this hotfix.
-
 
 ## [2.0.1] 
 
@@ -232,3 +252,5 @@ This project does not adhere to Semantic Versioning at this time.
  - clear: clears terminal of existing text.
  - heal: Command to heal self, thanks to Thorlar for their HealthStation mod. Used their code for reference (not required for this mod).
  - Configuration system to enable/disable above commands.
+
+  </details>

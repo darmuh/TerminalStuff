@@ -12,8 +12,10 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 using static TerminalApi.TerminalApi;
 using static TerminalStuff.AllMyTerminalPatches;
+using System.Security.Policy;
 
 namespace TerminalStuff
 {
@@ -94,7 +96,8 @@ namespace TerminalStuff
                     if (node.terminalEvent == "leverdo")
                     {
                         NetworkManager networkManager = __instance.NetworkManager;
-                        if (!GameNetworkManager.Instance.gameHasStarted && ((object)networkManager != null && networkManager.IsHost))
+                        string getLevelName = StartOfRound.Instance.currentLevel.PlanetName;
+                        if (!GameNetworkManager.Instance.gameHasStarted && !StartOfRound.Instance.travellingToNewLevel && ((object)networkManager != null && networkManager.IsHost))
                         {
                             node.displayText = $"{ConfigSettings.leverString.Value}\n";
 
@@ -114,6 +117,10 @@ namespace TerminalStuff
                             {
                                 Debug.LogError("StartMatchLever instance not found!");
                             }
+                        }
+                        else if (StartOfRound.Instance.travellingToNewLevel)
+                        {
+                            node.displayText = $"We have not yet arrived to {getLevelName}, please wait.\r\n";
                         }
                         else if (GameNetworkManager.Instance.gameHasStarted)
                         {
@@ -139,7 +146,7 @@ namespace TerminalStuff
                         }
                         else
                         {
-                            node.displayText = "Cannot pull the lever at this time.\n\nIf game has not been started, only the host can do this.\n";
+                            node.displayText = "Cannot pull the lever at this time.\r\n\r\nNOTE:If game has not been started, only the host can do this.\r\n\r\n";
                         }
                     }
                         //end of lever event    
@@ -353,25 +360,172 @@ namespace TerminalStuff
                             node.displayText = $"Upgrade already purchased.";
                     }
 
-                    if (node.terminalEvent == "flashlight")
+                    if (node.terminalEvent == "switchCamera")
                     {
-                        string playerName = GameNetworkManager.Instance.localPlayerController.playerUsername;
-                        if (GameNetworkManager.Instance.localPlayerController.pocketedFlashlight != (UnityEngine.Object)null && GameNetworkManager.Instance.localPlayerController.pocketedFlashlight.playerHeldBy.playerUsername == playerName) //maybe get player holding items
+                        Plugin.Log.LogInfo("Switch command patch");
+                        Plugin.Log.LogInfo($"Map: {Plugin.instance.isOnMap} Cams: {Plugin.instance.isOnCamera} ProView: {Plugin.instance.isOnProView} Overlay: {Plugin.instance.isOnOverlay}");
+                        TerminalNode pvNode = CreateTerminalNode("go back to cams\n", true, "proview");
+                        TerminalNode ovNode = CreateTerminalNode("go back to cams\n", true, "overlay");
+                        node.name = "ViewInsideShipCam 1";
+
+
+                        if (Plugin.instance.isOnCamera == true)
                         {
-                            FlashlightItem flashlight = GameNetworkManager.Instance.localPlayerController.pocketedFlashlight.gameObject.GetComponent<FlashlightItem>();
-                            //string playerFlash = flashlight.playerHeldBy.playerUsername;
-                            Color flashlightColor = Terminal_ParsePlayerSentence_Patch.FlashlightColor ?? Color.red; // Use red as a default color
-                                flashlight.flashlightBulb.color = flashlightColor;
-                                flashlight.flashlightBulbGlow.color = flashlightColor;
-                                Plugin.Log.LogInfo($"Setting flashlight color to {flashlightColor} for player {playerName}");
-                                GameNetworkManager.Instance.localPlayerController.helmetLight.color = flashlightColor;
-                                // Additional logic if needed...
+                            Plugin.Log.LogInfo("Cam was true, turning it back on");
+                            enabledSplitObjects = false;
+                            checkForSplitView("neither"); //disables split view if enabled
+                            if (GameObject.Find("Environment/HangarShip/Cameras/ShipCamera") != null)
+                            {
+
+                                node.clearPreviousText = true;
+                                // Get the main texture from "Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001"
+                                Texture renderTexture = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture;
+                                node.displayTexture = renderTexture;
+                                __instance.terminalImage.enabled = true;
+                                Plugin.instance.isOnCamera = true;
+                                Plugin.instance.isOnMap = false;
+                                Plugin.instance.isOnOverlay = false;
+                                Plugin.instance.isOnProView = false;
+                                //isOnCamera = true;
+                                Plugin.Log.LogInfo("cam added to terminal screen");
+                                node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (CAMS)\n"; //the excessive n's are to get the text to display under the cams
+                                yield break;
+                            }
+                            
+                        }
+                        else if (Plugin.instance.isOnMap == true)
+                        {
+                            Plugin.Log.LogInfo("Map was true, run event again");
+                            node.clearPreviousText = true;
+                            Texture renderTexture = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture;
+                            node.displayTexture = renderTexture;
+                            __instance.terminalImage.enabled = true;
+                            Plugin.instance.isOnCamera = false;
+                            Plugin.instance.isOnOverlay = false;
+                            Plugin.instance.isOnProView = false;
+                            Plugin.instance.isOnMap = true;
+                            Plugin.Log.LogInfo("map radar enabled");
+                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (MAP)\n";
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnOverlay == true)
+                        {
+                            Plugin.Log.LogInfo("Overlay was true, setting to false to run event again");
+                            Plugin.instance.isOnOverlay = false;
+                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (Overlay)\n";
+                            __instance.RunTerminalEvents(ovNode);
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnProView == true)
+                        {
+                            Plugin.Log.LogInfo("Proview was true, setting to false to run event again");
+                            Plugin.instance.isOnProView = false;
+                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (ProView)\n";
+                            __instance.RunTerminalEvents(pvNode);
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnMap == false && Plugin.instance.isOnCamera == false && Plugin.instance.isOnProView == false && Plugin.instance.isOnOverlay == false)
+                        {
+                            Plugin.Log.LogInfo("Nothing was active, setting view to map view");
+                            node.clearPreviousText = true;
+                            Texture renderTexture = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture;
+                            node.displayTexture = renderTexture;
+                            __instance.terminalImage.enabled = true;
+                            Plugin.instance.isOnCamera = false;
+                            Plugin.instance.isOnOverlay = false;
+                            Plugin.instance.isOnProView = false;
+                            Plugin.instance.isOnMap = true;
+                            Plugin.Log.LogInfo("map radar enabled");
+                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (Radar)\n";
+                            yield break;
                         }
                         else
                         {
-                            node.displayText = "No flashlight found to set color.\r\n\r\nMake sure you have already equipped a flashlight and turned it on before running this command.\r\n";
-                        }                        
+                            Plugin.Log.LogInfo("somethin fucky goin on");
+                        }
+
+
                     }
+
+                    if (node.terminalEvent == "flashlight")
+                    {
+                        string playerName = GameNetworkManager.Instance.localPlayerController.playerUsername;
+                        string colorName = Terminal_ParsePlayerSentence_Patch.flashLightColor;
+                        Plugin.Log.LogInfo($"{playerName} trying to set color {colorName} to flashlight");
+                        Color flashlightColor = Terminal_ParsePlayerSentence_Patch.FlashlightColor ?? Color.white; // Use white as a default color
+                        Plugin.Log.LogInfo($"got {colorName} - {flashlightColor}");
+
+                        Plugin.Log.LogInfo($"Finding ObjectsOfType GrabbableObject");
+                        GrabbableObject[] objectsOfType = UnityEngine.Object.FindObjectsOfType<GrabbableObject>();
+                        Plugin.Log.LogInfo($"setting getMyFlash to null grabbableobject");
+                        GrabbableObject getMyFlash = null; // Initialize to null outside the loop
+                        Plugin.Log.LogInfo($"for each new grabbable object in objects of type");
+                        foreach (GrabbableObject thisFlash in objectsOfType)
+                        {
+                            
+                            //Plugin.Log.LogInfo($"checking grabbable object for playername and flashlight properties");
+                            if (thisFlash.playerHeldBy != null)  //nesting
+                            {
+                                if (thisFlash.playerHeldBy.playerUsername == playerName && thisFlash.gameObject.name == "FlashlightItem(Clone)") //explicitly set object name to avoid issues
+                                {
+                                    //Plugin.Log.LogInfo($"found a matching object");
+                                    Plugin.Log.LogInfo($"[FOUND OBJECT] Held by: {thisFlash.playerHeldBy} - Name {thisFlash.gameObject.name}");
+                                    getMyFlash = thisFlash;
+                                    break;
+                                }
+                                //Plugin.Log.LogInfo("()()Heldby was not null, however, matching object not found.");
+                                //Plugin.Log.LogInfo($"()()[OBJECT] Held by: {thisFlash.playerHeldBy} - Name {thisFlash.gameObject.name}");
+
+                            }
+                            else
+                            {
+                                //Plugin.Log.LogInfo($"[OBJECT] Held by: {thisFlash.playerHeldBy} - Name {thisFlash.gameObject.name}");
+                            }
+                        }
+
+                        // Move the null check outside the loop
+                        if (getMyFlash != null)
+                        {
+                            Plugin.Log.LogInfo($"getMyFlash is not null, getting/setting components");
+
+                            // Use TryGetComponent to safely get the FlashlightItem component
+                            if (getMyFlash.gameObject.TryGetComponent<FlashlightItem>(out FlashlightItem flashlightItem))
+                            {
+                                if (flashlightItem.flashlightBulb != null && flashlightItem.flashlightBulbGlow != null)
+                                {
+                                    flashlightItem.flashlightBulb.color = flashlightColor;
+                                    flashlightItem.flashlightBulbGlow.color = flashlightColor;
+                                    Plugin.Log.LogInfo($"Setting flashlight color to {colorName} for player {playerName}");
+
+                                    if (GameNetworkManager.Instance.localPlayerController.helmetLight)
+                                    {
+                                        GameNetworkManager.Instance.localPlayerController.helmetLight.color = flashlightColor;
+                                        node.displayText = $"Flashlight Color set to {colorName}.\r\nHelmet Light Color set to {colorName}.";
+                                        yield break;
+                                    }
+                                    else
+                                    {
+                                        node.displayText = $"Flashlight Color set to {colorName}.\r\nHelmet Light cannot be set.";
+                                        yield break;
+                                    }
+                                }
+                                else
+                                {
+                                    Plugin.Log.LogInfo($"flashlightBulb or flashlightBulbGlow is null on {getMyFlash.gameObject}");
+                                }
+                            }
+                            else
+                            {
+                                Plugin.Log.LogInfo($"FlashlightItem component not found on {getMyFlash.gameObject}");
+                            }
+                        }
+                        else
+                        {
+                            node.displayText = "Cannot set flashlight color.\r\n\r\nEnsure you have equipped a flashlight before using this command.\r\n";
+                        }
+                    }
+
+
                     if (node.terminalEvent == "teleport")
                     {
                         ShipTeleporter[] objectsOfType = UnityEngine.Object.FindObjectsOfType<ShipTeleporter>();
@@ -581,6 +735,7 @@ namespace TerminalStuff
                     {
                         enabledSplitObjects = false;
                         checkForSplitView("neither"); //disables split view if enabled
+                        node.name = "ViewInsideShipCam 1";
                         if (RoundManager.Instance != null && RoundManager.Instance.hasInitializedLevelRandomSeed)
                         {
                             if (Plugin.instance.isOnMap == false)
@@ -590,6 +745,8 @@ namespace TerminalStuff
                                 node.displayTexture = renderTexture;
                                 __instance.terminalImage.enabled = true;
                                 Plugin.instance.isOnCamera = false;
+                                Plugin.instance.isOnOverlay = false;
+                                Plugin.instance.isOnProView = false;
                                 Plugin.instance.isOnMap = true;
                                 Plugin.Log.LogInfo("map radar enabled");
                                 node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nEnabling radar view\r\n";
@@ -602,6 +759,8 @@ namespace TerminalStuff
                                 node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDisabling radar view\r\n";
                                 Plugin.instance.isOnMap = false;
                                 Plugin.instance.isOnCamera = false;
+                                Plugin.instance.isOnOverlay = false;
+                                Plugin.instance.isOnProView = false;
                                 //endMapCommand = true;
                             }
                             else
@@ -622,6 +781,7 @@ namespace TerminalStuff
                     if (node.terminalEvent == "cams")
                     {
                         enabledSplitObjects = false;
+                        node.name = "ViewInsideShipCam 1";
                         checkForSplitView("neither"); //disables split view if enabled
                         if (GameObject.Find("Environment/HangarShip/Cameras/ShipCamera") != null && Plugin.instance.isOnCamera == false)
                         {
@@ -633,6 +793,8 @@ namespace TerminalStuff
                             __instance.terminalImage.enabled = true;
                             Plugin.instance.isOnCamera = true;
                             Plugin.instance.isOnMap = false;
+                            Plugin.instance.isOnOverlay = false;
+                            Plugin.instance.isOnProView = false;
                             //isOnCamera = true;
                             Plugin.Log.LogInfo("cam added to terminal screen");
                             node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{ConfigSettings.camString.Value}\n"; //the excessive n's are to get the text to display under the cams
@@ -654,8 +816,10 @@ namespace TerminalStuff
                     if (node.terminalEvent == "overlay")
                     {
                         node.clearPreviousText = true;
+                        node.name = "ViewInsideShipCam 1";
                         Plugin.instance.isOnMap = false;
                         Plugin.instance.isOnCamera = false;
+                        Plugin.instance.isOnProView = false;
                         Texture texture1 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture; // radar
                         Texture texture2 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture; // cams
 
@@ -700,6 +864,7 @@ namespace TerminalStuff
 
                     if (node.terminalEvent == "proview")
                     {
+                        node.name = "ViewInsideShipCam 1";
                         node.clearPreviousText = true;
                         Plugin.instance.isOnMap = false;
                         Plugin.instance.isOnCamera = false;
@@ -841,7 +1006,7 @@ namespace TerminalStuff
 
         }
 
-        private static void checkForSplitView( string whatisit )
+        public static void checkForSplitView( string whatisit )
         {
             if (enabledSplitObjects == false) //make sure to disable either splitview
             {
