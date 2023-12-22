@@ -13,17 +13,21 @@
 
  -Functionality (fun, functionality) *info command*
  
- -Lobby Name (lobby, name, lobby name) *info command*
+ -Lobby (lobby) *info command*
   
  -Quit (quit)
 
  -Door (door)
  
+ -Lights (lights)
+ 
  -Loot (shiploot, loot)
  
  -Cams (cameras, cams)
 
- -ProView (proview)
+ -MiniMap (minimap)
+
+ -MiniCams (minicams)
 
  -Overlay (overlay)
  
@@ -61,6 +65,12 @@
 
  -Flashlight Color List (fcolor list) *info command*
 
+ -ShipLights Color (scolor "all/front/middle/back" "colorname")
+
+ -ShipLights Color List (scolor list) *info command*
+
+ -Always-On Display (alwayson)
+
 
 # Change Log
 
@@ -73,34 +83,63 @@ This project does not adhere to Semantic Versioning at this time.
 ## FYI Section
 
 ### NOTES:
- - Highly recommend when updating this mod deleting the old config file and letting it generate a new one on first launch with the update.
+ - When updating this mod DELETE THE OLD CONFIG FILE and let it generate a new one on first launch with the update.
  - Please feel free to request changes or new features at my github [here](https://github.com/darmuh/TerminalStuff)
  - Also please do report any bugs you find there as well.
  - If you're not a fan of GitHub, I'm also fairly active on the LethalCompany Modding Discord managed by Thunderstore. I post updates on WIP features there whenever i'm messing with something new.
- - Flashlight colors are CLIENT SIDE ONLY. You will not see other player's color change.
- - If your flashlight color isn't changing try the following. (1) Make sure you have a flashlight in your inventory. (2) Turn on the flashlight and switch to something else to also tell the game you have a helmet light.
+ - Colors are CLIENT SIDE ONLY. You will not see other player's color change settings.
+ - Terminal Always-On Display is CLIENT SIDE.
 
 ### Work for future updates
- - lol: think I might revist trying to get videos to display on the terminal itself after some findings in developing the splitview commands.
- - proview/overlay: Configuration options to make these purchasable upgrades
+ - Help command to show info on other commands, eg. "help fcolor"
+ - minimap/minicams/overlay: Configuration options to make these purchasable upgrades. Not highly desired but I think it'd be nice to have the option.
+ - minimap/minicams/overlay: Configurable Opacity levels for these.
+ - more custom configurable keywords
  - more door commands: Purchasable upgrade for the door open/close system (maybe, this might only be possible for the host player)
- - Ship Light controls and color change commands
  - Terminal customization (colors, etc.)
- - Terminal screen Always-On (does not turn black after leaving)
- - Custom keywords for commands (need to see if this is possible first)
+ - More fun-type commands such as roll-the-dice, expanded gambling games, etc. (maybe even tie in a wager system with the game itself)
  - Networked flashlight colors if I ever figure out custom networking for this mod :)
-
  
 
 ### Requested Features from Community
  - ~~late join command: a feature similar to latecompany that can be toggled~~
- - Ship Lights (on/off)
  - Terminal customization (colors, etc.)
- - Terminal Always-On display
- - Custom keywords for commands
- - Control terminal via chat, believe this has already been done by another mod
+ - Control terminal via chat, believe this has already been done by another mod (is it compatible?)
+ - ITP/TP: Add cooldown time to terminal display message when you cant use it yet.
 
-## [2.0.3] *CURRENT VERSION*
+
+## [2.1.0] *CURRENT VERSION*
+ ### Added/Changed
+ - CHANGED CONFIG STRUCTURE AGAIN: Please delete your old config upon updating and let the mod generate a new one.
+ - (Config) The update config now has which command belongs to which in-game category (if you type more).
+ - CUSTOM KEYWORDS: Added a handful of configurable keywords. Take a look at the new config file to see what you can change!
+ - lol: Reworked lol command to use the terminal's built in videoplayer and it will now display videos directly on the terminal!
+ - scolor: added scolor command to change the color of the base lights in the ship.
+ - (scolor) this command changes 3 separate light colors which are labeled "front", "middle", and "back"
+ - (scolor) when using the command you specify what lights you want to change or simply type all for your selection.
+ - (scolor) the third argument in this command is the color name. Like with fcolor you can see a list of these using "scolor list"
+ - proview/minimap: changed keyword/name of the proview command to "minimap"
+ - minicams: added inverse command of minimap where the cam is the small screen.
+ - lights: finally added a command to toggle the lights in the ship
+ - Always On Display: Added alwayson command that allows you to disable leaving the terminal screen on all the time or not.
+ - lobby: As this was the oldest command in this mod I've updated it to be a bit more streamlined and pull from the same variable for both host/client.
+
+ ### Fixed
+ - TP/ITP: Fixed issue where you would be trying to buy either an inverse teleporter or a regular teleporter and these command would trigger instead.
+ - (TP/ITP) You now won't be able to use these commands until you have a teleporter of the type required to run it.
+ - From my own testing if everyone is using this mod the radar switch will be synced between players, so I've removed this as a known issue.
+ - fcolor: Fixed the issue where this command would accept any color name instead of returning invalid for incorrect colors.
+
+
+ ### Known issues/bugs
+ - fcolor: Flashlight colors are only client side. Fixing this would require adding networking to this mod.
+ - (fcolor networking) This probably won't be implemented any time soon. I've done some internal testing but still running into issues with this implementation.
+
+ <details open>
+ <summary>Historical Patch Notes</summary>
+
+
+## [2.0.3]
 
  ### Added
  - fcolor: added command "fcolor list" to see what colors are available to choose from per request.
@@ -114,14 +153,7 @@ This project does not adhere to Semantic Versioning at this time.
  - (lever) Turns out the reason for this was that the game requires a wait between changing levels (moons) and starting the game
  - fcolor: Reworked command so that it works without errors. As long as you have a flashlight in your inventory it will change the color.
  - (fcolor) If you have two flashlights on you it will only change the color for one. This is intended.
-
-
- ### Known issues/bugs
- - fcolor: Flashlight colors are only client side. Fixing this would require adding networking to this mod.
- - (fcolor networking) This probably won't be implemented any time soon. I've done some internal testing but still running into issues with this implementation.
- - radar switch in terminal is not synced with other players (client only)
- <details open>
- <summary>Historical Patch Notes</summary>
+ 
 
 ## [2.0.2]
 
