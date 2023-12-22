@@ -4,10 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Threading;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Video;
 using static TerminalApi.TerminalApi;
+using System.CodeDom;
+using System.Collections;
+using DunGen.Graph;
 
 namespace TerminalStuff
 {
@@ -15,9 +20,44 @@ namespace TerminalStuff
     {
         public static AllMyTerminalPatches Instance;
 
-        [HarmonyPatch(typeof(Terminal), "Start")]
-        public class Terminal_Awake_Patch
+        [HarmonyPatch(typeof(Terminal), "QuitTerminal")]
+        public class QuitPatch : Terminal
         {
+            static void Postfix(ref Terminal __instance)
+            {
+                Terminal_Awake_Patch.isTermInUse = __instance.terminalInUse;
+                //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}");
+                if(Terminal_Awake_Patch.alwaysOnDisplay)
+                {
+                    __instance.StartCoroutine(__instance.waitUntilFrameEndToSetActive(active: true));
+                    Plugin.Log.LogInfo("Screen set to active");
+                    if (LeaveTerminal.isVideoPlaying)
+                    {
+                        __instance.videoPlayer.Pause();
+                        __instance.StartCoroutine(waitUntilFrameEndVideo(__instance));
+                    }
+
+                }
+                    
+            }
+
+            private static IEnumerator waitUntilFrameEndVideo(Terminal instance)
+            {
+                yield return new WaitForEndOfFrame();
+                if(LeaveTerminal.isVideoPlaying)
+                    instance.videoPlayer.Play();
+                Plugin.Log.LogInfo("attemtped to resume videoplayer");
+            }
+
+        }
+
+        [HarmonyPatch(typeof(Terminal), "Start")]
+        public class Terminal_Awake_Patch : Terminal
+        {
+            public static bool doesTPexist = false;
+            public static bool doesITPexist = false;
+            public static bool alwaysOnDisplay = false;
+            public static bool isTermInUse = false;
             //change vanilla terminal stuff here
             static void Postfix(ref Terminal __instance)
             {
@@ -26,22 +66,180 @@ namespace TerminalStuff
                 TerminalNode helpNode = __instance.terminalNodes.specialNodes.ToArray()[13];
                 helpNode.displayText = ">MOONS\r\nList of moons the autopilot can route to.\r\n\r\n>STORE\r\nCompany store's selection of useful items.\r\n\r\n>BESTIARY\r\nTo see the list of wildlife on record.\r\n\r\n>STORAGE\r\nTo access objects placed into storage.\r\n\r\n>OTHER\r\nTo see the list of other commands\r\n\r\n>MORE\r\nTo see a list of commands added via darmuhsTerminalStuff\r\n\r\n[numberOfItemsOnRoute]\r\n";
                 startNode.displayText = "Welcome to the FORTUNE-9 OS PLUS\r\n\tUpgraded by Employee: darmuh\r\n\r\nType \"Help\" for a list of commands.\r\n\r\nType \"More\" for a list of \"extra\" commands.\r\n\r\n     ._______.\r\n     | \\   / |\r\n  .--|.O.|.O.|______.\r\n__).-| = | = |/   \\ |\r\np__) (.'---`.)Q.|.Q.|--.\r\n      \\\\___// = | = |-.(__\r\n       `---'( .---. ) (__&lt;\r\n             \\\\.-.//\r\n              `---'\r\n\t\t\t  \r\nHave a wonderful [currentDay]!\r\n";
+                doesTPexist = false;
+                doesITPexist = false;
+                isTermInUse = __instance.terminalInUse;
+                StopPersistingKeywords();
+                CreateSpecialNode(__instance);
+               
+                // Introduce a 3-second delay before calling checkForTPatStart
+                Task.Run(() =>
+                {
+                    Thread.Sleep(3000);
+                    checkForTPatStart();
+                });
+            }
+
+            private static void CreateSpecialNode(Terminal instance)
+            {
+                TerminalNode camsNode = CreateTerminalNode("", true, "returnCams");
+                camsNode.name = "ViewInsideShipCam 1";
+                instance.terminalNodes.specialNodes.Add(camsNode);
+
+            }
+
+
+            private static void StopPersistingKeywords()
+            {
+                //deletes keywords at game start if they exist from previous plays
+
+                DeleteKeyword("teleport");
+                DeleteKeyword("tp");
+                DeleteKeyword("itp");
+                DeleteKeyword("inverse");
+            }
+
+            private static void checkForTPatStart()
+            {
+                //Add TP keywords ONLY if they have already been purchased and exist
+                Plugin.Log.LogInfo("Checking for purchased Teleporter objects");
+                ShipTeleporter[] objectsOfType = UnityEngine.Object.FindObjectsOfType<ShipTeleporter>();
+
+                if (!doesTPexist && ConfigSettings.terminalTP.Value)
+                {
+                    ShipTeleporter tp = (ShipTeleporter)null;
+
+                    foreach (ShipTeleporter tpobject in objectsOfType)
+                    {
+                        if (!tpobject.isInverseTeleporter)
+                        {
+                            tp = tpobject;
+                            break;
+                        }
+                    }
+
+                    if (tp != null)
+                    {
+                        doesTPexist = true;
+                        LeaveTerminal.AddTeleportKeywords();
+                    }
+                    else
+                    {
+                        Plugin.Log.LogInfo("TP does not exist yet");
+                    }
+                }
+                if (!doesITPexist && ConfigSettings.terminalITP.Value)
+                {
+                    ShipTeleporter itp = (ShipTeleporter)null;
+                    foreach (ShipTeleporter tpobject in objectsOfType)
+                    {
+                        if (tpobject.isInverseTeleporter)
+                        {
+                            itp = tpobject;
+                            break;
+                        }
+                    }
+
+                    if (itp != null && ConfigSettings.terminalITP.Value)
+                    {
+                        doesITPexist = true;
+                        LeaveTerminal.AddInverseTeleportKeywords();
+                    }
+                    else
+                    {
+                        Plugin.Log.LogInfo("ITP does not exist yet");
+                    }
+                }
             }
         }
 
         [HarmonyPatch(typeof(Terminal), "BeginUsingTerminal")]
         public class Terminal_Begin_Patch
         {
-            private static VideoController videoController;
 
             static void Postfix(ref Terminal __instance)
             {
-                VideoController.isVideoPlaying = false;
-                LeaveTerminal.checkForSplitView("neither");
-                Plugin.instance.isOnCamera = false;
-                Plugin.instance.isOnMap = false;
-                //patches in when terminal starts getting used
+                Terminal_Awake_Patch.isTermInUse = __instance.terminalInUse;
+                //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}"); //for alwaysondisplay
+                if (!Terminal_Awake_Patch.alwaysOnDisplay)
+                {
+                    LeaveTerminal.isVideoPlaying = false;
+                    LeaveTerminal.checkForSplitView("neither");
+                    Plugin.instance.isOnCamera = false;
+                    Plugin.instance.isOnMap = false;
+                    //patches in when terminal starts getting used
+                }
+                else if (__instance.usedTerminalThisSession && Terminal_Awake_Patch.alwaysOnDisplay)
+                {
+                    //TerminalNode foundNode = __instance.terminalNodes.terminalNodes.Find(x => x.name == "ViewInsideShipCam 1");
+                    if (Plugin.instance.isOnCamera || Plugin.instance.isOnMap || Plugin.instance.isOnMiniCams|| Plugin.instance.isOnMiniMap || Plugin.instance.isOnOverlay)
+                    {
+                        if(__instance.terminalNodes.specialNodes[24].name != "ViewInsideShipCam 1")
+                        {
+                            Plugin.Log.LogInfo("Special node for returning to cams is not set properly or compatibility issues with other mods.");
+                            return;
+                        }
+                        else
+                        {
+                            //__instance.currentNode.clearPreviousText = true;
+                            __instance.LoadNewNode(__instance.terminalNodes.specialNodes[24]);
+                            Plugin.Log.LogInfo("returning to cams");
+                            return;
+                        }
+                        
+                    }
+                        
+                }
+
             }
+        }
+
+        [HarmonyPatch(typeof(Terminal), "LoadTerminalImage")]
+        public class fixVideoPatch : Terminal
+        {
+            public static bool sanityCheckLOL = false;
+            static void Postfix(ref Terminal __instance, TerminalNode node)
+            {
+
+                Terminal instanceCopy = __instance;
+                if (node.terminalEvent == "lolevent" && sanityCheckLOL)
+                {
+                    Plugin.Log.LogInfo("testing patch");
+                    if(!LeaveTerminal.isVideoPlaying)
+                    {
+                        __instance.videoPlayer.enabled = true;
+                        __instance.terminalImage.enabled = true;
+                        __instance.videoPlayer.loopPointReached += vp => OnVideoEnd(vp, instanceCopy);
+
+                        __instance.videoPlayer.Play();
+                        LeaveTerminal.isVideoPlaying = true;
+                        Plugin.Log.LogInfo("isVideoPlaying set to TRUE");
+                        sanityCheckLOL = false;
+                        return;
+                    }
+                }
+            }
+
+            public static void OnVideoEnd(VideoPlayer vp, Terminal instance)
+            {
+                // This method will be called when the video is done playing
+                // Disable the video player and terminal image here
+                if (LeaveTerminal.isVideoPlaying)
+                {
+                    instance.videoPlayer.enabled = false;
+                    instance.terminalImage.enabled = false;
+                    LeaveTerminal.isVideoPlaying = false;
+                    sanityCheckLOL = false;
+                    Plugin.Log.LogInfo("isVideoPlaying set to FALSE");
+                    instance.videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
+                    instance.videoPlayer.source = VideoSource.VideoClip;
+                    instance.videoPlayer.aspectRatio = VideoAspectRatio.FitHorizontally;
+                    instance.videoPlayer.isLooping = true;
+                    instance.videoPlayer.playOnAwake = true;
+                    
+                } 
+            }
+
         }
 
         [HarmonyPatch(typeof(Terminal), "ParsePlayerSentence")]
@@ -64,6 +262,9 @@ namespace TerminalStuff
                 switch (colorKeyword.ToLower())
                 {
                     case "normal":
+                        FlashlightColor = Color.white;
+                        break;
+                    case "default":
                         FlashlightColor = Color.white;
                         break;
                     case "red":
@@ -93,6 +294,12 @@ namespace TerminalStuff
                     case "pink":
                         FlashlightColor = new Color32(242, 0, 254, 1);
                         break;
+                    case "maroon":
+                        FlashlightColor = new Color32(114, 3, 3, 1); //new
+                        break;
+                    case "orange":
+                        FlashlightColor = new Color32(255, 117, 24, 1); //new
+                        break;
                     case "sasstro":
                         FlashlightColor = new Color32(212, 148, 180, 1);
                         break;
@@ -100,7 +307,7 @@ namespace TerminalStuff
                         FlashlightColor = new Color32(180, 203, 240, 1);
                         break;
                     default:
-                        FlashlightColor = Color.white;
+                        FlashlightColor = null; //this needs to be null for invalid results to return invalid
                         break;
                 }
             }
@@ -145,60 +352,34 @@ namespace TerminalStuff
             static void Postfix(Terminal __instance, ref TerminalNode __result)
             {
                 // custom keywords not using TerminalApi to trigger a node result directly
-                List<string> keywords = new List<string> { "home", "more", "next", "comfort", "controls", "extras", "fun", "kick", "fcolor", "fov", "gamble", "lever", "vitalspatch", "bioscan", "bioscanpatch" }; // keyword catcher
+                List<string> keywords = new List<string> { "lobby", "home", "more", "next", "comfort", "controls", "extras", "fun", "kick", "fcolor", "fov", "gamble", "lever", "vitalspatch", "bioscan", "bioscanpatch", "scolor" }; // keyword catcher
                 List<string> confirmationKeywords = new List<string> { "confirm", "c", "co", "con", "conf", "confi", "confir", "deny", "d", "de", "den" }; //confirm or deny catcher & shortened
 
-                if(Plugin.instance.awaitingConfirmation && (!CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, confirmationKeywords)))
+                if (Plugin.instance.awaitingConfirmation && (!CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, confirmationKeywords)))
                 {
                     Plugin.instance.awaitingConfirmation = false;
                     Plugin.instance.confirmationNodeNum = 0;
-                    Plugin.Log.LogInfo("disabled confirmation check, checked for confirmationKeywords");
+                    Plugin.Log.LogInfo("disabled confirmation check, checked for confirmationKeywords and none found");
                 }    //if player enters a different command than confirm or deny this should clear the waitingonconfirm state
 
-                if (__result != null && !(__result == __instance.terminalNodes.specialNodes[5] || __result == __instance.terminalNodes.specialNodes[10] || __result == __instance.terminalNodes.specialNodes[11] | __result == __instance.terminalNodes.specialNodes[12])) //patching any command that is not an error
+                if (__result != null && (!CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, confirmationKeywords))) //patching any input to disable confirmation check
                 {
-                    //plugin.Log.LogInfo("patching any valid result");
                     Plugin.instance.awaitingConfirmation = false;
                     Plugin.instance.confirmationNodeNum = 0;
-                    Plugin.Log.LogInfo("disabled confirmation check, checked __result at __result");
+                    
+                    Plugin.Log.LogInfo("disabled confirmation check, checked __result at __result");    
+                }
+                if (__result != null && LeaveTerminal.isVideoPlaying && __result.terminalEvent != "lolevent")
+                {
+                    fixVideoPatch.OnVideoEnd(__instance.videoPlayer, __instance);
+                    LeaveTerminal.isVideoPlaying = false;
+                    //Plugin.Log.LogInfo("isVideoPlaying set to FALSE");
+                }
 
-                    //if we want to keep consistency with actively displayed objects
-                 /*   if ((__instance.terminalNodes.specialNodes.Contains(__result) && !(__result == __instance.terminalNodes.specialNodes[0] || __result == __instance.terminalNodes.specialNodes[1] || __result == __instance.terminalNodes.specialNodes[13])))//anything in here will not have the below applied (too much text)
-                    {
-                        Plugin.Log.LogInfo("patched into specialnodes that are not big long commands!");
-                        if (Plugin.instance.isOnCamera)
-                        {
-                            Plugin.instance.isOnCamera = false;
-                            Plugin.Log.LogInfo("was last on cams");
-                            __result.terminalEvent = "cams";
-                            return;
-                        }
-                        else if (Plugin.instance.isOnMap)
-                        {
-                            Plugin.instance.isOnMap = false;
-                            Plugin.Log.LogInfo("was last on map");
-                            __result.terminalEvent = "mapEvent";
-                            return;
-                        }
-                        else if (Plugin.instance.isOnProView)
-                        {
-                            Plugin.instance.isOnProView = false;
-                            Plugin.Log.LogInfo("was last on proview");
-                            __result.terminalEvent = "proview";
-                            return;
-                        }
-                        else if (Plugin.instance.isOnOverlay)
-                        {
-                            Plugin.instance.isOnOverlay = false;
-                            Plugin.Log.LogInfo("was last on overlay");
-                            __result.terminalEvent = "overlay";
-                            return;
-                        }
-                        else
-                            Plugin.Log.LogInfo("no active screen of any kind (cams, map, etc.)");
-                        return;
-                    } */
-                        
+                if (__result != null && __result.name != "ViewInsideShipCam 1")
+                {
+                    LeaveTerminal.checkForSplitView("neither");
+                    Plugin.Log.LogInfo("disabling overlay/minimap views");
                 }
 
                 string cleanedText = GetCleanedScreenText(__instance);
@@ -247,6 +428,8 @@ namespace TerminalStuff
                     // Check for confirmation or denial keywords
                     if (words.Length == 1 && CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, confirmationKeywords) && Plugin.instance.awaitingConfirmation)
                     {
+                        Plugin.Log.LogInfo("confirmation keywords detected, matching to event");
+
                         if( Plugin.instance.confirmationNodeNum == 1) //lever
                         HandleConfirmation(__instance, words,
                             confirmCallback: () =>
@@ -302,6 +485,27 @@ namespace TerminalStuff
                         Plugin.Log.LogInfo("__result set (2)");
                         return;
                     }
+
+                    if(words.Length <= 2 && words[0].ToLower() == "lobby")
+                    {
+                        if(GameNetworkManager.Instance.steamLobbyName != String.Empty)
+                        {
+                            string currentLobby = GameNetworkManager.Instance.steamLobbyName;
+
+                            TerminalNode lobbyNode = CreateTerminalNode($"Lobby Name: {currentLobby}\n", true);
+                            __result = lobbyNode;
+                            return;
+                        }
+                        else
+                        {
+                            TerminalNode failNode = CreateTerminalNode($"Unable to determine Lobby Name");
+                            __result = failNode;
+                            return;
+                        }
+                        
+
+                    }
+
 
                     if (words.Length == 1 && words[0].ToLower() == "lever" && ConfigSettings.terminalLever.Value)
                     {
@@ -394,7 +598,7 @@ namespace TerminalStuff
                         }
                         TerminalNode gambleAsk = CreateTerminalNode($"Gamble {ParsedValue}% of your credits?\n\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n", true);
                         __result = gambleAsk; //Ask user to confirm or deny
-                        Plugin.Log.LogInfo("__result set (1)");
+                        Plugin.Log.LogInfo("gamble ask set and asking for confirmation");
                         Plugin.instance.awaitingConfirmation = true;
                         Plugin.instance.confirmationNodeNum = 2; //gamble
 
@@ -425,6 +629,110 @@ namespace TerminalStuff
 
 
                     }
+                    if(words.Length >= 2 && words[0].ToLower() == "scolor")
+                    {
+                        string targetColor = "";
+                        Plugin.Log.LogInfo("scolor detected");
+                        if (words.Length == 3)
+                        {
+                            targetColor = words[2];
+                            Plugin.Log.LogInfo("only setting color for 3 words");
+                        }
+                            
+
+                        
+                        if (words[1].ToLower() == "list")
+                        {
+                            plugin.Log.LogInfo("list detected");
+                            TerminalNode sList = CreateTerminalNode("========= Ship Lights Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"scolor all normal\" or \"scolor all default\"\r\nRed: \"scolor back red\"\r\nGreen: \"scolor mid green\"\r\nBlue: \"scolor front blue\"\r\nYellow: \"scolor middle yellow\"\r\nCyan: \"scolor all cyan\"\r\nMagenta: \"scolor back magenta\"\r\nPurple: \"scolor mid purple\"\r\nLime: \"scolor all lime\"\r\nPink: \"scolor front pink\"\r\nMaroon: \"scolor middle maroon\"\r\nOrange: \"scolor back orange\"\r\nSasstro's Color: \"scolor all sasstro\"\r\nSamstro's Color: \"scolor all samstro\"\r\n\r\n", true);
+                            __result = sList;
+                            return;
+                        }
+                        else if (words[1].ToLower() == "all" && words.Length == 3)
+                        {
+                            Plugin.Log.LogInfo($" Attempting to set all ship light colors to {words[2]}");
+                            SetFlashlightColor(targetColor); //get if color is valid
+                            if (FlashlightColor.HasValue && targetColor != null)
+                            {
+                                Color newColor = FlashlightColor.Value;
+                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
+                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
+                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
+                                TerminalNode tempNode = CreateTerminalNode($"Color of all lights set to {targetColor}!\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                            else
+                            {
+                                TerminalNode tempNode = CreateTerminalNode($"Invalid color {targetColor}.\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                        }
+                        else if(words[1].ToLower() == "front" && words.Length == 3)
+                        {
+                            Plugin.Log.LogInfo($" Attempting to set front ship light colors to {words[2]}");
+                            SetFlashlightColor(targetColor); //get if color is valid
+                            if (FlashlightColor.HasValue && targetColor!=null)
+                            {
+                                Color newColor = FlashlightColor.Value;
+                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
+                                TerminalNode tempNode = CreateTerminalNode($"Color of front ship lights set to {targetColor}!\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                            else
+                            {
+                                TerminalNode tempNode = CreateTerminalNode($"Invalid color {targetColor}.\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                        }
+                        else if (words.Length == 3 && (words[1].ToLower() == "middle" || words[1].ToLower() == "mid"))
+                        {
+                            Plugin.Log.LogInfo($" Attempting to set middle ship light colors to {words[2]}");
+                            SetFlashlightColor(targetColor); //get if color is valid
+                            if (FlashlightColor.HasValue && targetColor != null)
+                            {
+                                Color newColor = FlashlightColor.Value;
+                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
+                                TerminalNode tempNode = CreateTerminalNode($"Color of middle ship lights set to {targetColor}!\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                            else
+                            {
+                                TerminalNode tempNode = CreateTerminalNode($"Invalid color {targetColor}.\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                        }
+                        else if (words.Length == 3 && words[1].ToLower() == "back")
+                        {
+                            Plugin.Log.LogInfo($" Attempting to set back ship light colors to {words[2]}");
+                            SetFlashlightColor(targetColor); //get if color is valid
+                            if (FlashlightColor.HasValue && targetColor != null)
+                            {
+                                Color newColor = FlashlightColor.Value;
+                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
+                                TerminalNode tempNode = CreateTerminalNode($"Color of back ship lights set to {targetColor}!\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                            else
+                            {
+                                TerminalNode tempNode = CreateTerminalNode($"Invalid color {targetColor}.\r\n");
+                                __result = tempNode;
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            TerminalNode tempNode = CreateTerminalNode($"Invalid selection.\r\n\r\nPlease choose between all, front, middle, and back lights to set and ensure you have specified a color name.\r\n\r\nSee 'scolor list' for a list of color names.\r\n");
+                            __result = tempNode;
+                            return;
+                        }
+                    }
 
                     if (words.Length >= 2 && words[0].ToLower() == "fcolor" && words[1].ToLower() != "list" && ConfigSettings.terminalFcolor.Value == true)
                     {
@@ -449,7 +757,7 @@ namespace TerminalStuff
                     }
                     if (words.Length >= 2 && words[0].ToLower() == "fcolor" && words[1].ToLower() == "list" && ConfigSettings.terminalFcolor.Value == true) //get list of colors
                     {
-                        TerminalNode fList = CreateTerminalNode("========= Flashlight Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"fcolor normal\" or \"fcolor default\"\r\nRed: \"fcolor red\"\r\nGreen: \"fcolor green\"\r\nBlue: \"fcolor blue\"\r\nYellow: \"fcolor yellow\"\r\nCyan: \"fcolor cyan\"\r\nMagenta: \"fcolor magenta\"\r\nPurple: \"fcolor purple\"\r\nLime: \"fcolor lime\"\r\nPink: \"fcolor pink\"\r\nSasstro's Color: \"fcolor sasstro\"\r\nSamstro's Color: \"fcolor samstro\"\r\n\r\n", true);
+                        TerminalNode fList = CreateTerminalNode("========= Flashlight Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"fcolor normal\" or \"fcolor default\"\r\nRed: \"fcolor red\"\r\nGreen: \"fcolor green\"\r\nBlue: \"fcolor blue\"\r\nYellow: \"fcolor yellow\"\r\nCyan: \"fcolor cyan\"\r\nMagenta: \"fcolor magenta\"\r\nPurple: \"fcolor purple\"\r\nLime: \"fcolor lime\"\r\nPink: \"fcolor pink\"\r\nMaroon: \"fcolor maroon\"\r\nOrange: \"fcolor orange\"\r\nSasstro's Color: \"fcolor sasstro\"\r\nSamstro's Color: \"fcolor samstro\"\r\n\r\n", true);
                         __result = fList;
                         return;
                     }
@@ -462,6 +770,7 @@ namespace TerminalStuff
                         {
                             if (targetPlayerName.Length >= 3)
                             {
+
                                 // Find the matching player in allPlayerScripts
                                 var matchingPlayer = StartOfRound.Instance.allPlayerScripts.FirstOrDefault(player =>
                                     player.playerUsername.IndexOf(targetPlayerName, StringComparison.OrdinalIgnoreCase) != -1);
@@ -548,18 +857,20 @@ namespace TerminalStuff
 
                         comfortString.AppendLine("> home\r\nReturn to start screen.\r\n");
 
+                        if (ConfigSettings.terminalAlwaysOn.Value)
+                            comfortString.AppendLine($"> {ConfigSettings.alwaysOnKeyword.Value}\r\nToggle the Always-On Terminal Screen mode.\r\n");
                         if (ConfigSettings.terminalFov.Value)
-                            comfortString.AppendLine("> fov <value>\r\nUpdate your in-game Field of View.\r\n");
+                            comfortString.AppendLine($"> fov <value>\r\nUpdate your in-game Field of View.\r\n");
                         if (ConfigSettings.terminalHeal.Value)
-                            comfortString.AppendLine("> heal, healme\r\nHeal yourself from any damage.\r\n");
+                            comfortString.AppendLine($"> heal, {ConfigSettings.healKeyword2.Value}\r\nHeal yourself from any damage.\r\n");
                         if (ConfigSettings.terminalKick.Value)
-                            comfortString.AppendLine("> kick\r\nKick another employee (if you're the captain).\r\n");
+                            comfortString.AppendLine($"> kick\r\nKick another employee (if you're the captain).\r\n");
                         if (ConfigSettings.terminalLobby.Value)
-                            comfortString.AppendLine("> lobby name, lobby, name\r\nDisplay current lobby name.\r\n");
+                            comfortString.AppendLine($"> lobby\r\nDisplay current lobby name.\r\n");
                         if (ConfigSettings.terminalMods.Value)
-                            comfortString.AppendLine("> mods, modlist\r\nDisplay your currently loaded Mods.\r\n");
+                            comfortString.AppendLine($"> mods, {ConfigSettings.modsKeyword2.Value}\r\nDisplay your currently loaded Mods.\r\n");
                         if (ConfigSettings.terminalQuit.Value)
-                            comfortString.AppendLine("> quit/exit\r\nExit the terminal.\r\n");
+                            comfortString.AppendLine($"> quit, {ConfigSettings.quitKeyword2.Value}\r\nLeave the terminal.\r\n");
 
                         int numberOfLines = comfortString.ToString().Split(new[] { ".\r\n" }, StringSplitOptions.None).Length;
                         (string remainingLines, StringBuilder shortenedStringBuilder) = LimitLinesInStringBuilder(ref comfortString, maxLines);
@@ -589,31 +900,31 @@ namespace TerminalStuff
                         StringBuilder extraString = new StringBuilder("=== Category 2: Extras ===\r\n\r\n");
 
                         if (ConfigSettings.terminalCams.Value)
-                            extraString.AppendLine("> cams, cameras\r\nToggle displaying cameras in terminal.\r\n");
+                            extraString.AppendLine($"> cams, {ConfigSettings.camsKeyword2.Value}\r\nToggle displaying cameras in terminal.\r\n");
                         
                         if (ConfigSettings.terminalMap.Value)
-                            extraString.AppendLine("> map\r\nShortcut to toggle radar map on terminal.\r\n");
+                            extraString.AppendLine($"> map, {ConfigSettings.mapKeyword2.Value}\r\nShortcut to toggle radar map on terminal.\r\n");
                         
-                        if (ConfigSettings.terminalProview.Value)
-                            extraString.AppendLine("> proview\r\nToggle cameras and radar map via ProView Mode.\r\n");
+                        if (ConfigSettings.terminalMinimap.Value)
+                            extraString.AppendLine($"> {ConfigSettings.minimapKeyword.Value}\r\nToggle cameras and radar map via MiniMap Mode.\r\n");
                         
                         if (ConfigSettings.terminalOverlay.Value)
-                            extraString.AppendLine("> overlay\r\nToggle cameras and radar map via Overlay Mode.\r\n");
+                            extraString.AppendLine($"> {ConfigSettings.overlayKeyword.Value}\r\nToggle cameras and radar map via Overlay Mode.\r\n");
 
                         if (ConfigSettings.terminalLoot.Value)
-                            extraString.AppendLine("> loot, shiploot\r\nDisplay total value of all loot on-board.\r\n");
+                            extraString.AppendLine($"> loot, {ConfigSettings.lootKeyword2.Value}\r\nDisplay total value of all loot on-board.\r\n");
                         
                         if (ConfigSettings.terminalVitals.Value)
-                            extraString.AppendLine("> vitals\r\nDisplay vitals of employee being tracked on radar.\r\n");
+                            extraString.AppendLine($"> vitals\r\nDisplay vitals of employee being tracked on radar.\r\n");
 
                         if (ConfigSettings.terminalVitalsUpgrade.Value)
-                            extraString.AppendLine("> vitalspatch\r\nPurchase upgrade to Vitals Software Patch 2.0\r\n");
+                            extraString.AppendLine($"> vitalspatch\r\nPurchase upgrade to Vitals Software Patch 2.0\r\n");
 
                         if (ConfigSettings.terminalBioScan.Value)
-                            extraString.AppendLine("> bioscan\r\n Use Ship BioScanner to search for non-employee lifeforms.\r\n");
+                            extraString.AppendLine($"> bioscan\r\n Use Ship BioScanner to search for non-employee lifeforms.\r\n");
 
                         if (ConfigSettings.terminalBioScan.Value)
-                            extraString.AppendLine("> bioscanpatch\r\n Purchase upgrade to BioScanner Software Patch 2.0\r\n");
+                            extraString.AppendLine($"> bioscanpatch\r\n Purchase upgrade to BioScanner Software Patch 2.0\r\n");
 
                         int numberOfLines = extraString.ToString().Split(new[] { ".\r\n" }, StringSplitOptions.None).Length;
                         (string remainingLines, StringBuilder shortenedStringBuilder) = LimitLinesInStringBuilder(ref extraString, maxLines);
@@ -643,15 +954,17 @@ namespace TerminalStuff
                         StringBuilder controlString = new StringBuilder("=== Category 3: Controls ===\r\n\r\n");
 
                         if (ConfigSettings.terminalDanger.Value)
-                            controlString.AppendLine("> danger \r\nDisplays the danger level once the ship has landed.\r\n");
+                            controlString.AppendLine($"> {ConfigSettings.dangerKeyword.Value} \r\nDisplays the danger level once the ship has landed.\r\n");
                         if (ConfigSettings.terminalLever.Value)
-                            controlString.AppendLine("> lever\r\nRemotely pull the ship lever.\r\n");
+                            controlString.AppendLine($"> lever\r\nRemotely pull the ship lever.\r\n");
                         if (ConfigSettings.terminalDoor.Value)
-                            controlString.AppendLine("> door\r\nRemotely open/close the ship doors.\r\n");
+                            controlString.AppendLine($"> {ConfigSettings.doorKeyword.Value}\r\nRemotely open/close the ship doors.\r\n");
+                        if (ConfigSettings.terminalLights.Value)
+                            controlString.AppendLine($"> {ConfigSettings.lightsKeyword.Value}\r\nRemotely toggle the ship lights.\r\n");
                         if (ConfigSettings.terminalTP.Value)
-                            controlString.AppendLine("> teleport, tp\r\nRemotely push the Teleporter button.\r\n");
+                            controlString.AppendLine($"> {ConfigSettings.tpKeyword2.Value}, tp\r\nRemotely push the Teleporter button.\r\n");
                         if (ConfigSettings.terminalITP.Value)
-                            controlString.AppendLine("> inverse, itp\r\nRemotely push the Inverse Teleporter button.\r\n");
+                            controlString.AppendLine($"> {ConfigSettings.itpKeyword2.Value}, itp\r\nRemotely push the Inverse Teleporter button.\r\n");
 
                         int numberOfLines = controlString.ToString().Split(new[] { ".\r\n" }, StringSplitOptions.None).Length;
                         (string remainingLines, StringBuilder shortenedStringBuilder) = LimitLinesInStringBuilder(ref controlString, maxLines);
@@ -683,13 +996,18 @@ namespace TerminalStuff
                         if (ConfigSettings.terminalFcolor.Value)
                         {
                             funString.AppendLine("> fcolor <color>\r\nUpgrade your flashlight with a new color.\r\n");
-                            funString.AppendLine("> fcolor list\r\nView available colors.\r\n");
+                            funString.AppendLine("> fcolor list\r\nView available colors for flashlight.\r\n");
                         }    
+                        if (ConfigSettings.terminalScolor.Value)
+                        {
+                            funString.AppendLine("> scolor <all,front,middle,back> <color>\r\nChange the color of the ship's lights.\r\n");
+                            funString.AppendLine("> scolor list\r\nView available colors to change ship lights.\r\n");
+                        }
                             
                         if (ConfigSettings.terminalGamble.Value)
                             funString.AppendLine("> gamble <percentage>\r\nGamble a percentage of your credits.\r\n");
                         if (ConfigSettings.terminalLol.Value)
-                            funString.AppendLine("> lol\r\nPlay a silly video.\r\n");
+                            funString.AppendLine($"> {ConfigSettings.lolKeyword.Value}\r\nPlay a silly video on the terminal.\r\n");
 
                         int numberOfLines = funString.ToString().Split(new[] { ".\r\n" }, StringSplitOptions.None).Length;
                         (string remainingLines, StringBuilder shortenedStringBuilder) = LimitLinesInStringBuilder(ref funString, maxLines);
@@ -716,9 +1034,54 @@ namespace TerminalStuff
                     {
                         __result = __instance.terminalNodes.specialNodes[1];
                     }
+
+                    return;
                 }
 
+                //Add TP keywords AFTER they have been purchased and exist
+                ShipTeleporter[] objectsOfType = UnityEngine.Object.FindObjectsOfType<ShipTeleporter>();
 
+                if (!Terminal_Awake_Patch.doesTPexist && ConfigSettings.terminalTP.Value)
+                {
+                    ShipTeleporter tp = (ShipTeleporter)null;
+
+                    foreach (ShipTeleporter tpobject in objectsOfType)
+                    {
+                        if (!tpobject.isInverseTeleporter)
+                        {
+                            tp = tpobject;
+                            break;
+                        }
+                    }
+
+                    if (tp != null)
+                    {
+                        Terminal_Awake_Patch.doesTPexist = true;
+                        LeaveTerminal.AddTeleportKeywords();
+                    }
+                    else
+                    {
+                        Plugin.Log.LogInfo("TP does not exist yet");
+                    }
+                }
+                if (!Terminal_Awake_Patch.doesITPexist && ConfigSettings.terminalITP.Value)
+                {
+                    ShipTeleporter itp = (ShipTeleporter)null;
+                    foreach (ShipTeleporter tpobject in objectsOfType)
+                    {
+                        if (tpobject.isInverseTeleporter)
+                        {
+                            itp = tpobject;
+                            break;
+                        }
+                    }
+
+                    if (itp != null && ConfigSettings.terminalITP.Value)
+                    {
+                        Terminal_Awake_Patch.doesITPexist = true;
+                        LeaveTerminal.AddInverseTeleportKeywords();
+                    }
+                }
             }
 
             private static (string remainingLines, StringBuilder shortenedStringBuilder) LimitLinesInStringBuilder(ref StringBuilder stringBuilder, int maxLines)
@@ -751,19 +1114,6 @@ namespace TerminalStuff
             }
         }
 
-
-        internal static bool _isInGame()
-        {
-            try
-            {
-                return TerminalApi.TerminalApi.Terminal != null;
-            }
-            catch (NullReferenceException)
-            {
-                return false;
-            }
-        }
-
         private static string RemovePunctuation(string s) //copied from game files
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -778,16 +1128,5 @@ namespace TerminalStuff
             return stringBuilder.ToString().ToLower();
         }
 
-        public class VideoHandler
-        {
-            public void OnVideoErrorReceived(VideoPlayer source, string message)
-            {
-                // Handle the video error
-                // Log the error message using your logger
-                Plugin.Log.LogInfo($">>>>>>>>>>>>>>>>>>>VideoPlayer Error: {message}");
-
-                // You may choose to handle the error in other ways as well
-            }
-        }
     }
 }

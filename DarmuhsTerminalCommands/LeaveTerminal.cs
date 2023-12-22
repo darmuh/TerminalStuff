@@ -16,6 +16,8 @@ using Object = UnityEngine.Object;
 using static TerminalApi.TerminalApi;
 using static TerminalStuff.AllMyTerminalPatches;
 using System.Security.Policy;
+using UnityEngine.Video;
+using Random = UnityEngine.Random;
 
 namespace TerminalStuff
 {
@@ -27,14 +29,16 @@ namespace TerminalStuff
         public static bool enemyScanUpgradeEnabled = false;
         private static Dictionary<string, PluginInfo> PluginsLoaded = new Dictionary<string, PluginInfo>();
         private static bool enabledSplitObjects = false;
+        public static bool isVideoPlaying = false;
+
+        private static int lastPlayedIndex = -1;
 
         [HarmonyPatch(typeof(Terminal))]
         [HarmonyPatch("RunTerminalEvents")]
         public class Terminal_RunTerminalEvents_Patch : MonoBehaviour
         {
-            private static VideoController videoController;
 
-            public static void AddDuplicateRenderObjects() //used by overlay and proview
+            public static void AddDuplicateRenderObjects() //used by overlay and minimap
             {
                 Plugin.instance.terminalCanvas = GameObject.Find("Environment/HangarShip/Terminal/Canvas").GetComponent<Canvas>();
 
@@ -66,6 +70,7 @@ namespace TerminalStuff
 
                         Plugin.instance.originalBottomSize = Plugin.instance.rawImage2.rectTransform.sizeDelta;
                         Plugin.instance.originalBottomPosition = Plugin.instance.rawImage2.rectTransform.anchoredPosition;
+                        
 
                         Plugin.instance.splitViewCreated = true;
                     }
@@ -76,6 +81,22 @@ namespace TerminalStuff
             {
                 if (!string.IsNullOrWhiteSpace(node.terminalEvent))
                 {
+                    if (node.terminalEvent == "alwayson")
+                    {
+                        //toggle keeping display always on here
+                        if(!Terminal_Awake_Patch.alwaysOnDisplay)
+                        {
+                            Terminal_Awake_Patch.alwaysOnDisplay = true;
+                            node.displayText = $"Terminal Always-on Display [ENABLED]\r\n";
+                            Plugin.Log.LogInfo("set alwaysondisplay to true");
+                        }
+                        else
+                        {
+                            Terminal_Awake_Patch.alwaysOnDisplay = false;
+                            node.displayText = $"Terminal Always-on Display [DISABLED]\r\n";
+                            Plugin.Log.LogInfo("set alwaysondisplay to false");
+                        }
+                    }
                     if (node.terminalEvent == "quit")
                     {
 
@@ -180,35 +201,89 @@ namespace TerminalStuff
                     }
                     if (node.terminalEvent == "lolevent")
                     {
+                        fixVideoPatch.sanityCheckLOL = true;
+                        Plugin.Log.LogInfo("start of lolevent");
+                        Plugin.instance.isOnCamera = false;
+                        Plugin.instance.isOnMap = false;
+                        checkForSplitView("neither"); //disables split view components if enabled
 
-                        if (videoController == null)
+                        RawImage termRawImage = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer/Image (1)").GetComponent<RawImage>();
+                        VideoPlayer termVP = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer/Image (1)").GetComponent <VideoPlayer>();
+
+                        
+                        if(!isVideoPlaying)
                         {
-                            videoController = new VideoController();
-
-                            // Get the shared render texture from the existing VideoPlayer
-                            //RenderTexture sharedRenderTexture = __instance.videoPlayer.targetTexture;
-
-                            // Call the Initialize method with the desired GameObject and shared render texture
-                            GameObject terminalImage = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer/Image (1)");
-                            videoController.Initialize(terminalImage);
-                        }
-
-                        // Check if the video is currently playing
-                        if (VideoController.isVideoPlaying)
-                        {
-                            // Stop the video if it's playing
-                            videoController.StopAdditionalVideo();
-                            VideoController.isVideoPlaying = false;
-                            node.clearPreviousText = true;
-                            node.displayText = $"{ConfigSettings.lolStopString.Value}\n";
-                        }
-                        else
-                        {
+                            Plugin.Log.LogInfo("video not playing, running lolevents");
                             // Play the next video if not playing
-                            videoController.PlayNextVideo();
-                            VideoController.isVideoPlaying = true;
+                            if (VideoManager.Videos.Count > 0)
+                            {
+                                int randomIndex;
+                                // Generate a random index that is not the same as the last played index
+                                do
+                                {
+                                    randomIndex = Random.Range(0, VideoManager.Videos.Count);
+                                } while (randomIndex == lastPlayedIndex);
+
+                                lastPlayedIndex = randomIndex;
+
+
+                                Plugin.Log.LogInfo($"Random Clip: {randomIndex} - {VideoManager.Videos[randomIndex]}");
+
+                                // Set the URL for the random video
+                                termVP.Stop(); //stop for setup
+                                __instance.terminalAudio.Stop(); //fix audio
+
+
+                                termVP.clip = null;
+                                termVP.url = "file://" + VideoManager.Videos[randomIndex];
+                                Plugin.Log.LogInfo("URL:" + termVP.url);
+
+
+
+                                termVP.renderMode = VideoRenderMode.RenderTexture;
+                                termVP.aspectRatio = VideoAspectRatio.Stretch;
+                                //additionalVideoPlayer.transform.localScale = new Vector3(350f, 350f);
+                                //additionalVideoPlayer.transform.localPosition = new Vector3(0f, 0f);
+                                termVP.isLooping = false;
+                                termVP.playOnAwake = false;
+
+
+
+                                __instance.terminalImage.texture = __instance.videoTexture;
+
+                                termVP.targetTexture = __instance.videoTexture;
+
+                                termVP.audioOutputMode = VideoAudioOutputMode.AudioSource;
+                                termVP.controlledAudioTrackCount = 1; //need this to get audio to work?
+
+                                termVP.SetTargetAudioSource(0, __instance.terminalAudio);
+                                //Plugin.Log.LogInfo($"Is AudioTrack 0 enabled? {termVP.IsAudioTrackEnabled(0)}");
+                                /*if (!termVP.IsAudioTrackEnabled(0))
+                                {
+                                    Plugin.Log.LogInfo("attempting to set to true");
+                                    termVP.EnableAudioTrack(0, true);
+                                    Plugin.Log.LogInfo($"Is AudioTrack 0 enabled? {termVP.IsAudioTrackEnabled(0)}");
+                                }*/
+
+
+                                termVP.source = VideoSource.Url;
+                            }
+                            else
+                            {
+                                Plugin.Log.LogError("No videos found.");
+                            }
+
                             node.clearPreviousText = true;
                             node.displayText = $"{ConfigSettings.lolStartString.Value}\n";
+                            yield break;
+                        }
+                        else if (isVideoPlaying)
+                        {
+                            Plugin.Log.LogInfo("video detected playing, trying to stop it");
+                            fixVideoPatch.OnVideoEnd(__instance.videoPlayer, __instance);
+                            node.displayText = $"{ConfigSettings.lolStopString.Value}\n";
+                            Plugin.Log.LogInfo("lol stop detected");
+                            yield break;
                         }
                     }
 
@@ -281,11 +356,34 @@ namespace TerminalStuff
                         }
                     }
 
+                    if (node.terminalEvent == "lights")
+                    {
+                        StartOfRound.Instance.shipRoomLights.ToggleShipLights();
+                        if(StartOfRound.Instance.shipRoomLights.areLightsOn)
+                            node.displayText = $"Ship Lights are [ON]\r\n\r\n";
+                        else
+                            node.displayText = $"Ship Lights are [OFF]\r\n\r\n";
+                    }
+
+
+                    if (node.terminalEvent == "shipLightsColor")
+                    {
+                        Color FrontColor = Color.red;
+                        Color MiddleColor = Color.yellow;
+                        Color BackColor = Color.green;
+                        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = FrontColor;
+                        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = MiddleColor;
+                        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = BackColor;
+
+                        Plugin.Log.LogInfo("Colors set");
+
+                    }
+
                     if (node.terminalEvent == "enemies")
                     {
                         if (RoundManager.Instance != null)
                         {
-                            Plugin.Log.LogInfo("getting enemies count");
+                            //Plugin.Log.LogInfo("getting enemies count");
                             int scannedEnemies = RoundManager.Instance.SpawnedEnemies.Count;
                             //Plugin.Log.LogInfo("int scannedEnemies working");
                             int getCreds = __instance.groupCredits;
@@ -363,11 +461,13 @@ namespace TerminalStuff
                     if (node.terminalEvent == "switchCamera")
                     {
                         Plugin.Log.LogInfo("Switch command patch");
-                        Plugin.Log.LogInfo($"Map: {Plugin.instance.isOnMap} Cams: {Plugin.instance.isOnCamera} ProView: {Plugin.instance.isOnProView} Overlay: {Plugin.instance.isOnOverlay}");
-                        TerminalNode pvNode = CreateTerminalNode("go back to cams\n", true, "proview");
+                        Plugin.Log.LogInfo($"Map: {Plugin.instance.isOnMap} Cams: {Plugin.instance.isOnCamera} MiniMap: {Plugin.instance.isOnMiniMap} Overlay: {Plugin.instance.isOnOverlay}");
+                        TerminalNode pvNode = CreateTerminalNode("go back to cams\n", true, "minimap");
+                        TerminalNode mcNode = CreateTerminalNode("go back to minicams\n", true, "minicams");
                         TerminalNode ovNode = CreateTerminalNode("go back to cams\n", true, "overlay");
                         node.name = "ViewInsideShipCam 1";
-
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
+                        isVideoPlaying = false;
 
                         if (Plugin.instance.isOnCamera == true)
                         {
@@ -385,10 +485,10 @@ namespace TerminalStuff
                                 Plugin.instance.isOnCamera = true;
                                 Plugin.instance.isOnMap = false;
                                 Plugin.instance.isOnOverlay = false;
-                                Plugin.instance.isOnProView = false;
+                                Plugin.instance.isOnMiniMap = false;
                                 //isOnCamera = true;
                                 Plugin.Log.LogInfo("cam added to terminal screen");
-                                node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (CAMS)\n"; //the excessive n's are to get the text to display under the cams
+                                node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {getPlayerInfo.playerUsername} (CAMS)\n"; //the excessive n's are to get the text to display under the cams
                                 yield break;
                             }
                             
@@ -402,29 +502,37 @@ namespace TerminalStuff
                             __instance.terminalImage.enabled = true;
                             Plugin.instance.isOnCamera = false;
                             Plugin.instance.isOnOverlay = false;
-                            Plugin.instance.isOnProView = false;
+                            Plugin.instance.isOnMiniMap = false;
                             Plugin.instance.isOnMap = true;
                             Plugin.Log.LogInfo("map radar enabled");
-                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (MAP)\n";
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {getPlayerInfo.playerUsername} (MAP)\n";
                             yield break;
                         }
                         else if (Plugin.instance.isOnOverlay == true)
                         {
                             Plugin.Log.LogInfo("Overlay was true, setting to false to run event again");
                             Plugin.instance.isOnOverlay = false;
-                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (Overlay)\n";
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {getPlayerInfo.playerUsername} (Overlay)\n";
                             __instance.RunTerminalEvents(ovNode);
                             yield break;
                         }
-                        else if (Plugin.instance.isOnProView == true)
+                        else if (Plugin.instance.isOnMiniMap == true)
                         {
-                            Plugin.Log.LogInfo("Proview was true, setting to false to run event again");
-                            Plugin.instance.isOnProView = false;
-                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (ProView)\n";
+                            Plugin.Log.LogInfo("Minimap was true, setting to false to run event again");
+                            Plugin.instance.isOnMiniMap = false;
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {getPlayerInfo.playerUsername} (MiniMap)\n";
                             __instance.RunTerminalEvents(pvNode);
                             yield break;
                         }
-                        else if (Plugin.instance.isOnMap == false && Plugin.instance.isOnCamera == false && Plugin.instance.isOnProView == false && Plugin.instance.isOnOverlay == false)
+                        else if (Plugin.instance.isOnMiniCams == true)
+                        {
+                            Plugin.Log.LogInfo("Minicams was true, setting to false to run event again");
+                            Plugin.instance.isOnMiniCams = false;
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {getPlayerInfo.playerUsername} (MiniCams)\n";
+                            __instance.RunTerminalEvents(mcNode);
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnMap == false && Plugin.instance.isOnCamera == false && Plugin.instance.isOnMiniMap == false && Plugin.instance.isOnOverlay == false)
                         {
                             Plugin.Log.LogInfo("Nothing was active, setting view to map view");
                             node.clearPreviousText = true;
@@ -433,10 +541,106 @@ namespace TerminalStuff
                             __instance.terminalImage.enabled = true;
                             Plugin.instance.isOnCamera = false;
                             Plugin.instance.isOnOverlay = false;
-                            Plugin.instance.isOnProView = false;
+                            Plugin.instance.isOnMiniMap = false;
                             Plugin.instance.isOnMap = true;
                             Plugin.Log.LogInfo("map radar enabled");
-                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to Player (Radar)\n";
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {getPlayerInfo.playerUsername} (Radar)\n";
+                            yield break;
+                        }
+                        else
+                        {
+                            Plugin.Log.LogInfo("somethin fucky goin on");
+                        }
+
+
+                    }
+
+                    if (node.terminalEvent == "returnCams")
+                    {
+                        Plugin.Log.LogInfo($"Map: {Plugin.instance.isOnMap} Cams: {Plugin.instance.isOnCamera} MiniMap: {Plugin.instance.isOnMiniMap} Overlay: {Plugin.instance.isOnOverlay}");
+                        TerminalNode pvNode = CreateTerminalNode("go back to cams\n", true, "minimap");
+                        TerminalNode mcNode = CreateTerminalNode("go back to minicams\n", true, "minicams");
+                        TerminalNode ovNode = CreateTerminalNode("go back to cams\n", true, "overlay");
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
+                        node.name = "ViewInsideShipCam 1";
+                        isVideoPlaying = false;
+
+                        if (Plugin.instance.isOnCamera == true)
+                        {
+                            Plugin.Log.LogInfo("Cam was true, turning it back on");
+                            enabledSplitObjects = false;
+                            checkForSplitView("neither"); //disables split view if enabled
+                            if (GameObject.Find("Environment/HangarShip/Cameras/ShipCamera") != null)
+                            {
+
+                                node.clearPreviousText = true;
+                                // Get the main texture from "Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001"
+                                Texture renderTexture = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture;
+                                node.displayTexture = renderTexture;
+                                __instance.terminalImage.enabled = true;
+                                Plugin.instance.isOnCamera = true;
+                                Plugin.instance.isOnMap = false;
+                                Plugin.instance.isOnOverlay = false;
+                                Plugin.instance.isOnMiniMap = false;
+                                //isOnCamera = true;
+                                Plugin.Log.LogInfo("cam added to terminal screen");
+                                node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} (CAMS)\n"; //the excessive n's are to get the text to display under the cams
+                                yield break;
+                            }
+
+                        }
+                        else if (Plugin.instance.isOnMap == true)
+                        {
+                            Plugin.Log.LogInfo("Map was true, run event again");
+                            node.clearPreviousText = true;
+                            Texture renderTexture = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture;
+                            node.displayTexture = renderTexture;
+                            __instance.terminalImage.enabled = true;
+                            Plugin.instance.isOnCamera = false;
+                            Plugin.instance.isOnOverlay = false;
+                            Plugin.instance.isOnMiniMap = false;
+                            Plugin.instance.isOnMap = true;
+                            Plugin.Log.LogInfo("map radar enabled");
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} (MAP)\n";
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnOverlay == true)
+                        {
+                            Plugin.Log.LogInfo("Overlay was true, setting to false to run event again");
+                            Plugin.instance.isOnOverlay = false;
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} (Overlay)\n";
+                            __instance.RunTerminalEvents(ovNode);
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnMiniMap == true)
+                        {
+                            Plugin.Log.LogInfo("Minimap was true, setting to false to run event again");
+                            Plugin.instance.isOnMiniMap = false;
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} (MiniMap)\n";
+                            __instance.RunTerminalEvents(pvNode);
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnMiniCams == true)
+                        {
+                            Plugin.Log.LogInfo("Minicams was true, setting to false to run event again");
+                            Plugin.instance.isOnMiniCams = false;
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} (MiniCams)\n";
+                            __instance.RunTerminalEvents(mcNode);
+                            yield break;
+                        }
+                        else if (Plugin.instance.isOnMap == false && Plugin.instance.isOnCamera == false && Plugin.instance.isOnMiniMap == false && Plugin.instance.isOnOverlay == false)
+                        {
+                            Plugin.Log.LogInfo("Nothing was active, setting view to map view");
+                            node.clearPreviousText = true;
+                            Texture renderTexture = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture;
+                            node.displayTexture = renderTexture;
+                            __instance.terminalImage.enabled = true;
+                            Plugin.instance.isOnCamera = false;
+                            Plugin.instance.isOnOverlay = false;
+                            Plugin.instance.isOnMiniMap = false;
+                            Plugin.instance.isOnMap = true;
+                            Plugin.Log.LogInfo("map radar enabled");
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} (Radar)\n";
                             yield break;
                         }
                         else
@@ -733,7 +937,9 @@ namespace TerminalStuff
                     }
                     if (node.terminalEvent == "mapEvent")
                     {
+                        isVideoPlaying = false;
                         enabledSplitObjects = false;
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
                         checkForSplitView("neither"); //disables split view if enabled
                         node.name = "ViewInsideShipCam 1";
                         if (RoundManager.Instance != null && RoundManager.Instance.hasInitializedLevelRandomSeed)
@@ -746,21 +952,21 @@ namespace TerminalStuff
                                 __instance.terminalImage.enabled = true;
                                 Plugin.instance.isOnCamera = false;
                                 Plugin.instance.isOnOverlay = false;
-                                Plugin.instance.isOnProView = false;
+                                Plugin.instance.isOnMiniMap = false;
                                 Plugin.instance.isOnMap = true;
                                 Plugin.Log.LogInfo("map radar enabled");
-                                node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nEnabling radar view\r\n";
+                                node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} {ConfigSettings.mapString.Value}\n";
                             }
                             else if (Plugin.instance.isOnMap == true)
                             {
                                 Plugin.Log.LogInfo("disabling map & disabling cams"); //debug
                                 node.displayTexture = null;
                                 node.loadImageSlowly = false;
-                                node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDisabling radar view\r\n";
+                                node.displayText = $"{ConfigSettings.mapString2.Value}";
                                 Plugin.instance.isOnMap = false;
                                 Plugin.instance.isOnCamera = false;
                                 Plugin.instance.isOnOverlay = false;
-                                Plugin.instance.isOnProView = false;
+                                Plugin.instance.isOnMiniMap = false;
                                 //endMapCommand = true;
                             }
                             else
@@ -781,7 +987,9 @@ namespace TerminalStuff
                     if (node.terminalEvent == "cams")
                     {
                         enabledSplitObjects = false;
+                        isVideoPlaying = false;
                         node.name = "ViewInsideShipCam 1";
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
                         checkForSplitView("neither"); //disables split view if enabled
                         if (GameObject.Find("Environment/HangarShip/Cameras/ShipCamera") != null && Plugin.instance.isOnCamera == false)
                         {
@@ -794,14 +1002,16 @@ namespace TerminalStuff
                             Plugin.instance.isOnCamera = true;
                             Plugin.instance.isOnMap = false;
                             Plugin.instance.isOnOverlay = false;
-                            Plugin.instance.isOnProView = false;
+                            Plugin.instance.isOnMiniCams = false;
+                            Plugin.instance.isOnMiniMap = false;
                             //isOnCamera = true;
                             Plugin.Log.LogInfo("cam added to terminal screen");
-                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{ConfigSettings.camString.Value}\n"; //the excessive n's are to get the text to display under the cams
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} {ConfigSettings.camString.Value}\n"; //the excessive n's are to get the text to display under the cams
                         }
                         else if (Plugin.instance.isOnCamera == true)
                         {
                             node.clearPreviousText = true;
+                            node.displayText = $"{ConfigSettings.camString2.Value}";
                             node.displayTexture = null;
                             __instance.terminalImage.enabled = false;
                             Plugin.instance.isOnCamera = false;
@@ -815,11 +1025,14 @@ namespace TerminalStuff
 
                     if (node.terminalEvent == "overlay")
                     {
+                        isVideoPlaying = false;
                         node.clearPreviousText = true;
                         node.name = "ViewInsideShipCam 1";
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
                         Plugin.instance.isOnMap = false;
                         Plugin.instance.isOnCamera = false;
-                        Plugin.instance.isOnProView = false;
+                        Plugin.instance.isOnMiniCams = false;
+                        Plugin.instance.isOnMiniMap = false;
                         Texture texture1 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture; // radar
                         Texture texture2 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture; // cams
 
@@ -829,7 +1042,7 @@ namespace TerminalStuff
                             Plugin.instance.rawImage2.texture = texture2;
                             Plugin.instance.rawImage1.texture = texture1;
                             __instance.terminalImage.enabled = true;
-                            Color currentColor = Plugin.instance.rawImage2.color;
+                            Color currentColor = Plugin.instance.rawImage1.color;
                             Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, 0.1f); //10% opacity
                             Plugin.instance.rawImage1.color = newColor;
 
@@ -848,13 +1061,13 @@ namespace TerminalStuff
                             enabledSplitObjects = true;
                             checkForSplitView("overlay");
                             Plugin.instance.isOnOverlay = true;
-                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nOverlay View Enabled.\r\n";
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} {ConfigSettings.ovString.Value}\r\n";
                         }
                         else if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnOverlay == true)
                         {
                             enabledSplitObjects = false;
                             checkForSplitView("overlay"); //disables split view if enabled
-                            node.displayText = "Overlay View disabled.\r\n";
+                            node.displayText = $"{ConfigSettings.ovString2.Value}\r\n";
                         }
                         else
                         {
@@ -862,23 +1075,26 @@ namespace TerminalStuff
                         }
                     }
 
-                    if (node.terminalEvent == "proview")
+                    if (node.terminalEvent == "minimap")
                     {
+                        isVideoPlaying = false;
                         node.name = "ViewInsideShipCam 1";
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
                         node.clearPreviousText = true;
+                        Plugin.instance.isOnMiniCams = false;
                         Plugin.instance.isOnMap = false;
                         Plugin.instance.isOnCamera = false;
                         Plugin.instance.isOnOverlay = false;
                         Texture texture1 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture; // radar
                         Texture texture2 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture; // cams
 
-                        if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnProView == false )
+                        if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnMiniMap == false )
                         {
                             Plugin.instance.rawImage2.texture = texture2;
                             Plugin.instance.rawImage1.texture = texture1;
 
                             __instance.terminalImage.enabled = true;
-                            Color currentColor = Plugin.instance.rawImage2.color;
+                            Color currentColor = Plugin.instance.rawImage1.color;
                             Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, 0.7f); //70% opacity
                             Plugin.instance.rawImage1.color = newColor;
 
@@ -898,15 +1114,15 @@ namespace TerminalStuff
                              Plugin.instance.rawImage1.rectTransform.anchoredPosition = new Vector2(130f, 103f);
 
                             enabledSplitObjects = true;
-                            checkForSplitView("proview");
-                            Plugin.instance.isOnProView = true;
-                            node.displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPro View Enabled.\r\n";
+                            checkForSplitView("minimap");
+                            Plugin.instance.isOnMiniMap = true;
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} {ConfigSettings.mmString.Value}\r\n";
                         }
-                        else if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnProView == true)
+                        else if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnMiniMap == true)
                         {
                             enabledSplitObjects = false;
-                            checkForSplitView("proview"); //disables split view if enabled
-                            node.displayText = "Pro View disabled.\r\n";
+                            checkForSplitView("minimap"); //disables split view if enabled
+                            node.displayText = $"{ConfigSettings.mmString2.Value}\r\n";
                         }
                         else
                         {
@@ -914,7 +1130,60 @@ namespace TerminalStuff
                         }
                     }
 
+                    if (node.terminalEvent == "minicams")
+                    {
+                        isVideoPlaying = false;
+                        node.name = "ViewInsideShipCam 1";
+                        node.clearPreviousText = true;
+                        PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
+                        Plugin.instance.isOnMiniMap = false;
+                        Plugin.instance.isOnMap = false;
+                        Plugin.instance.isOnCamera = false;
+                        Plugin.instance.isOnOverlay = false;
+                        Texture texture2 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture; // radar
+                        Texture texture1 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture; // cams
 
+                        if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnMiniCams == false)
+                        {
+                            Plugin.instance.rawImage2.texture = texture2;
+                            Plugin.instance.rawImage1.texture = texture1;
+
+                            __instance.terminalImage.enabled = true;
+                            Color currentColor = Plugin.instance.rawImage1.color;
+                            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, 0.7f); //70% opacity
+                            Plugin.instance.rawImage1.color = newColor;
+
+
+                            // Set the visibility for the new RawImages
+
+                            Plugin.instance.rawImage2.enabled = true;
+                            Plugin.instance.rawImage1.enabled = true;
+
+                            // Use Canvas's dimensions for positioning and scaling
+                            RectTransform canvasRect = Plugin.instance.terminalCanvas.GetComponent<RectTransform>();
+
+                            // Calculate the dimensions for radar image (rawImage1)
+                            float topHeight = canvasRect.rect.height * 0.2f; // 20% of the canvas height
+                            float topWidth = canvasRect.rect.width * 0.25f; //quarter of the width
+                            Plugin.instance.rawImage1.rectTransform.sizeDelta = new Vector2(topWidth, topHeight);
+                            Plugin.instance.rawImage1.rectTransform.anchoredPosition = new Vector2(130f, 103f);
+
+                            enabledSplitObjects = true;
+                            checkForSplitView("minicams");
+                            Plugin.instance.isOnMiniCams = true;
+                            node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {getPlayerInfo.playerUsername} {ConfigSettings.mcString.Value}\r\n";
+                        }
+                        else if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnMiniCams == true)
+                        {
+                            enabledSplitObjects = false;
+                            checkForSplitView("minicams"); //disables split view if enabled
+                            node.displayText = $"{ConfigSettings.mcString2.Value}\r\n";
+                        }
+                        else
+                        {
+                            Plugin.Log.LogError("Unexpected condition");
+                        }
+                    }
 
                     if (node.terminalEvent == "test")
                     {
@@ -1029,7 +1298,8 @@ namespace TerminalStuff
 
                 // Update bools, safe to just disable both every time i think
                 Plugin.instance.isOnOverlay = false;
-                Plugin.instance.isOnProView = false;
+                Plugin.instance.isOnMiniMap = false;
+                Plugin.instance.isOnMiniCams = false;
             }
             else if (enabledSplitObjects == true)
             {
@@ -1052,15 +1322,23 @@ namespace TerminalStuff
                 // Update bool
                 enabledSplitObjects = false;
                 // Update bools
-                if(whatisit == "proview")
+                if(whatisit == "minimap")
                 {
-                    Plugin.instance.isOnProView = true;
+                    Plugin.instance.isOnMiniMap = true;
+                    Plugin.instance.isOnMiniCams = false;
+                    Plugin.instance.isOnOverlay = false;
+                }
+                else if (whatisit == "minicams")
+                {
+                    Plugin.instance.isOnMiniMap = false;
+                    Plugin.instance.isOnMiniCams = true;
                     Plugin.instance.isOnOverlay = false;
                 }
                 else if(whatisit == "overlay")
                 {
                     Plugin.instance.isOnOverlay = true;
-                    Plugin.instance.isOnProView = false;
+                    Plugin.instance.isOnMiniCams = false;
+                    Plugin.instance.isOnMiniMap = false;
                 }
 
             }
@@ -1094,28 +1372,42 @@ namespace TerminalStuff
             }
         }
 
-        public static void AddProView()
+        public static void AddMiniMap()
         {
-            TerminalNode splitNode = CreateTerminalNode("testing split mode\n", true, "proview");
-            //TerminalKeyword splitKeyword = CreateTerminalKeyword("pro", true, splitNode); //removed due to conflicts with shop
-            TerminalKeyword Keyword2 = CreateTerminalKeyword("proview", true, splitNode);
+            TerminalNode splitNode = CreateTerminalNode("testing split mode\n", true, "minimap");
+            TerminalKeyword Keyword2 = CreateTerminalKeyword(ConfigSettings.minimapKeyword.Value, true, splitNode);
             AddTerminalKeyword(Keyword2);
-            Plugin.Log.LogInfo("added proview keywords");
+            //Plugin.Log.LogInfo("added minimap keywords");
+        }
+        public static void AddMiniCams()
+        {
+            TerminalNode splitNode = CreateTerminalNode("testing split mode\n", true, "minicams");
+            TerminalKeyword Keyword2 = CreateTerminalKeyword(ConfigSettings.minicamsKeyword.Value, true, splitNode);
+            AddTerminalKeyword(Keyword2);
+            //Plugin.Log.LogInfo("added minimap keywords");
         }
 
         public static void AddOverlayView()
         {
             TerminalNode splitNode = CreateTerminalNode("testing split mode\n", true, "overlay");
-            TerminalKeyword splitKeyword = CreateTerminalKeyword("overlay", true, splitNode);
+            TerminalKeyword splitKeyword = CreateTerminalKeyword(ConfigSettings.overlayKeyword.Value, true, splitNode);
             AddTerminalKeyword(splitKeyword);
-            Plugin.Log.LogInfo("added overlay keyword");
+            //Plugin.Log.LogInfo("added overlay keyword");
         }
         public static void AddDoor()
         {
             TerminalNode node = CreateTerminalNode("door terminalEvent", false, "door");
-            TerminalKeyword doorKW = CreateTerminalKeyword("door", true, node);
+            TerminalKeyword doorKW = CreateTerminalKeyword(ConfigSettings.doorKeyword.Value, true, node);
             AddTerminalKeyword(doorKW);
-            Plugin.Log.LogInfo($"Door keyword added");
+            //Plugin.Log.LogInfo($"Door keyword added");
+        }
+
+        public static void AddLights()
+        {
+            TerminalNode node = CreateTerminalNode("lights terminalEvent", false, "lights");
+            TerminalKeyword lightsKW = CreateTerminalKeyword(ConfigSettings.lightsKeyword.Value, true, node);
+            AddTerminalKeyword(lightsKW);
+            //Plugin.Log.LogInfo($"Lights keyword added");
         }
 
         public static void AddTest()
@@ -1125,112 +1417,122 @@ namespace TerminalStuff
             AddTerminalKeyword(testKeyword);
             Plugin.Log.LogInfo("This should only be enabled for dev testing");
         }
+
+        public static void AddAlwaysOnKeywords()
+        {
+            TerminalNode aoNode = CreateTerminalNode("", true, "alwayson");
+            TerminalKeyword aoKeyword = CreateTerminalKeyword(ConfigSettings.alwaysOnKeyword.Value, true, aoNode);
+            AddTerminalKeyword(aoKeyword);
+            //Plugin.Log.LogInfo("Added always on keyword");
+        }
+
         public static void AddModListKeywords()
         {
             TerminalNode modList = CreateTerminalNode("grabbing mods\n", true, "modlist");
-            TerminalKeyword modlistKeyword = CreateTerminalKeyword("modlist", true, modList);
+            TerminalKeyword modlistKeyword = CreateTerminalKeyword(ConfigSettings.modsKeyword2.Value, true, modList);
             TerminalKeyword modsKeyword = CreateTerminalKeyword("mods", true, modList);
             AddTerminalKeyword(modlistKeyword);
             AddTerminalKeyword(modsKeyword);
-            Plugin.Log.LogInfo("Added Modlist keywords");
+            //Plugin.Log.LogInfo("Added Modlist keywords");
         }
 
         public static void AddTeleportKeywords()
         {
             TerminalNode tpNode = CreateTerminalNode("teleporter initiatied.\n", true, "teleport");
-            TerminalKeyword teleportKeyword = CreateTerminalKeyword("teleport", true, tpNode);
+            TerminalKeyword teleportKeyword = CreateTerminalKeyword(ConfigSettings.tpKeyword2.Value, true, tpNode);
             TerminalKeyword tpKeyword = CreateTerminalKeyword("tp", true, tpNode);
             AddTerminalKeyword(teleportKeyword);
             AddTerminalKeyword(tpKeyword);
-            Plugin.Log.LogInfo("---------Teleport & TP Keywords added!---------");
+            //Plugin.Log.LogInfo("---------Teleport & TP Keywords added!---------");
         }
 
         public static void AddInverseTeleportKeywords()
         {
             TerminalNode tpNode = CreateTerminalNode("teleporter initiatied.\n", true, "inversetp");
-            TerminalKeyword inverseteleportKeyword = CreateTerminalKeyword("inverse", true, tpNode);
+            TerminalKeyword inverseteleportKeyword = CreateTerminalKeyword(ConfigSettings.itpKeyword2.Value, true, tpNode);
             TerminalKeyword itpKeyword = CreateTerminalKeyword("itp", true, tpNode);
             AddTerminalKeyword(inverseteleportKeyword);
             AddTerminalKeyword(itpKeyword);
-            Plugin.Log.LogInfo("---------Inverse & ITP Keywords added!---------");
+            //Plugin.Log.LogInfo("---------Inverse & ITP Keywords added!---------");
         }
 
         public static void AddQuitKeywords()
         {
             TerminalNode quitNode = CreateTerminalNode("leaving.\n", true, "quit");
-            TerminalKeyword exitKeyword = CreateTerminalKeyword("exit", true, quitNode);
+            TerminalKeyword exitKeyword = CreateTerminalKeyword(ConfigSettings.quitKeyword2.Value, true, quitNode);
             TerminalKeyword quitKeyword = CreateTerminalKeyword("quit", true, quitNode);
             AddTerminalKeyword(exitKeyword);
             AddTerminalKeyword(quitKeyword);
-            Plugin.Log.LogInfo("---------Quit & Exit Keywords added!---------");
+            //Plugin.Log.LogInfo("---------Quit & Exit Keywords added!---------");
         }
         public static void hampterKeywords()
         {
             TerminalNode lolNode = CreateTerminalNode($"lol.\n", false, "lolevent");
-            TerminalKeyword lolKeyword = CreateTerminalKeyword("lol", true, lolNode);
-            TerminalKeyword hampterKeyword = CreateTerminalKeyword("hampter", true, lolNode);
-            AddTerminalKeyword(hampterKeyword);
+            TerminalKeyword lolKeyword = CreateTerminalKeyword(ConfigSettings.lolKeyword.Value, true, lolNode);
+            //TerminalKeyword hampterKeyword = CreateTerminalKeyword("hampter", true, lolNode);
+            //AddTerminalKeyword(hampterKeyword);
             AddTerminalKeyword(lolKeyword);
-            Plugin.Log.LogInfo("lol");
+            //Plugin.Log.LogInfo("lol");
         }
         public static void clearKeywords()
         {
-            TerminalNode clearNode = CreateTerminalNode($"\n", true); //clear terminal event was not needed
+            TerminalNode clearNode = CreateTerminalNode($"\n", true);
             TerminalKeyword clearKeyword = CreateTerminalKeyword("clear", true, clearNode);
+            TerminalKeyword clearKeyword2 = CreateTerminalKeyword(ConfigSettings.clearKeyword2.Value, true, clearNode);
             AddTerminalKeyword(clearKeyword);
-            Plugin.Log.LogInfo("Adding Clear keywords");
+            AddTerminalKeyword(clearKeyword2);
+            //Plugin.Log.LogInfo("Adding Clear keywords");
         }
         public static void dangerKeywords()
         {
             TerminalNode dangerNode = CreateTerminalNode($"\n", true, "danger");
-            TerminalKeyword dangerKeyword = CreateTerminalKeyword("danger", true, dangerNode);
+            TerminalKeyword dangerKeyword = CreateTerminalKeyword(ConfigSettings.dangerKeyword.Value, true, dangerNode);
             AddTerminalKeyword(dangerKeyword);
-            Plugin.Log.LogInfo("Adding danger keywords");
+            //Plugin.Log.LogInfo("Adding danger keywords");
         }
         public static void vitalsKeywords()
         {
             TerminalNode vitalsNode = CreateTerminalNode($"\n", true, "vitals");
             TerminalKeyword vitalsKeyword = CreateTerminalKeyword("vitals", true, vitalsNode);
             AddTerminalKeyword(vitalsKeyword);
-            Plugin.Log.LogInfo("Adding vitals keywords");
+            //Plugin.Log.LogInfo("Adding vitals keywords");
         }
         public static void healKeywords()
         {
             TerminalNode healNode = CreateTerminalNode($"\n", true, "healme");
             TerminalKeyword healKeyword = CreateTerminalKeyword("heal", true, healNode);
-            TerminalKeyword healmeKeyword = CreateTerminalKeyword("healme", true, healNode);
+            TerminalKeyword healmeKeyword = CreateTerminalKeyword(ConfigSettings.healKeyword2.Value, true, healNode);
             AddTerminalKeyword(healKeyword);
             AddTerminalKeyword(healmeKeyword);
-            Plugin.Log.LogInfo("Added Heal Keywords");
+            //Plugin.Log.LogInfo("Added Heal Keywords");
         }
         public static void lootKeywords()
         {
             TerminalNode lootNode = CreateTerminalNode($"Attempting to grab total loot value on ship.\n", false, "loot");
             TerminalKeyword lootKeyword = CreateTerminalKeyword("loot", true, lootNode);
-            TerminalKeyword shiplootKeyword = CreateTerminalKeyword("shiploot", true, lootNode);
+            TerminalKeyword shiplootKeyword = CreateTerminalKeyword(ConfigSettings.lootKeyword2.Value, true, lootNode);
             AddTerminalKeyword(lootKeyword);
             AddTerminalKeyword(shiplootKeyword);
-            Plugin.Log.LogInfo("Loot commands added!");
+            //Plugin.Log.LogInfo("Loot commands added!");
         }
-
         public static void camsKeywords()
         {
             TerminalNode camsNode = CreateTerminalNode($"Toggling Cameras View.\n", true, "cams");
             TerminalKeyword camsKeyword = CreateTerminalKeyword("cams", true, camsNode);
-            TerminalKeyword camerasKeyword = CreateTerminalKeyword("cameras", false, camsNode);
-            AddCompatibleNoun("check", "cameras", camsNode);
-            AddCompatibleNoun("check", "cams", camsNode);
+            TerminalKeyword camerasKeyword = CreateTerminalKeyword(ConfigSettings.camsKeyword2.Value, false, camsNode);
             AddTerminalKeyword(camsKeyword);
             AddTerminalKeyword(camerasKeyword);
-            Plugin.Log.LogInfo("Cameras commands added!");
+            //Plugin.Log.LogInfo("Cameras commands added!");
             //can't believe this was easier than displaying a custom video
         }
         public static void mapKeywords()
         {
             TerminalNode mapNode = CreateTerminalNode($"Toggling radar view.\n", true, "mapEvent");
             TerminalKeyword mapKeyword = CreateTerminalKeyword("map", true, mapNode);
+            TerminalKeyword map2 = CreateTerminalKeyword(ConfigSettings.mapKeyword2.Value, true, mapNode);
             AddTerminalKeyword(mapKeyword);
-            Plugin.Log.LogInfo("Map command added!");
+            AddTerminalKeyword(map2);
+            //Plugin.Log.LogInfo("Map command added!");
         }
     }
 }

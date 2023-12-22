@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 using TerminalApi;
 using Plugin = TerminalStuff.Plugin;
 using AssetBundle = UnityEngine.AssetBundle;
+using static TerminalStuff.AllMyTerminalPatches;
 
 
 namespace TerminalStuff
@@ -32,6 +33,35 @@ namespace TerminalStuff
         }
 
     }
+ /*   [HarmonyPatch(typeof(StartOfRound), "Update")]
+    public class StartRoundUpdatePatch
+    {
+        public static void Postfix(ref StartOfRound __instance)
+        {
+            //careful, this is updated constantly
+
+             //hope this doesnt take up performance...
+            if (!Terminal_Awake_Patch.isTermInUse && Terminal_Awake_Patch.alwaysOnDisplay && Terminal_Awake_Patch.displayVarSET)
+            {
+                GameObject terminalScreen = GameObject.Find("Environment/HangarShip/Terminal/Canvas");
+                //__instance.terminalUIScreen.gameObject.SetActive(true);
+                terminalScreen.SetActive(true);
+                Terminal_Awake_Patch.displayVarSET = false;
+                Plugin.Log.LogInfo("Attempting to keep screen on");
+                return;
+            }
+            else if (!Terminal_Awake_Patch.isTermInUse && !Terminal_Awake_Patch.alwaysOnDisplay && Terminal_Awake_Patch.displayVarSET)
+            {
+                GameObject terminalScreen = GameObject.Find("Environment/HangarShip/Terminal/Canvas");
+                terminalScreen.SetActive(false);
+                Terminal_Awake_Patch.displayVarSET = false;
+                Plugin.Log.LogInfo("Attempting to turn screen back off"); //lol
+                return;
+            }
+            else
+                return;
+        }
+    }*/
 
 /*
     public class rpcPatchStuff : NetworkBehaviour
