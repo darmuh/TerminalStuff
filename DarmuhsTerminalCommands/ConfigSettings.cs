@@ -77,6 +77,10 @@ namespace TerminalStuff
         public static ConfigEntry<string> gamblePoorString; //gamble credits too low string
         public static ConfigEntry<string> videoFolderPath; //Specify a different folder with videos
         public static ConfigEntry<bool> leverConfirmOverride; //disable confirmation check for lever
+        public static ConfigEntry<bool> camsNeverHide;
+        public static ConfigEntry<bool> networkedNodes; //enable or disable networked terminal nodes (beta)
+        public static ConfigEntry<string> defaultCamsView;
+        public static ConfigEntry<int> ovOpacity; //Opacity Percentage for Overlay Cams View
 
 
         //keyword strings
@@ -108,6 +112,10 @@ namespace TerminalStuff
         {
 
             Plugin.Log.LogInfo("Binding configuration settings");
+
+            //Network Configs
+            ConfigSettings.networkedNodes = Plugin.instance.Config.Bind<bool>("Networked Things", "networkedNodes", false, "Enable networked Always-On Display & displaying synced terminal nodes (BETA)");
+
             //enable or disable
             ConfigSettings.terminalLobby = Plugin.instance.Config.Bind<bool>("Comfort Commands (On/Off)", "terminalLobby", true, "Shows the current lobby name <Lobby Name>");
             ConfigSettings.terminalQuit = Plugin.instance.Config.Bind<bool>("Comfort Commands (On/Off)", "terminalQuit", true, "Command to quit terminal <Quit>");
@@ -160,11 +168,11 @@ namespace TerminalStuff
             ConfigSettings.camString2 = Plugin.instance.Config.Bind<string>("Cams", "camString2", "Cameras disabled.", "Message returned when disabling Cams command (cams).");
             ConfigSettings.mapString = Plugin.instance.Config.Bind<string>("Cams", "mapString", "(MAP)", "Message returned when enabling map command (map).");
             ConfigSettings.mapString2 = Plugin.instance.Config.Bind<string>("Cams", "mapString2", "Map View disabled.", "Message returned when disabling map command (map).");
-            ConfigSettings.ovString = Plugin.instance.Config.Bind<string>("Cams", "ovString", "(OVERLAY)", "Message returned when enabling Overlay command (overlay).");
+            ConfigSettings.ovString = Plugin.instance.Config.Bind<string>("Cams", "ovString", "(Overlay)", "Message returned when enabling Overlay command (overlay).");
             ConfigSettings.ovString2 = Plugin.instance.Config.Bind<string>("Cams", "ovString2", "Overlay disabled.", "Message returned when disabling Overlay command (overlay).");
-            ConfigSettings.mmString = Plugin.instance.Config.Bind<string>("Cams", "mmString", "(MINIMAP)", "Message returned when enabling minimap command (minimap).");
+            ConfigSettings.mmString = Plugin.instance.Config.Bind<string>("Cams", "mmString", "(MiniMap)", "Message returned when enabling minimap command (minimap).");
             ConfigSettings.mmString2 = Plugin.instance.Config.Bind<string>("Cams", "mmString2", "MiniMap disabled.", "Message returned when disabling minimap command (minimap).");
-            ConfigSettings.mcString = Plugin.instance.Config.Bind<string>("Cams", "mcString", "(MINICAMS)", "Message returned when enabling minicams command (minicams).");
+            ConfigSettings.mcString = Plugin.instance.Config.Bind<string>("Cams", "mcString", "(MiniCams)", "Message returned when enabling minicams command (minicams).");
             ConfigSettings.mcString2 = Plugin.instance.Config.Bind<string>("Cams", "mcString2", "MiniCams disabled.", "Message returned when disabling minicams command (minicams).");
 
             //Cost configs
@@ -180,6 +188,10 @@ namespace TerminalStuff
             ConfigSettings.gamblePoorString = Plugin.instance.Config.Bind<string>("Gamble", "gamblePoorString", "You don't meet the minimum credits requirement to gamble.", "Message returned when your credits is less than the gambleMinimum set.");
             ConfigSettings.videoFolderPath = Plugin.instance.Config.Bind<string>("Lol", "videoFolderPath", "darmuh-darmuhsTerminalStuff", "Folder name where videos will be pulled from, needs to be in BepInEx/plugins");
             ConfigSettings.leverConfirmOverride = Plugin.instance.Config.Bind<bool>("Lever", "leverConfirmOverride", false, "Setting this to true will disable the confirmation check for the <lever> command.");
+            ConfigSettings.camsNeverHide = Plugin.instance.Config.Bind<bool>("Cams", "camsNeverHide", false, "Setting this to true will make it so no command will ever auto-hide any cams command.");
+            ConfigSettings.defaultCamsView = Plugin.instance.Config.Bind("Cams", "defaultCamsView", "map", new ConfigDescription("Set the default view switch commands will use when nothing is active.", new AcceptableValueList<string>("map", "cams", "minimap", "minicams", "overlay")));
+            ConfigSettings.ovOpacity = Plugin.instance.Config.Bind("Cams", "ovOpacity", 10, new ConfigDescription("Opacity percentage for Overlay View.", new AcceptableValueRange<int>(0, 100)));
+
 
             //Keyword configs
             ConfigSettings.alwaysOnKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "alwaysOnKeyword", "alwayson", "Keyword used in terminal to return <alwayson> command.");

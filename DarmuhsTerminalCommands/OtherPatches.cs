@@ -33,6 +33,15 @@ namespace TerminalStuff
         }
 
     }
+    [HarmonyPatch(typeof(GameNetworkManager), "Start")]
+    public class GameStartPatch
+    {
+        public static void Postfix(ref  GameNetworkManager __instance)
+        {
+            Plugin.AddKeywords();
+            Plugin.Log.LogInfo("Enabled Commands added");
+        }
+    }
  /*   [HarmonyPatch(typeof(StartOfRound), "Update")]
     public class StartRoundUpdatePatch
     {

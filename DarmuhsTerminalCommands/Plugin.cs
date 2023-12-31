@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.1.0")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.0")]
     [BepInDependency("atomic.terminalapi")]
     [BepInDependency("Rozebud.FovAdjust")]
 
@@ -20,7 +20,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.darmuhsTerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "2.1.0";
+            public const string PLUGIN_VERSION = "2.2.0";
         }
 
         internal static new ManualLogSource Log;
@@ -36,6 +36,15 @@ namespace TerminalStuff
         public bool splitViewCreated = false;
         public int customSpecialNodes = 0;
         public int confirmationNodeNum = 0;
+        public string switchTarget = "";
+
+        //network bools
+        public bool syncedNodes = false;
+
+        //flashlight stuff
+        public bool fSuccess = false;
+        public bool hSuccess = false;
+        
 
         public RawImage rawImage1;
         public RawImage rawImage2;
@@ -51,21 +60,15 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.1.0!");
-            Plugin.Log.LogInfo((object)"--------ChatGPT goes craaaaaazy.---------");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.0!");
+            Plugin.Log.LogInfo((object)"--------Hopefully this is the version that doesn't break the switch command :).---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             //LeaveTerminal.AddTest(); //this command is only for devtesting
-            AddKeywords();
+            //Addkeywords used to be here
             VideoManager.Load();
 
             //start of networking stuff
-            /*
-
-            //var MainAssetBundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("darmuhsTerminalStuff.darmuhngo"));
-            var MainAssetBundle = AssetBundle.LoadFromMemory(TerminalStuff.Properties.Resources.darmuhngo);
-            myNetworkPrefab = MainAssetBundle.LoadAsset<GameObject>("darmuhNGO");
-
 
             var types = Assembly.GetExecutingAssembly().GetTypes();
             foreach (var type in types)
@@ -82,8 +85,6 @@ namespace TerminalStuff
             }
 
             //end of networking stuff
-
-            */
         }
 
 
@@ -106,7 +107,6 @@ namespace TerminalStuff
             AddKeywordIfEnabled(ConfigSettings.terminalDoor.Value, LeaveTerminal.AddDoor);
             AddKeywordIfEnabled(ConfigSettings.terminalAlwaysOn.Value, LeaveTerminal.AddAlwaysOnKeywords);
             AddKeywordIfEnabled(ConfigSettings.terminalLights.Value, LeaveTerminal.AddLights);
-            Plugin.Log.LogInfo("darmuhsTerminalStuff Enabled Commands added");
         }
 
         private static void AddKeywordIfEnabled(bool isEnabled, Action keywordAction)

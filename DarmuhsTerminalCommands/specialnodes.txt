@@ -26,9 +26,21 @@
 23 - FinishedRadarBooster
 
 
+
 Plugin.instance.confirmationNodeNum List:
 0 - No confirm action at this time
 1 - Lever
 2 - Gamble
 3 - Buy Vitals Scanner Upgrade
 4 - Buy Bioscanner Upgrade
+
+
+
+Regular switch command:
+if (node.terminalEvent == "switchCamera")
+            {
+                StartOfRound.Instance.mapScreen.SwitchRadarTargetForward(callRPC: true);
+            }
+
+Switch command with player name:
+terminalNodes.specialNodes[20] <-

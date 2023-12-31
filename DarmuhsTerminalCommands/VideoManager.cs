@@ -31,13 +31,16 @@ namespace TerminalStuff
                 }
                 string path1 = Path.Combine(Paths.PluginPath, $"{ConfigSettings.videoFolderPath.Value}");
                 if (!Directory.Exists(path1))
+                {
                     Directory.CreateDirectory(path1);
-                Plugin.Log.LogInfo("[VIDEO] Creating directory if doesn't exist");
+                    Plugin.Log.LogInfo("[VIDEO] Creating directory if doesn't exist");
+                }
+
                 string[] files1 = Directory.GetFiles(path1, "*.mp4");
                 //Plugin.Log.LogInfo(")))))))))))))))))getting files again");
                 VideoManager.Videos.AddRange((IEnumerable<string>)files1);
-                Plugin.Log.LogInfo((object)string.Format("Global has {0} videos.", (object)files1.Length));
-                Plugin.Log.LogInfo((object)string.Format("Loaded {0} total.", (object)VideoManager.Videos.Count));
+                //Plugin.Log.LogInfo((object)string.Format("Global has {0} videos.", (object)files1.Length));
+                Plugin.Log.LogInfo((object)string.Format("Loaded {0} total videos.", (object)VideoManager.Videos.Count));
             }
         }
     }

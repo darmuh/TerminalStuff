@@ -13,12 +13,29 @@ using static TerminalApi.TerminalApi;
 using System.CodeDom;
 using System.Collections;
 using DunGen.Graph;
+using static UnityEngine.GraphicsBuffer;
+using Object = UnityEngine.Object;
+using Steamworks;
 
 namespace TerminalStuff
 {
     public class AllMyTerminalPatches
     {
         public static AllMyTerminalPatches Instance;
+        //LoadNewNode(TerminalNode node)
+        [HarmonyPatch(typeof(Terminal), "LoadNewNode")]
+        public class NodePatch : Terminal
+        {
+            static void Postfix(ref Terminal __instance, ref TerminalNode node)
+            {
+                if (Terminal_Awake_Patch.alwaysOnDisplay && NetHandler.netNodeSet == false && ConfigSettings.networkedNodes.Value)
+                {
+                    Plugin.Log.LogInfo("setting nodeset to true, syncing with other clients.");
+                    NetHandler.netNodeSet = true;
+                    NetHandler.Instance.nodeLoadServerRpc(node.name, node.terminalEvent);
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(Terminal), "QuitTerminal")]
         public class QuitPatch : Terminal
@@ -376,11 +393,29 @@ namespace TerminalStuff
                     //Plugin.Log.LogInfo("isVideoPlaying set to FALSE");
                 }
 
-                if (__result != null && __result.name != "ViewInsideShipCam 1")
+                List<string> excludedNames = new List<string>
+                {
+                    "ViewInsideShipCam 1",
+                    "Toggle Doors",
+                    "Toggle Lights",
+                    "Always-On Display",
+                    "Use Inverse Teleporter",
+                    "Use Teleporter",
+                    "Clear Terminal Screen",
+                    "Check Danger Level",
+                    "Check Vitals",
+                    "HealFromTerminal",
+                    "Check Loot Value"
+                };
+
+                //20,21,22
+                if (__result != null && !excludedNames.Contains(__result.name) && !ConfigSettings.camsNeverHide.Value && __result.terminalEvent != "switchCamera" && __result != __instance.terminalNodes.specialNodes[20] && __result != __instance.terminalNodes.specialNodes[21] && __result != __instance.terminalNodes.specialNodes[22] && __result != __instance.terminalNodes.specialNodes[23])
                 {
                     LeaveTerminal.checkForSplitView("neither");
-                    Plugin.Log.LogInfo("disabling overlay/minimap views");
+                    Plugin.Log.LogInfo("disabling cams views");
                 }
+
+                
 
                 string cleanedText = GetCleanedScreenText(__instance);
                 string[] words = cleanedText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -390,6 +425,91 @@ namespace TerminalStuff
                 {
                     Plugin.Log.LogInfo("Found mapScreenNode");
                     __result = dummyNode;
+                }
+
+                if (__result != null && __result == __instance.terminalNodes.specialNodes[20])
+                {
+                    TerminalNode switchNode = CreateTerminalNode("", true, "returnCams");
+                    Plugin.Log.LogInfo("attempting to run terminal events rather than patch node");
+                    if (words.Length == 2 && words[0].ToLower() == "switch")
+                    {
+                        Plugin.instance.switchTarget = words[1].ToLower();
+                    }
+                    string playerName = "";
+                    if (Plugin.instance.switchTarget != string.Empty)
+                    {
+                        for (int i = 0; i < StartOfRound.Instance.mapScreen.radarTargets.Count; i++)
+                        {
+                            if (StartOfRound.Instance.mapScreen.radarTargets[i].name.Contains(Plugin.instance.switchTarget))
+                            {
+                                Plugin.Log.LogInfo("name match found");
+                                playerName = StartOfRound.Instance.mapScreen.radarTargets[i].name;
+                                break;
+                            }
+                        }
+
+                    }
+                    __instance.RunTerminalEvents(switchNode);
+                    if (Plugin.instance.isOnCamera)
+                    {
+                        if (playerName != String.Empty)
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {playerName} (CAMS)\n";
+                        }
+                        else
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched target (CAMS)\n";
+                        }
+                    }
+                    else if (Plugin.instance.isOnMap)
+                    {
+                        if (playerName != String.Empty)
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {playerName} (MAP)\n";
+                        }
+                        else
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched target (MAP)\n";
+                        }
+                    }
+                    else if (Plugin.instance.isOnOverlay)
+                    {
+                        if (playerName != String.Empty)
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {playerName} (Overlay)\n";
+                        }
+                        else
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched target (Overlay)\n";
+                        }
+                    }
+                    else if (Plugin.instance.isOnMiniMap)
+                    {
+                        if (playerName != String.Empty)
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {playerName} (MiniMap)\n";
+                        }
+                        else
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched target (MiniMap)\n";
+                        }
+                    }
+                    else if (Plugin.instance.isOnMiniCams)
+                    {
+                        if (playerName != String.Empty)
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched to {playerName} (MiniCams)\n";
+                        }
+                        else
+                        {
+                            __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched target (MiniCams)\n";
+                        }
+                    }
+                    else
+                    {
+                        __result.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSwitched target.\n";
+                    }
+                    return;
                 }
 
 
@@ -655,9 +775,7 @@ namespace TerminalStuff
                             if (FlashlightColor.HasValue && targetColor != null)
                             {
                                 Color newColor = FlashlightColor.Value;
-                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
+                                NetHandler.Instance.ShipColorALLServerRpc(newColor, targetColor);
                                 TerminalNode tempNode = CreateTerminalNode($"Color of all lights set to {targetColor}!\r\n");
                                 __result = tempNode;
                                 return;
@@ -676,7 +794,7 @@ namespace TerminalStuff
                             if (FlashlightColor.HasValue && targetColor!=null)
                             {
                                 Color newColor = FlashlightColor.Value;
-                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
+                                NetHandler.Instance.ShipColorFRONTServerRpc(newColor, targetColor);
                                 TerminalNode tempNode = CreateTerminalNode($"Color of front ship lights set to {targetColor}!\r\n");
                                 __result = tempNode;
                                 return;
@@ -695,7 +813,7 @@ namespace TerminalStuff
                             if (FlashlightColor.HasValue && targetColor != null)
                             {
                                 Color newColor = FlashlightColor.Value;
-                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
+                                NetHandler.Instance.ShipColorMIDServerRpc(newColor, targetColor);
                                 TerminalNode tempNode = CreateTerminalNode($"Color of middle ship lights set to {targetColor}!\r\n");
                                 __result = tempNode;
                                 return;
@@ -714,7 +832,7 @@ namespace TerminalStuff
                             if (FlashlightColor.HasValue && targetColor != null)
                             {
                                 Color newColor = FlashlightColor.Value;
-                                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
+                                NetHandler.Instance.ShipColorBACKServerRpc(newColor, targetColor);
                                 TerminalNode tempNode = CreateTerminalNode($"Color of back ship lights set to {targetColor}!\r\n");
                                 __result = tempNode;
                                 return;
@@ -762,7 +880,7 @@ namespace TerminalStuff
                         return;
                     }
 
-                        if (words.Length >= 2 && words[0].ToLower() == "kick" && ConfigSettings.terminalKick.Value == true)
+                    if (words.Length >= 2 && words[0].ToLower() == "kick" && ConfigSettings.terminalKick.Value == true)
                     {
                         string targetPlayerName = words[1];
 
