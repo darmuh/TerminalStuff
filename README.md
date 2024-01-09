@@ -71,6 +71,10 @@
 
  -Always-On Display (alwayson)
 
+ -Link (link)
+
+ -Random Suit (randomsuit)
+
 
 # Change Log
 
@@ -87,10 +91,11 @@ This project does not adhere to Semantic Versioning at this time. Mostly because
  - Please feel free to request changes or new features at my github [here](https://github.com/darmuh/TerminalStuff)
  - Also please report any bugs you find there as well.
  - If you're not a fan of GitHub, I'm also fairly active on the LethalCompany Modding Discord managed by Thunderstore. I post updates on WIP features there whenever i'm messing with something new.
+ - Please report compatibility issues when you find them, it's not difficult for me to resolve these issues but I have to know about them.
 
 ### Work for future updates
  - keybind to use radio while at the terminal (might run into issues with other mods here)
- - Help command to show info on other commands, eg. "help fcolor"
+ - Help/Info command to show info on other commands, eg. "info fcolor"
  - minimap/minicams/overlay: Configuration options to make these purchasable upgrades. Not highly desired but I think it'd be nice to have the option.
  - ~~minimap/minicams/overlay: Configurable Opacity levels for these.~~
  - more custom configurable keywords
@@ -102,12 +107,49 @@ This project does not adhere to Semantic Versioning at this time. Mostly because
 
 ### Requested Features from Community
  - Terminal customization (colors, etc.)
- - Control terminal via chat, believe this has already been done by another mod (is it compatible?)
+ - Control terminal via chat commands
+ - Custom home page with custom image rather than the current mask ascii art
+ - Option to have the terminal on at load-in
+ - Option to have the terminal on & play a video at load-in
  - ~~Networked color commands~~
  - ~~Networked Always-On Display so everyone could see what you're doing on the terminal~~ (Now in BETA)
+ - ~~An option to remove networking from the mod~~
+
+## [2.2.1] **CURRENT VERSION**
+ ### Added/Changed/Fixed
+ - (1) NETWORKING IS NOW TOGGLE-ABLE VIA ModNetworking CONFIG OPTION
+ - (1) This means you can continue to use this mod as a client-side only mod as in the past.
+ - (1) I've disabled a number of commands that require networking as well as commands I dont believe should be client-side only commands when networking is disabled.
+ - (2) New randomsuits command to pick a random suit to wear off the rack (ported from my suitsTerminal mod, disable this if you have that)
+ - (3) Made main page you open to when opening the terminal the home page rather than help.
+ - (4) Added configurable strings to the home page, leave your crewmates a message to see every time they open the terminal!
+ - (5) Added link command for linking to an external web page from the terminal.
+ - (6) Added configurable keywords for fcolor, scolor, gamble, lever, link, and randomsuits commands.
+ - (7) As with the command, added a configurable option for what link you want to display with the link command.
+ 
+ ### Fixed
+ - (1) As mentioned above, mod can now be used as a non-host player again!
+ - (2) Updated cams views to not hide cams whenever an invalid command is inputted (thanks to Sp1rit for the bug report on GitHub)
+ - (3) Improved compatibility with Advanced Company & LateGame Upgrades.
+ - (3) Specifically in how we all modify the help command of the terminal. It should now look much cleaner
+ - (4) Fixed longstanding bug with FOV mod that would not adjust the visor with your FOV.
+ - (4 Cont.) My mistake for leaving this in, i'd assumed it was an issue with the Fov mod itself and not my own implementation of it.
+
+ ### Known issues/bugs
+ - (1) switch: switch command text sometimes does not update properly on first run, continuing to look into this.
+ - (2) If another mod has a function that keeps the terminal screen enabled, alwayson will not be able to disable it.
+ - (2 Cont.) Recommend if you run into this issue to enable alwayson whenever you start playing so that the terminal functions as expected. 
+ - (3) Mod is still incompatibile with Glowstick by Asylud (1.1.0).
+ - (4) Picking up eachother's colored flashlights will not automatically change any colors. 
+ - (4 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
+ - (4 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
+ - (5) More command is not hiding cams views (and should).
+
+ <details open>
+ <summary>Historical Patch Notes</summary>
 
 
-## [2.2.0] *CURRENT VERSION*
+## [2.2.0] 
  ### Added/Changed
  - (1) NETWORKING HAS BEEN FIGURED OUT (sorta lol)
  - (1 cont.) Thanks to Evaisa for their UnityNetcodeWeaver NetcodePatcher tool and Xilophor for the very helpful wiki!
@@ -122,19 +164,6 @@ This project does not adhere to Semantic Versioning at this time. Mostly because
  - As mentioned above, flashlight colors and shiplight colors are no longer client-side only!
  - Fixed issue where switch command without a target player was overwriting switch command with a target player.
  - (hopefully) fixed an issue where switch command would bring up the wrong view.
-
-  ### Known issues/bugs
- - (1) switch: switch command text sometimes does not update properly on first run, continuing to look into this.
- - (2) If another mod has a function that keeps the terminal screen enabled, alwayson will not be able to disable it.
- - (2 Cont.) Recommend if you run into this issue to enable alwayson whenever you start playing so that the terminal functions as expected. 
- - (3) Mod is still incompatibile with Glowstick by Asylud (1.1.0).
- - (4) Picking up eachother's colored flashlights will not automatically change any colors. 
- - (4 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
- - (4 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
-
-
- <details open>
- <summary>Historical Patch Notes</summary>
 
 ## [2.1.1]
  ### Added/Changed
