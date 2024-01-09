@@ -12,24 +12,31 @@ public class netObject
     [HarmonyPostfix, HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.Start))]
     public static void Init()
     {
-        if (networkPrefab != null)
-            return;
+        if(ConfigSettings.ModNetworking.Value)
+        {
+            if (networkPrefab != null)
+                return;
 
-        var MainAssetBundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("TerminalStuff.darmuhngo"));
-        networkPrefab = (GameObject)MainAssetBundle.LoadAsset("darmuhNGO");
-        networkPrefab.AddComponent<NetHandler>();
+            var MainAssetBundle = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("TerminalStuff.darmuhngo"));
+            networkPrefab = (GameObject)MainAssetBundle.LoadAsset("darmuhNGO");
+            networkPrefab.AddComponent<NetHandler>();
 
-        NetworkManager.Singleton.AddNetworkPrefab(networkPrefab);
+            NetworkManager.Singleton.AddNetworkPrefab(networkPrefab);
+        }
+        
     }
 
     [HarmonyPostfix, HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Awake))]
     static void SpawnNetworkHandler()
     {
-        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+        if (ConfigSettings.ModNetworking.Value)
         {
-            var networkHandlerHost = Object.Instantiate(networkPrefab, Vector3.zero, Quaternion.identity);
-            networkHandlerHost.GetComponent<NetworkObject>().Spawn();
-        }
+            if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+            {
+                var networkHandlerHost = Object.Instantiate(networkPrefab, Vector3.zero, Quaternion.identity);
+                networkHandlerHost.GetComponent<NetworkObject>().Spawn();
+            }
+        }   
     }
 
     static GameObject networkPrefab;

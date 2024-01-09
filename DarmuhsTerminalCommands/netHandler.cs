@@ -20,54 +20,6 @@ namespace TerminalStuff
         public static Terminal patchTerminal = null;
         public static bool netNodeSet = false;
 
-        [ClientRpc]
-        public void TestClientRpc()
-        {
-
-            NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
-            {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    Plugin.Log.LogInfo($"{stringTest}");
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    string stringTest = "CLIENT - Test (isClient)";
-                    Plugin.Log.LogInfo($"{stringTest}");
-                }
-            }
-        }
-
-        [ServerRpc(RequireOwnership = false)]
-        public void TestServerRpc()
-        {
-            NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-                Plugin.Log.LogInfo("TEST - Server (isHost/isServer)");
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                string stringTest = "TEST - isHost/isServer (exec stage not server)";
-                Plugin.Log.LogInfo($"{stringTest}");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("no conditions met");
-            }
-
-            TestClientRpc();
-        }
-
-        public void Test()
-        {
-            Plugin.Log.LogInfo("Test() original method - Test");
-            TestServerRpc();
-
-        }
-
         //Load New Node SYNC
 
         [ServerRpc(RequireOwnership = false)]
@@ -154,6 +106,8 @@ namespace TerminalStuff
                     "healme",
                     "fov",
                     "kickYes",
+                    "externalLink",
+                    "randomsuit"
                 };
 
                 if (terminalEvent != string.Empty && !excludedEvents.Contains(terminalEvent) )
@@ -562,16 +516,16 @@ namespace TerminalStuff
             }
         }
 
-//DO NOT REMOVE
-public override void OnNetworkSpawn()
-{
+    //DO NOT REMOVE
+    public override void OnNetworkSpawn()
+    {
 
-    if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
-        Instance?.gameObject.GetComponent<NetworkObject>().Despawn();
-    Instance = this;
+        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+            Instance?.gameObject.GetComponent<NetworkObject>().Despawn();
+        Instance = this;
 
-    base.OnNetworkSpawn();
-}
+        base.OnNetworkSpawn();
+    }
 
 
 }

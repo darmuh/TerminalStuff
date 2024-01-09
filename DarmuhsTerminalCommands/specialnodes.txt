@@ -33,6 +33,7 @@ Plugin.instance.confirmationNodeNum List:
 2 - Gamble
 3 - Buy Vitals Scanner Upgrade
 4 - Buy Bioscanner Upgrade
+5 - Custom Link
 
 
 

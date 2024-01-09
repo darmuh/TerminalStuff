@@ -6,6 +6,7 @@ namespace TerminalStuff
     public static class ConfigSettings
     {
         //establish commands that can be turned on or off here
+        public static ConfigEntry<bool> ModNetworking;
         public static ConfigEntry<bool> terminalLobby; //lobby name command
         public static ConfigEntry<bool> terminalCams; //cams command
         public static ConfigEntry<bool> terminalQuit; //quit command
@@ -33,6 +34,8 @@ namespace TerminalStuff
         public static ConfigEntry<bool> terminalLights; //Light Toggle command
         public static ConfigEntry<bool> terminalScolor; //Light colors command
         public static ConfigEntry<bool> terminalAlwaysOn; //AlwaysOn command
+        public static ConfigEntry<bool> terminalLink; //Link command
+        public static ConfigEntry<bool> terminalRandomSuit; //RandomSuit command
 
 
         //Strings for display messages
@@ -81,9 +84,12 @@ namespace TerminalStuff
         public static ConfigEntry<bool> networkedNodes; //enable or disable networked terminal nodes (beta)
         public static ConfigEntry<string> defaultCamsView;
         public static ConfigEntry<int> ovOpacity; //Opacity Percentage for Overlay Cams View
+        public static ConfigEntry<string> customLink;
+        public static ConfigEntry<string> homeLine1;
+        public static ConfigEntry<string> homeLine2;
+        public static ConfigEntry<string> homeLine3;
 
-
-        //keyword strings
+        //keyword strings (terminalapi)
         public static ConfigEntry<string> alwaysOnKeyword; //string to match keyword
         public static ConfigEntry<string> minimapKeyword;
         public static ConfigEntry<string> minicamsKeyword;
@@ -101,6 +107,14 @@ namespace TerminalStuff
         public static ConfigEntry<string> lootKeyword2;
         public static ConfigEntry<string> camsKeyword2;
         public static ConfigEntry<string> mapKeyword2;
+        public static ConfigEntry<string> randomSuitKeyword;
+
+        //terminal patcher keywords
+        public static ConfigEntry<string> fcolorKeyword;
+        public static ConfigEntry<string> gambleKeyword;
+        public static ConfigEntry<string> leverKeyword;
+        public static ConfigEntry<string> scolorKeyword;
+        public static ConfigEntry<string> linkKeyword;
 
 
 
@@ -115,6 +129,8 @@ namespace TerminalStuff
 
             //Network Configs
             ConfigSettings.networkedNodes = Plugin.instance.Config.Bind<bool>("Networked Things", "networkedNodes", false, "Enable networked Always-On Display & displaying synced terminal nodes (BETA)");
+            ConfigSettings.ModNetworking = Plugin.instance.Config.Bind<bool>("__General", "ModNetworking", true, "Disable this if you want to disable networking and use this mod as a Client-sided mod");
+
 
             //enable or disable
             ConfigSettings.terminalLobby = Plugin.instance.Config.Bind<bool>("Comfort Commands (On/Off)", "terminalLobby", true, "Shows the current lobby name <Lobby Name>");
@@ -144,7 +160,8 @@ namespace TerminalStuff
             ConfigSettings.terminalMinicams = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalMinicams", true, "Command to view radar with cams at the top right. <Minicams>");
             ConfigSettings.terminalOverlay = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalOverlay", true, "Command to view cams with radar overlayed on top. <Overlay>");
             ConfigSettings.terminalAlwaysOn = Plugin.instance.Config.Bind<bool>("Comfort Commands (On/Off)", "terminalAlwaysOn", true, $"Command to toggle Always-On Display <Alwayson>");
-
+            ConfigSettings.terminalLink = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalLink", true, "Command to link to an external web-page <Link>");
+            ConfigSettings.terminalRandomSuit = Plugin.instance.Config.Bind<bool>("Fun Commands (On/Off)", "terminalRandomSuit", true, "Command to switch your suit from a random one off the rack <RandomSuit>");
 
 
             //String Configs
@@ -175,6 +192,9 @@ namespace TerminalStuff
             ConfigSettings.mcString = Plugin.instance.Config.Bind<string>("Cams", "mcString", "(MiniCams)", "Message returned when enabling minicams command (minicams).");
             ConfigSettings.mcString2 = Plugin.instance.Config.Bind<string>("Cams", "mcString2", "MiniCams disabled.", "Message returned when disabling minicams command (minicams).");
 
+            ConfigSettings.customLink = Plugin.instance.Config.Bind<string>("Link", "customLink", "https://thunderstore.io/c/lethal-company/p/darmuh/darmuhsTerminalStuff/", "URL to send players to when using the \"link\" command.");
+
+
             //Cost configs
             ConfigSettings.vitalsCost = Plugin.instance.Config.Bind<int>("Vitals", "vitalsCost", 10, "Credits cost to run Vitals Command each time it's run.");
             ConfigSettings.vitalsUpgradeCost = Plugin.instance.Config.Bind<int>("Vitals", "vitalsUpgradeCost", 200, "Credits cost to upgrade Vitals command to not cost credits anymore.");
@@ -193,7 +213,7 @@ namespace TerminalStuff
             ConfigSettings.ovOpacity = Plugin.instance.Config.Bind("Cams", "ovOpacity", 10, new ConfigDescription("Opacity percentage for Overlay View.", new AcceptableValueRange<int>(0, 100)));
 
 
-            //Keyword configs
+            //Keyword configs (terminalapi)
             ConfigSettings.alwaysOnKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "alwaysOnKeyword", "alwayson", "Keyword used in terminal to return <alwayson> command.");
             ConfigSettings.camsKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "camsKeyword2", "cameras", "Additional Keyword used in terminal to return <cams> command");
             ConfigSettings.mapKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "mapKeyword2", "show map", "Additional Keyword used in terminal to return <map> command");
@@ -211,7 +231,20 @@ namespace TerminalStuff
             ConfigSettings.dangerKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "dangerKeyword", "danger", "Keyword used in terminal to return <danger> command");
             ConfigSettings.healKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "healKeyword2", "healme", "Additional Keyword used in terminal to return <heal> command");
             ConfigSettings.lootKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "lootKeyword2", "shiploot", "Additional Keyword used in terminal to return <loot> command");
-            
+            ConfigSettings.randomSuitKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "randomSuitKeyword", "randomsuit", "Keyword used in terminal to return <randomsuit> command");
+
+
+            //terminal patcher keywords
+            ConfigSettings.fcolorKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "fcolorKeyword", "fcolor", "Keyword used in terminal to return <fcolor> command");
+            ConfigSettings.gambleKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "gambleKeyword", "gamble", "Keyword used in terminal to return <gamble> command"); ;
+            ConfigSettings.leverKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "leverKeyword", "lever", "Keyword used in terminal to return <lever> command"); ;
+            ConfigSettings.scolorKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "scolorKeyword", "scolor", "Keyword used in terminal to return <scolor> command"); ;
+            ConfigSettings.linkKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "linkKeyword", "link", "Keyword used in terminal to return <link> command"); ;
+
+            //homescreen lines
+            ConfigSettings.homeLine1 = Plugin.instance.Config.Bind<string>("Home Page", "homeline1", "Welcome to the FORTUNE-9 OS PLUS", "First line of the home command (startup screen)");
+            ConfigSettings.homeLine2 = Plugin.instance.Config.Bind<string>("Home Page", "homeline2", "\tUpgraded by Employee: darmuh", "Second line of the home command (startup screen)");
+            ConfigSettings.homeLine3 = Plugin.instance.Config.Bind<string>("Home Page", "homeline3", "Have a wonderful [currentDay]!", "Last line of the home command (startup screen)");
         }
     }
 }

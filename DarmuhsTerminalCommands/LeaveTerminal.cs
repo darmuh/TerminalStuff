@@ -19,6 +19,7 @@ using System.Security.Policy;
 using UnityEngine.Video;
 using Random = UnityEngine.Random;
 using System.Diagnostics;
+using Steamworks;
 
 namespace TerminalStuff
 {
@@ -38,6 +39,92 @@ namespace TerminalStuff
         [HarmonyPatch("RunTerminalEvents")]
         public class Terminal_RunTerminalEvents_Patch : MonoBehaviour
         {
+
+            private static int GetMyPlayerID()
+            {
+                List<PlayerControllerB> allPlayers = new List<PlayerControllerB>();
+                string myName = GameNetworkManager.Instance.localPlayerController.playerUsername;
+                int returnID = -1;
+                allPlayers = StartOfRound.Instance.allPlayerScripts.ToList();
+                allPlayers = allPlayers.OrderBy((PlayerControllerB player) => player.playerClientId).ToList();
+                for (int i = 0; i < allPlayers.Count; i++)
+                {
+                    if (StartOfRound.Instance.allPlayerScripts[i].playerUsername == myName)
+                    {
+                        Plugin.Log.LogInfo("Found my playerID");
+                        returnID = i;
+                        break;
+                    }
+                }
+                if (returnID == -1)
+                    Plugin.Log.LogInfo("Failed to find ID");
+                return returnID;
+            }
+
+
+            private static string getRandomSuit(out string displayText)
+            {
+                List<UnlockableSuit> allSuits = new List<UnlockableSuit>();
+                List<UnlockableItem> Unlockables = new List<UnlockableItem>();
+
+                //get allSuits
+                allSuits = Resources.FindObjectsOfTypeAll<UnlockableSuit>().ToList();
+                displayText = string.Empty;
+
+                if (allSuits.Count > 1)
+                {
+                    // Order the list by syncedSuitID.Value
+                    allSuits = allSuits.OrderBy((UnlockableSuit suit) => suit.suitID).ToList();
+
+                    allSuits.RemoveAll(suit => suit.syncedSuitID.Value < 0); //simply remove bad suit IDs
+
+                    Unlockables = StartOfRound.Instance.unlockablesList.unlockables;
+
+                    
+                    int playerID = GetMyPlayerID();
+
+
+                    if (Unlockables != null)
+                    {
+                        for (int i = 0; i < Unlockables.Count; i++)
+                        {
+                            // Get a random index
+                            int randomIndex = UnityEngine.Random.Range(0, allSuits.Count);
+                            string SuitName;
+
+                            // Get the UnlockableSuit at the random index
+                            UnlockableSuit randomSuit = allSuits[randomIndex];
+                            if (randomSuit != null && Unlockables[randomSuit.syncedSuitID.Value] != null)
+                            {
+                                SuitName = Unlockables[randomSuit.syncedSuitID.Value].unlockableName;
+                                UnlockableSuit.SwitchSuitForPlayer(StartOfRound.Instance.allPlayerScripts[playerID], randomSuit.syncedSuitID.Value, true);
+                                randomSuit.SwitchSuitServerRpc(playerID);
+                                randomSuit.SwitchSuitClientRpc(playerID);
+                                displayText = $"Changing suit to {SuitName}!\r\n";
+                                return displayText;
+                            }
+                            else
+                            {
+                                displayText = "A suit could not be found.\r\n";
+                                Plugin.Log.LogInfo($"Random suit ID was invalid or null");
+                                return displayText;
+                            }
+                        }
+                    }
+
+                    displayText = "A suit could not be found.\r\n";
+                    Plugin.Log.LogInfo($"Unlockables are null");
+                    return displayText;
+                }
+                else
+                {
+                    displayText = "Not enough suits detected.\r\n";
+                    Plugin.Log.LogInfo($"allsuits count too low");
+                    return displayText;
+                }
+
+                
+            }
 
             public static void AddDuplicateRenderObjects() //used by overlay and minimap
             {
@@ -85,13 +172,13 @@ namespace TerminalStuff
                     if (node.terminalEvent == "alwayson")
                     {
                         //toggle keeping display always on here
-                        if (!Terminal_Awake_Patch.alwaysOnDisplay && ConfigSettings.networkedNodes.Value)
+                        if (!Terminal_Awake_Patch.alwaysOnDisplay && ConfigSettings.networkedNodes.Value && ConfigSettings.ModNetworking.Value)
                         {
                             NetHandler.Instance.alwaysOnServerRpc(true);
                             node.displayText = $"Terminal Always-on Display [ENABLED]\r\n";
                             //Plugin.Log.LogInfo("set alwaysondisplay to true");
                         }
-                        else if (Terminal_Awake_Patch.alwaysOnDisplay && ConfigSettings.networkedNodes.Value)
+                        else if (Terminal_Awake_Patch.alwaysOnDisplay && ConfigSettings.networkedNodes.Value && ConfigSettings.ModNetworking.Value)
                         {
                             NetHandler.Instance.alwaysOnServerRpc(false);
                             node.displayText = $"Terminal Always-on Display [DISABLED]\r\n";
@@ -108,7 +195,11 @@ namespace TerminalStuff
                             node.displayText = $"Terminal Always-on Display [DISABLED]\r\n";
                         }
                         else
+                        {
                             Plugin.Log.LogInfo("report this as a bug with alwayson please");
+                            node.displayText = "alwayson failed to initiate, report this as a bug please.";
+                        }
+                                
 
                     }
                     if (node.terminalEvent == "quit")
@@ -128,11 +219,19 @@ namespace TerminalStuff
                         __instance.QuitTerminal();
                     }
 
+                    if (node.terminalEvent == "randomsuit")
+                    {
+                        string suitString;
+                        getRandomSuit(out suitString);
+                        node.displayText = suitString;
+
+                    }
+
                     if (node.terminalEvent == "leverdo")
                     {
-                        NetworkManager networkManager = __instance.NetworkManager;
+                        
                         string getLevelName = StartOfRound.Instance.currentLevel.PlanetName;
-                        if (!GameNetworkManager.Instance.gameHasStarted && !StartOfRound.Instance.travellingToNewLevel && ((object)networkManager != null && networkManager.IsHost))
+                        if (!GameNetworkManager.Instance.gameHasStarted && !StartOfRound.Instance.travellingToNewLevel)
                         {
                             node.displayText = $"{ConfigSettings.leverString.Value}\n";
 
@@ -1176,11 +1275,17 @@ namespace TerminalStuff
                         }
                     }
 
+                    if (node.terminalEvent == "externalLink")
+                    {
+                        Application.OpenURL(ConfigSettings.customLink.Value);
+                        yield return new WaitForSeconds(0.5f);
+                        __instance.QuitTerminal();
+                    }
+
                     if (node.terminalEvent == "test")
                     {
                         node.displayText = "this shouldn't be enabled lol\n";
                         __instance.SyncGroupCreditsClientRpc(999999, __instance.numberOfItemsInDropship);
-                        //rpcPatchStuff.instance.Test();
                     }
                     if (node.terminalEvent == "fov")
                     {
@@ -1193,13 +1298,12 @@ namespace TerminalStuff
                             // Delay for 1 second
                             yield return new WaitForSeconds(0.5f);
 
-                            //Debug.Log("After 1 second");
-
-                            // Now, call QuitTerminal on the original instance
                             __instance.QuitTerminal();
                             number = Mathf.Clamp(number, 66f, 130f);
                             PlayerControllerBPatches.newTargetFovBase = number;
+                            PlayerControllerBPatches.calculateVisorStuff();
                             Terminal_ParsePlayerSentence_Patch.newParsedValue = false;
+                            
                         }
                         else
                         {
@@ -1463,10 +1567,18 @@ namespace TerminalStuff
 
         public static void AddTest()
         {
-            TerminalNode test = CreateTerminalNode("test\n", true, "test");
+            TerminalNode test = CreateTerminalNode("test\n", true, "randomsuit");
             TerminalKeyword testKeyword = CreateTerminalKeyword("test", true, test);
             AddTerminalKeyword(testKeyword);
             Plugin.Log.LogInfo("This should only be enabled for dev testing");
+        }
+
+        public static void AddRandomSuit()
+        {
+            TerminalNode node = CreateTerminalNode("randomsuit terminalEvent\n", true, "randomsuit");
+            TerminalKeyword nodeKeyword = CreateTerminalKeyword(ConfigSettings.randomSuitKeyword.Value, true, node);
+            AddTerminalKeyword(nodeKeyword);
+            node.name = "RandomSuit";
         }
 
         public static void AddAlwaysOnKeywords()

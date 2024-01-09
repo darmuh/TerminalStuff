@@ -5,11 +5,12 @@ using System;
 using System.Reflection;
 using UnityEngine.UI;
 using UnityEngine;
+using BepInEx.Bootstrap;
 
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.0")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.1")]
     [BepInDependency("atomic.terminalapi")]
     [BepInDependency("Rozebud.FovAdjust")]
 
@@ -20,11 +21,15 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.darmuhsTerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "2.2.0";
+            public const string PLUGIN_VERSION = "2.2.1";
         }
 
         internal static new ManualLogSource Log;
-        
+
+        //Compatibility
+        public bool CompatibilityAC = false;
+        public bool CompatibilityOther = false;
+
 
         //public stuff for instance
         public bool awaitingConfirmation = false;
@@ -45,6 +50,7 @@ namespace TerminalStuff
         public bool fSuccess = false;
         public bool hSuccess = false;
         
+        
 
         public RawImage rawImage1;
         public RawImage rawImage2;
@@ -60,13 +66,24 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.0!");
-            Plugin.Log.LogInfo((object)"--------Hopefully this is the version that doesn't break the switch command :).---------");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.1!");
+            Plugin.Log.LogInfo((object)"--------Now with a return to Client-Side Only Compatibility! :).---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             //LeaveTerminal.AddTest(); //this command is only for devtesting
             //Addkeywords used to be here
             VideoManager.Load();
+
+            if (Chainloader.PluginInfos.ContainsKey("com.potatoepet.AdvancedCompany"))
+            {
+                Plugin.Log.LogInfo("Advanced Company detected, setting Advanced Company Compatibility options");
+                CompatibilityAC = true;
+            }
+            if (Chainloader.PluginInfos.ContainsKey("com.malco.lethalcompany.moreshipupgrades")) //other mods that simply append to the help command
+            {
+                Plugin.Log.LogInfo("Known mod detected that requires compatibility");
+                CompatibilityOther = true;
+            }
 
             //start of networking stuff
 
@@ -83,6 +100,7 @@ namespace TerminalStuff
                     }
                 }
             }
+            
 
             //end of networking stuff
         }
@@ -98,7 +116,7 @@ namespace TerminalStuff
             AddKeywordIfEnabled(ConfigSettings.terminalClear.Value, LeaveTerminal.clearKeywords);
             AddKeywordIfEnabled(ConfigSettings.terminalHeal.Value, LeaveTerminal.healKeywords);
             AddKeywordIfEnabled(ConfigSettings.terminalDanger.Value, LeaveTerminal.dangerKeywords);
-            AddKeywordIfEnabled(ConfigSettings.terminalVitals.Value, LeaveTerminal.vitalsKeywords);
+            AddKeywordIfEnabled(ConfigSettings.terminalVitals.Value, LeaveTerminal.vitalsKeywords, ConfigSettings.ModNetworking.Value); //not allowing on clientside
             AddKeywordIfEnabled(ConfigSettings.terminalMods.Value, LeaveTerminal.AddModListKeywords);
             AddKeywordIfEnabled(ConfigSettings.terminalOverlay.Value, LeaveTerminal.AddOverlayView);
             AddKeywordIfEnabled(ConfigSettings.terminalMinimap.Value, LeaveTerminal.AddMiniMap);
@@ -107,6 +125,7 @@ namespace TerminalStuff
             AddKeywordIfEnabled(ConfigSettings.terminalDoor.Value, LeaveTerminal.AddDoor);
             AddKeywordIfEnabled(ConfigSettings.terminalAlwaysOn.Value, LeaveTerminal.AddAlwaysOnKeywords);
             AddKeywordIfEnabled(ConfigSettings.terminalLights.Value, LeaveTerminal.AddLights);
+            AddKeywordIfEnabled(ConfigSettings.terminalRandomSuit.Value, LeaveTerminal.AddRandomSuit);
         }
 
         private static void AddKeywordIfEnabled(bool isEnabled, Action keywordAction)
@@ -115,6 +134,18 @@ namespace TerminalStuff
             {
                 keywordAction();
             }
+        }
+
+        private static void AddKeywordIfEnabled(bool isEnabled, Action keywordAction, bool checkNetwork)
+        {
+            if(checkNetwork)
+            {
+                if (isEnabled)
+                {
+                    keywordAction();
+                }
+            }
+            
         }
 
     }

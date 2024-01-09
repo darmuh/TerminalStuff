@@ -16,24 +16,36 @@ using DunGen.Graph;
 using static UnityEngine.GraphicsBuffer;
 using Object = UnityEngine.Object;
 using Steamworks;
+using BepInEx.Configuration;
+using AsmResolver.IO;
 
 namespace TerminalStuff
 {
     public class AllMyTerminalPatches
     {
         public static AllMyTerminalPatches Instance;
+
+        //non-terminalAPI keywords
+        public static string fColor;
+        public static string Gamble;
+        public static string Lever;
+        public static string sColor;
+        public static string Link;
+
         //LoadNewNode(TerminalNode node)
         [HarmonyPatch(typeof(Terminal), "LoadNewNode")]
         public class NodePatch : Terminal
         {
             static void Postfix(ref Terminal __instance, ref TerminalNode node)
             {
+                
                 if (Terminal_Awake_Patch.alwaysOnDisplay && NetHandler.netNodeSet == false && ConfigSettings.networkedNodes.Value)
                 {
                     Plugin.Log.LogInfo("setting nodeset to true, syncing with other clients.");
                     NetHandler.netNodeSet = true;
                     NetHandler.Instance.nodeLoadServerRpc(node.name, node.terminalEvent);
                 }
+
             }
         }
 
@@ -75,14 +87,20 @@ namespace TerminalStuff
             public static bool doesITPexist = false;
             public static bool alwaysOnDisplay = false;
             public static bool isTermInUse = false;
+            public static bool helpModified = false;
             //change vanilla terminal stuff here
             static void Postfix(ref Terminal __instance)
             {
                 Plugin.Log.LogInfo("Upgrading terminal with my stuff, smile.");
                 TerminalNode startNode = __instance.terminalNodes.specialNodes.ToArray()[1];
                 TerminalNode helpNode = __instance.terminalNodes.specialNodes.ToArray()[13];
-                helpNode.displayText = ">MOONS\r\nList of moons the autopilot can route to.\r\n\r\n>STORE\r\nCompany store's selection of useful items.\r\n\r\n>BESTIARY\r\nTo see the list of wildlife on record.\r\n\r\n>STORAGE\r\nTo access objects placed into storage.\r\n\r\n>OTHER\r\nTo see the list of other commands\r\n\r\n>MORE\r\nTo see a list of commands added via darmuhsTerminalStuff\r\n\r\n[numberOfItemsOnRoute]\r\n";
-                startNode.displayText = "Welcome to the FORTUNE-9 OS PLUS\r\n\tUpgraded by Employee: darmuh\r\n\r\nType \"Help\" for a list of commands.\r\n\r\nType \"More\" for a list of \"extra\" commands.\r\n\r\n     ._______.\r\n     | \\   / |\r\n  .--|.O.|.O.|______.\r\n__).-| = | = |/   \\ |\r\np__) (.'---`.)Q.|.Q.|--.\r\n      \\\\___// = | = |-.(__\r\n       `---'( .---. ) (__&lt;\r\n             \\\\.-.//\r\n              `---'\r\n\t\t\t  \r\nHave a wonderful [currentDay]!\r\n";
+                if (!Plugin.instance.CompatibilityAC && !Plugin.instance.CompatibilityOther)
+                    helpNode.displayText = ">MOONS\r\nList of moons the autopilot can route to.\r\n\r\n>STORE\r\nCompany store's selection of useful items.\r\n\r\n>BESTIARY\r\nTo see the list of wildlife on record.\r\n\r\n>STORAGE\r\nTo access objects placed into storage.\r\n\r\n>OTHER\r\nTo see the list of other commands\r\n\r\n>MORE\r\nTo see a list of commands added via darmuhsTerminalStuff\r\n\r\n[numberOfItemsOnRoute]\r\n"; //appended
+                else if (Plugin.instance.CompatibilityAC)
+                    alwaysOnDisplay = true;
+
+                //no known compatibility issues with home screen
+                startNode.displayText = $"{ConfigSettings.homeLine1.Value}\r\n{ConfigSettings.homeLine2.Value}\r\n\r\nType \"Help\" for a list of commands.\r\n\r\nType \"More\" for a list of darmuh's commands.\r\n\r\n     ._______.\r\n     | \\   / |\r\n  .--|.O.|.O.|______.\r\n__).-| = | = |/   \\ |\r\np__) (.'---`.)Q.|.Q.|--.\r\n      \\\\___// = | = |-.(__\r\n       `---'( .---. ) (__&lt;\r\n             \\\\.-.//\r\n              `---'\r\n\t\t\t  \r\n{ConfigSettings.homeLine3.Value}\r\n\r\n";
                 doesTPexist = false;
                 doesITPexist = false;
                 isTermInUse = __instance.terminalInUse;
@@ -177,6 +195,37 @@ namespace TerminalStuff
             static void Postfix(ref Terminal __instance)
             {
                 Terminal_Awake_Patch.isTermInUse = __instance.terminalInUse;
+
+                if (__instance.terminalInUse && Plugin.instance.CompatibilityAC && !Terminal_Awake_Patch.helpModified) //specifically for AdvancedCompany
+                {
+                    foreach (TerminalKeyword allKeyword in __instance.terminalNodes.allKeywords)
+                    {
+                        if (allKeyword.word == "other")
+                        {
+                            string originalString = allKeyword.specialKeywordResult.displayText;
+
+                            StringBuilder newOther = new StringBuilder(originalString);
+
+                            // Find the index of the last newline character
+                            int lastNewlineIndex = newOther.ToString().LastIndexOf('\n');
+
+                            // Remove the last line
+                            if (lastNewlineIndex != -1)
+                            {
+                                newOther.Remove(lastNewlineIndex, newOther.Length - lastNewlineIndex);
+                            }
+
+                            // Append your own line
+                            newOther.AppendLine(">MORE\r\nDisplay command categories added via darmuhsTerminalStuff\r\n");
+                            allKeyword.specialKeywordResult.displayText = newOther.ToString();
+                        }
+                        //allKeyword.specialKeywordResult.displayText += ">MORE\r\nDisplay command categories added via darmuhsTerminalStuff\r\n";
+                    }
+                    Terminal_Awake_Patch.helpModified = true;
+                    Plugin.Log.LogInfo("other modified"); //test
+
+                }
+
                 //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}"); //for alwaysondisplay
                 if (!Terminal_Awake_Patch.alwaysOnDisplay)
                 {
@@ -185,6 +234,10 @@ namespace TerminalStuff
                     Plugin.instance.isOnCamera = false;
                     Plugin.instance.isOnMap = false;
                     //patches in when terminal starts getting used
+
+                    //Always load to start if alwayson disabled
+                    TerminalNode startNode = __instance.terminalNodes.specialNodes.ToArray()[1];
+                    __instance.LoadNewNode(startNode);
                 }
                 else if (__instance.usedTerminalThisSession && Terminal_Awake_Patch.alwaysOnDisplay)
                 {
@@ -200,7 +253,7 @@ namespace TerminalStuff
                         {
                             //__instance.currentNode.clearPreviousText = true;
                             __instance.LoadNewNode(__instance.terminalNodes.specialNodes[24]);
-                            Plugin.Log.LogInfo("returning to cams");
+                            Plugin.Log.LogInfo($"returning to cams\nMap: {Plugin.instance.isOnMap} \nCams: {Plugin.instance.isOnCamera} \nMiniMap: {Plugin.instance.isOnMiniMap} \nMiniCams: {Plugin.instance.isOnMiniCams} \nOverlay: {Plugin.instance.isOnOverlay}");
                             return;
                         }
                         
@@ -366,10 +419,71 @@ namespace TerminalStuff
                 return false; // Return false if no keyword is found
             }
 
+            private static void getConfigKeywordsToUse()
+            {
+                if (ConfigSettings.fcolorKeyword.Value != null && GetKeyword(ConfigSettings.fcolorKeyword.Value) == null)
+                    fColor = ConfigSettings.fcolorKeyword.Value.ToLower();
+                else
+                    fColor = "fcolor";
+                if (ConfigSettings.gambleKeyword.Value != null && GetKeyword(ConfigSettings.gambleKeyword.Value) == null)
+                    Gamble = ConfigSettings.gambleKeyword.Value.ToLower();
+                else
+                    Gamble = "gamble";
+
+                if (ConfigSettings.leverKeyword.Value != null && GetKeyword(ConfigSettings.leverKeyword.Value) == null)
+                    Lever = ConfigSettings.leverKeyword.Value.ToLower();
+                else
+                    Lever = "lever";
+
+                if (ConfigSettings.scolorKeyword.Value != null && GetKeyword(ConfigSettings.scolorKeyword.Value) == null)
+                    sColor = ConfigSettings.scolorKeyword.Value.ToLower();
+                else
+                    sColor = "scolor";
+
+                if (ConfigSettings.linkKeyword.Value != null && GetKeyword(ConfigSettings.linkKeyword.Value) == null)
+                    Link = ConfigSettings.linkKeyword.Value.ToLower();
+                else
+                    Link = "link";
+
+            }
+
+            private static void HelpCompatibility(Terminal termstance)
+            {
+                if (termstance.terminalInUse && Plugin.instance.CompatibilityOther && !Terminal_Awake_Patch.helpModified) //simple help append
+                {
+                    Task.Run(() =>
+                    {
+                        Thread.Sleep(400);
+                        TerminalNode helpNode = termstance.terminalNodes.specialNodes.ToArray()[13];
+                        helpNode.displayText += "\r\n\tdarmuhsTerminalStuff Additions:\r\n\r\n>MORE\r\nDisplay command categories added via darmuhsTerminalStuff\r\n\r\n";
+                        Terminal_Awake_Patch.helpModified = true;
+                        termstance.LoadNewNode(helpNode);
+                        Plugin.Log.LogInfo("helpnode patched in compatibility mode");
+                    }); 
+                }
+            }
+
+            private static bool HideCams(Terminal __instance, TerminalNode __result)
+            {
+                return !ConfigSettings.camsNeverHide.Value
+                    && __result.terminalEvent != "switchCamera"
+                    && __result != __instance.terminalNodes.specialNodes[20]
+                    && __result != __instance.terminalNodes.specialNodes[5]
+                    && __result != __instance.terminalNodes.specialNodes[10]
+                    && __result != __instance.terminalNodes.specialNodes[11]
+                    && __result != __instance.terminalNodes.specialNodes[12]
+                    && __result != __instance.terminalNodes.specialNodes[21]
+                    && __result != __instance.terminalNodes.specialNodes[22]
+                    && __result != __instance.terminalNodes.specialNodes[23];
+            }
+
             static void Postfix(Terminal __instance, ref TerminalNode __result)
             {
+
+                getConfigKeywordsToUse();
+
                 // custom keywords not using TerminalApi to trigger a node result directly
-                List<string> keywords = new List<string> { "lobby", "home", "more", "next", "comfort", "controls", "extras", "fun", "kick", "fcolor", "fov", "gamble", "lever", "vitalspatch", "bioscan", "bioscanpatch", "scolor" }; // keyword catcher
+                List<string> keywords = new List<string> { "lobby", "home", "more", "next", "comfort", "controls", "extras", "fun", "kick", fColor, "fov", Gamble, Lever, "vitalspatch", "bioscan", "bioscanpatch", sColor, Link }; // keyword catcher
                 List<string> confirmationKeywords = new List<string> { "confirm", "c", "co", "con", "conf", "confi", "confir", "deny", "d", "de", "den" }; //confirm or deny catcher & shortened
 
                 if (Plugin.instance.awaitingConfirmation && (!CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, confirmationKeywords)))
@@ -386,6 +500,7 @@ namespace TerminalStuff
                     
                     Plugin.Log.LogInfo("disabled confirmation check, checked __result at __result");    
                 }
+
                 if (__result != null && LeaveTerminal.isVideoPlaying && __result.terminalEvent != "lolevent")
                 {
                     fixVideoPatch.OnVideoEnd(__instance.videoPlayer, __instance);
@@ -393,7 +508,7 @@ namespace TerminalStuff
                     //Plugin.Log.LogInfo("isVideoPlaying set to FALSE");
                 }
 
-                List<string> excludedNames = new List<string>
+                List<string> excludedNames = new List<string> //stuff that should not disable cams
                 {
                     "ViewInsideShipCam 1",
                     "Toggle Doors",
@@ -405,17 +520,22 @@ namespace TerminalStuff
                     "Check Danger Level",
                     "Check Vitals",
                     "HealFromTerminal",
-                    "Check Loot Value"
+                    "Check Loot Value",
+                    "RandomSuit"
                 };
 
                 //20,21,22
-                if (__result != null && !excludedNames.Contains(__result.name) && !ConfigSettings.camsNeverHide.Value && __result.terminalEvent != "switchCamera" && __result != __instance.terminalNodes.specialNodes[20] && __result != __instance.terminalNodes.specialNodes[21] && __result != __instance.terminalNodes.specialNodes[22] && __result != __instance.terminalNodes.specialNodes[23])
+                if (__result != null && !excludedNames.Contains(__result.name) && HideCams(__instance, __result))
                 {
                     LeaveTerminal.checkForSplitView("neither");
                     Plugin.Log.LogInfo("disabling cams views");
                 }
 
-                
+                if (__result == __instance.terminalNodes.specialNodes.ToArray()[13] && Plugin.instance.CompatibilityOther && !Terminal_Awake_Patch.helpModified) //simple help append
+                {
+                    HelpCompatibility(__instance);
+                    Terminal_Awake_Patch.helpModified = true;
+                }
 
                 string cleanedText = GetCleanedScreenText(__instance);
                 string[] words = cleanedText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -516,6 +636,8 @@ namespace TerminalStuff
                 //long ass if statement checking for both lists because I wanted them separate lol
                 if (CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, keywords) || CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, confirmationKeywords))
                 {
+                    NetworkManager networkManager = __instance.NetworkManager;
+
                     //kick nodes
                     TerminalNode kickYes = CreateTerminalNode("Player has been kicked.\n", false, "kickYes");
                     TerminalNode kickNo = CreateTerminalNode("Unable to kick, player not found.\n", false, "kickNo");
@@ -532,6 +654,11 @@ namespace TerminalStuff
                     TerminalNode leverAsk = CreateTerminalNode("Pull the Lever?\n\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n", true);
                     TerminalNode leverDO = CreateTerminalNode($"Lever pull confirmed, pulling now...\n", true, "leverdo");
                     TerminalNode leverDONT = CreateTerminalNode($"Lever pull cancelled...\n", true);
+
+                    //link nodes
+                    TerminalNode linkAsk = CreateTerminalNode($"Would you like to be taken to the following link?\n\n{ConfigSettings.customLink.Value}\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n", true);
+                    TerminalNode linkDO = CreateTerminalNode($"Taking you to {ConfigSettings.customLink.Value} now...\n", true, "externalLink");
+                    TerminalNode linkDONT = CreateTerminalNode($"You have cancelled visiting the site: {ConfigSettings.customLink.Value}\n", true);
 
                     //vitals nodes
                     TerminalNode VitalsUpgradeAsk = CreateTerminalNode($"", true, "upgradevitalsAsk");
@@ -599,6 +726,19 @@ namespace TerminalStuff
                                     Plugin.Log.LogInfo("Denial received.");
                                 });
 
+                        if (Plugin.instance.confirmationNodeNum == 5) //CustomLink
+                            HandleConfirmation(__instance, words,
+                                confirmCallback: () =>
+                                {
+                                    localResult = linkDO;
+                                    Plugin.Log.LogInfo("Confirmation received.");
+                                },
+                                denyCallback: () =>
+                                {
+                                    localResult = linkDONT;
+                                    Plugin.Log.LogInfo("Denial received.");
+                                });
+
                         Plugin.instance.awaitingConfirmation = false; //remove confirm check
                         Plugin.instance.confirmationNodeNum = 0;
                         __result = localResult;
@@ -627,10 +767,10 @@ namespace TerminalStuff
                     }
 
 
-                    if (words.Length == 1 && words[0].ToLower() == "lever" && ConfigSettings.terminalLever.Value)
+
+                    if (words.Length == 1 && words[0].ToLower() == Lever && ConfigSettings.terminalLever.Value && ((object)networkManager != null && networkManager.IsHost))
                     {
-                        Plugin.Log.LogInfo("word found: lever");
-                        NetworkManager networkManager = __instance.NetworkManager;
+                        Plugin.Log.LogInfo("command init: lever");
                         if (ConfigSettings.leverConfirmOverride.Value)
                         {
                             __result = leverDO;
@@ -652,7 +792,20 @@ namespace TerminalStuff
                         
                     }
 
-                    if (words.Length == 1 && words[0].ToLower() == "vitalspatch" && ConfigSettings.terminalVitalsUpgrade.Value)
+                    if (words.Length == 1 && words[0].ToLower() == Link && ConfigSettings.terminalLink.Value)
+                    {
+                        Plugin.Log.LogInfo("command init: link");
+                        __result = linkAsk; //Ask user to confirm or deny
+                        Plugin.Log.LogInfo("__result set (1)");
+                        Plugin.instance.awaitingConfirmation = true;
+                        Plugin.instance.confirmationNodeNum = 5; //link
+
+                        // Awaiting Confirmation Logic
+                        Plugin.Log.LogInfo("waiting for confirm for command, link");
+                        return;
+                    }
+
+                    if (words.Length == 1 && words[0].ToLower() == "vitalspatch" && ConfigSettings.terminalVitalsUpgrade.Value && ConfigSettings.ModNetworking.Value)
                     {
                         Plugin.Log.LogInfo("Asking user if they want to buy vitals upgrade");
                         if (LeaveTerminal.vitalsUpgradeEnabled == true)
@@ -671,14 +824,14 @@ namespace TerminalStuff
                             return;
                         }
                     }
-                    if (words.Length == 1 && words[0].ToLower() == "bioscan" && ConfigSettings.terminalBioScan.Value)
+                    if (words.Length == 1 && words[0].ToLower() == "bioscan" && ConfigSettings.terminalBioScan.Value && ConfigSettings.ModNetworking.Value)
                     {
                         __result = CreateTerminalNode("", true, "enemies");
                         Plugin.Log.LogInfo("sending to enemies terminalEvent");
                         return;
                     }
 
-                    if (words.Length == 1 && words[0].ToLower() == "bioscanpatch" && ConfigSettings.terminalBioScan.Value)
+                    if (words.Length == 1 && words[0].ToLower() == "bioscanpatch" && ConfigSettings.terminalBioScan.Value && ConfigSettings.ModNetworking.Value)
                     {
                         Plugin.Log.LogInfo("Asking user if they want to buy bioscan upgrade");
                         if (LeaveTerminal.enemyScanUpgradeEnabled == true)
@@ -698,10 +851,9 @@ namespace TerminalStuff
                         }   
                     }
 
-                    if (words.Length >= 2 && words[0].ToLower() == "gamble" && ConfigSettings.terminalGamble.Value)
+                    if (words.Length >= 2 && words[0].ToLower() == Gamble && ConfigSettings.terminalGamble.Value && ConfigSettings.ModNetworking.Value)
                     {
-                        Plugin.Log.LogInfo("word found: gamble");
-                        NetworkManager networkManager = __instance.NetworkManager;
+                        Plugin.Log.LogInfo("gamble command init");
                         string digitsProvided = words[1];
                         if (Regex.IsMatch(digitsProvided, "\\d+"))
                         {
@@ -749,10 +901,10 @@ namespace TerminalStuff
 
 
                     }
-                    if(words.Length >= 2 && words[0].ToLower() == "scolor")
+                    if(words.Length >= 2 && words[0].ToLower() == sColor && ConfigSettings.terminalScolor.Value && ConfigSettings.ModNetworking.Value)
                     {
                         string targetColor = "";
-                        Plugin.Log.LogInfo("scolor detected");
+                        Plugin.Log.LogInfo("scolor command init");
                         if (words.Length == 3)
                         {
                             targetColor = words[2];
@@ -764,7 +916,7 @@ namespace TerminalStuff
                         if (words[1].ToLower() == "list")
                         {
                             plugin.Log.LogInfo("list detected");
-                            TerminalNode sList = CreateTerminalNode("========= Ship Lights Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"scolor all normal\" or \"scolor all default\"\r\nRed: \"scolor back red\"\r\nGreen: \"scolor mid green\"\r\nBlue: \"scolor front blue\"\r\nYellow: \"scolor middle yellow\"\r\nCyan: \"scolor all cyan\"\r\nMagenta: \"scolor back magenta\"\r\nPurple: \"scolor mid purple\"\r\nLime: \"scolor all lime\"\r\nPink: \"scolor front pink\"\r\nMaroon: \"scolor middle maroon\"\r\nOrange: \"scolor back orange\"\r\nSasstro's Color: \"scolor all sasstro\"\r\nSamstro's Color: \"scolor all samstro\"\r\n\r\n", true);
+                            TerminalNode sList = CreateTerminalNode($"========= Ship Lights Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"{sColor} all normal\" or \"{sColor} all default\"\r\nRed: \"{sColor} back red\"\r\nGreen: \"{sColor} mid green\"\r\nBlue: \"{sColor} front blue\"\r\nYellow: \"{sColor} middle yellow\"\r\nCyan: \"{sColor} all cyan\"\r\nMagenta: \"{sColor} back magenta\"\r\nPurple: \"{sColor} mid purple\"\r\nLime: \"{sColor} all lime\"\r\nPink: \"{sColor} front pink\"\r\nMaroon: \"{sColor} middle maroon\"\r\nOrange: \"{sColor} back orange\"\r\nSasstro's Color: \"{sColor} all sasstro\"\r\nSamstro's Color: \"{sColor} all samstro\"\r\n\r\n", true);
                             __result = sList;
                             return;
                         }
@@ -846,13 +998,13 @@ namespace TerminalStuff
                         }
                         else
                         {
-                            TerminalNode tempNode = CreateTerminalNode($"Invalid selection.\r\n\r\nPlease choose between all, front, middle, and back lights to set and ensure you have specified a color name.\r\n\r\nSee 'scolor list' for a list of color names.\r\n");
+                            TerminalNode tempNode = CreateTerminalNode($"Invalid selection.\r\n\r\nPlease choose between all, front, middle, and back lights to set and ensure you have specified a color name.\r\n\r\nSee '{sColor} list' for a list of color names.\r\n");
                             __result = tempNode;
                             return;
                         }
                     }
 
-                    if (words.Length >= 2 && words[0].ToLower() == "fcolor" && words[1].ToLower() != "list" && ConfigSettings.terminalFcolor.Value == true)
+                    if (words.Length >= 2 && words[0].ToLower() == fColor && words[1].ToLower() != "list" && ConfigSettings.terminalFcolor.Value && ConfigSettings.ModNetworking.Value)
                     {
                         Plugin.Log.LogInfo("fcolor command detected!");
                         string targetColor = words[1];
@@ -873,7 +1025,7 @@ namespace TerminalStuff
                             return;
                         }
                     }
-                    if (words.Length >= 2 && words[0].ToLower() == "fcolor" && words[1].ToLower() == "list" && ConfigSettings.terminalFcolor.Value == true) //get list of colors
+                    if (words.Length >= 2 && words[0].ToLower() == fColor && words[1].ToLower() == "list" && ConfigSettings.terminalFcolor.Value == true) //get list of colors
                     {
                         TerminalNode fList = CreateTerminalNode("========= Flashlight Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"fcolor normal\" or \"fcolor default\"\r\nRed: \"fcolor red\"\r\nGreen: \"fcolor green\"\r\nBlue: \"fcolor blue\"\r\nYellow: \"fcolor yellow\"\r\nCyan: \"fcolor cyan\"\r\nMagenta: \"fcolor magenta\"\r\nPurple: \"fcolor purple\"\r\nLime: \"fcolor lime\"\r\nPink: \"fcolor pink\"\r\nMaroon: \"fcolor maroon\"\r\nOrange: \"fcolor orange\"\r\nSasstro's Color: \"fcolor sasstro\"\r\nSamstro's Color: \"fcolor samstro\"\r\n\r\n", true);
                         __result = fList;
@@ -954,7 +1106,8 @@ namespace TerminalStuff
                     if (words.Length == 1 && words[0].ToLower() == "more")
                     {
                         TerminalNode moreText = CreateTerminalNode("Welcome to darmuh's Terminal Upgrade!\r\n\tSee below Categories for new stuff :)\r\n\r\n[COMFORT]\r\nImproves the terminal user experience.\r\n\r\n[EXTRAS]\r\nAdds extra functionality to the ship terminal.\r\n\r\n[CONTROLS]\r\nGives terminal more control of the ship's systems.\r\n\r\n[FUN]ctionality\r\nType \"fun\" for a list of these FUNctional commands.\r\n\r\n", true);
-                        __result = moreText;
+                        moreText.name = "More Command by Darmuh";
+                        __result = moreText;                        
                         return;
                     }
                     if (words.Length == 1 && words[0].ToLower() == "next" && isNextEnabled)
@@ -966,6 +1119,7 @@ namespace TerminalStuff
                     }
                     if (words.Length == 1 && words[0].ToLower() == "comfort")
                     {
+
                         int maxLines = 17;
                         extraLinesForInfoCommands = new StringBuilder("=== Comfort (Quality of Life) Page 2 ===\r\n\r\n");
                         StringBuilder comfortString = new StringBuilder("=== Category 1: Comfort (Quality of Life) ===\r\n\r\n");
@@ -981,8 +1135,8 @@ namespace TerminalStuff
                             comfortString.AppendLine($"> fov <value>\r\nUpdate your in-game Field of View.\r\n");
                         if (ConfigSettings.terminalHeal.Value)
                             comfortString.AppendLine($"> heal, {ConfigSettings.healKeyword2.Value}\r\nHeal yourself from any damage.\r\n");
-                        if (ConfigSettings.terminalKick.Value)
-                            comfortString.AppendLine($"> kick\r\nKick another employee (if you're the captain).\r\n");
+                        if (ConfigSettings.terminalKick.Value && ((object)networkManager != null && networkManager.IsHost))
+                            comfortString.AppendLine($"> kick\r\nKick another employee from your group.\r\n");
                         if (ConfigSettings.terminalLobby.Value)
                             comfortString.AppendLine($"> lobby\r\nDisplay current lobby name.\r\n");
                         if (ConfigSettings.terminalMods.Value)
@@ -1032,17 +1186,20 @@ namespace TerminalStuff
                         if (ConfigSettings.terminalLoot.Value)
                             extraString.AppendLine($"> loot, {ConfigSettings.lootKeyword2.Value}\r\nDisplay total value of all loot on-board.\r\n");
                         
-                        if (ConfigSettings.terminalVitals.Value)
+                        if (ConfigSettings.terminalVitals.Value && ConfigSettings.ModNetworking.Value)
                             extraString.AppendLine($"> vitals\r\nDisplay vitals of employee being tracked on radar.\r\n");
 
-                        if (ConfigSettings.terminalVitalsUpgrade.Value)
+                        if (ConfigSettings.terminalVitalsUpgrade.Value && ConfigSettings.ModNetworking.Value)
                             extraString.AppendLine($"> vitalspatch\r\nPurchase upgrade to Vitals Software Patch 2.0\r\n");
 
-                        if (ConfigSettings.terminalBioScan.Value)
+                        if (ConfigSettings.terminalBioScan.Value && ConfigSettings.ModNetworking.Value)
                             extraString.AppendLine($"> bioscan\r\n Use Ship BioScanner to search for non-employee lifeforms.\r\n");
 
-                        if (ConfigSettings.terminalBioScan.Value)
+                        if (ConfigSettings.terminalBioScan.Value && ConfigSettings.ModNetworking.Value)
                             extraString.AppendLine($"> bioscanpatch\r\n Purchase upgrade to BioScanner Software Patch 2.0\r\n");
+
+                        if (ConfigSettings.terminalLink.Value)
+                            extraString.AppendLine($"> {ConfigSettings.linkKeyword.Value}\r\n Go to a specific web page.\r\n");
 
                         int numberOfLines = extraString.ToString().Split(new[] { ".\r\n" }, StringSplitOptions.None).Length;
                         (string remainingLines, StringBuilder shortenedStringBuilder) = LimitLinesInStringBuilder(ref extraString, maxLines);
@@ -1074,7 +1231,7 @@ namespace TerminalStuff
                         if (ConfigSettings.terminalDanger.Value)
                             controlString.AppendLine($"> {ConfigSettings.dangerKeyword.Value} \r\nDisplays the danger level once the ship has landed.\r\n");
                         if (ConfigSettings.terminalLever.Value)
-                            controlString.AppendLine($"> lever\r\nRemotely pull the ship lever.\r\n");
+                            controlString.AppendLine($"> {Lever}\r\nRemotely pull the ship lever.\r\n");
                         if (ConfigSettings.terminalDoor.Value)
                             controlString.AppendLine($"> {ConfigSettings.doorKeyword.Value}\r\nRemotely open/close the ship doors.\r\n");
                         if (ConfigSettings.terminalLights.Value)
@@ -1111,19 +1268,22 @@ namespace TerminalStuff
                         extraLinesForInfoCommands = new StringBuilder("=== Fun Stuff Page 2 ===\r\n\r\n");
                         StringBuilder funString = new StringBuilder("=== Category 4: Fun Stuff ===\r\n\r\n");
 
-                        if (ConfigSettings.terminalFcolor.Value)
+                        if (ConfigSettings.terminalFcolor.Value && ConfigSettings.ModNetworking.Value)
                         {
-                            funString.AppendLine("> fcolor <color>\r\nUpgrade your flashlight with a new color.\r\n");
-                            funString.AppendLine("> fcolor list\r\nView available colors for flashlight.\r\n");
+                            funString.AppendLine($"> {fColor} <color>\r\nUpgrade your flashlight with a new color.\r\n");
+                            funString.AppendLine($"> {fColor} list\r\nView available colors for flashlight.\r\n");
                         }    
-                        if (ConfigSettings.terminalScolor.Value)
+                        if (ConfigSettings.terminalScolor.Value && ConfigSettings.ModNetworking.Value)
                         {
-                            funString.AppendLine("> scolor <all,front,middle,back> <color>\r\nChange the color of the ship's lights.\r\n");
-                            funString.AppendLine("> scolor list\r\nView available colors to change ship lights.\r\n");
+                            funString.AppendLine($"> {sColor} <all,front,middle,back> <color>\r\nChange the color of the ship's lights.\r\n");
+                            funString.AppendLine($"> {sColor} list\r\nView available colors to change ship lights.\r\n");
                         }
-                            
-                        if (ConfigSettings.terminalGamble.Value)
-                            funString.AppendLine("> gamble <percentage>\r\nGamble a percentage of your credits.\r\n");
+
+                        if(ConfigSettings.terminalRandomSuit.Value)
+                            funString.AppendLine($"> {ConfigSettings.randomSuitKeyword.Value} \r\nPut on a random suit.\r\n");
+
+                        if (ConfigSettings.terminalGamble.Value && ConfigSettings.ModNetworking.Value)
+                            funString.AppendLine($"> {Gamble} <percentage>\r\nGamble a percentage of your credits.\r\n");
                         if (ConfigSettings.terminalLol.Value)
                             funString.AppendLine($"> {ConfigSettings.lolKeyword.Value}\r\nPlay a silly video on the terminal.\r\n");
 
