@@ -974,7 +974,7 @@ namespace TerminalStuff
                         string removeText = "MONITORING: ";
                         string playerName = playerNameText.Remove(0, removeText.Length);
                         node.name = "ViewInsideShipCam 1";
-                        if (RoundManager.Instance != null && RoundManager.Instance.hasInitializedLevelRandomSeed)
+                        if (StartOfRound.Instance != null && StartOfRound.Instance.shipDoorsEnabled)
                         {
                             if (Plugin.instance.isOnMap == false)
                             {

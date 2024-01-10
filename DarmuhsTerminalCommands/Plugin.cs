@@ -10,7 +10,7 @@ using BepInEx.Bootstrap;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.1")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.2")]
     [BepInDependency("atomic.terminalapi")]
     [BepInDependency("Rozebud.FovAdjust")]
 
@@ -21,7 +21,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.darmuhsTerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "2.2.1";
+            public const string PLUGIN_VERSION = "2.2.2";
         }
 
         internal static new ManualLogSource Log;
@@ -66,8 +66,8 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.1!");
-            Plugin.Log.LogInfo((object)"--------Now with a return to Client-Side Only Compatibility! :).---------");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.2!");
+            Plugin.Log.LogInfo((object)"--------Who woulda thought this would be another cams hotfix! :).---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             //LeaveTerminal.AddTest(); //this command is only for devtesting

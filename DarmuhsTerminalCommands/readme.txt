@@ -115,8 +115,27 @@ This project does not adhere to Semantic Versioning at this time. Mostly because
  - ~~Networked Always-On Display so everyone could see what you're doing on the terminal~~ (Now in BETA)
  - ~~An option to remove networking from the mod~~
 
-## [2.2.1] **CURRENT VERSION**
- ### Added/Changed/Fixed
+## [2.2.2] **CURRENT VERSION**
+
+ ### Fixed
+ - Fixed map command only ever saying the ship was in orbit.
+
+
+ ### Known issues/bugs
+ - (1) switch: switch command text sometimes does not update properly on first run, continuing to look into this.
+ - (2) If another mod has a function that keeps the terminal screen enabled, alwayson will not be able to disable it.
+ - (2 Cont.) Recommend if you run into this issue to enable alwayson whenever you start playing so that the terminal functions as expected. 
+ - (3) Mod is still incompatibile with Glowstick by Asylud (1.1.0).
+ - (4) Picking up eachother's colored flashlights will not automatically change any colors. 
+ - (4 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
+ - (4 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
+ - (5) More command is not hiding cams views (and should).
+
+ <details open>
+ <summary>Historical Patch Notes</summary>
+
+## [2.2.1]
+ ### Added/Changed
  - (1) NETWORKING IS NOW TOGGLE-ABLE VIA ModNetworking CONFIG OPTION
  - (1) This means you can continue to use this mod as a client-side only mod as in the past.
  - (1) I've disabled a number of commands that require networking as well as commands I dont believe should be client-side only commands when networking is disabled.
@@ -134,19 +153,6 @@ This project does not adhere to Semantic Versioning at this time. Mostly because
  - (3) Specifically in how we all modify the help command of the terminal. It should now look much cleaner
  - (4) Fixed longstanding bug with FOV mod that would not adjust the visor with your FOV.
  - (4 Cont.) My mistake for leaving this in, i'd assumed it was an issue with the Fov mod itself and not my own implementation of it.
-
- ### Known issues/bugs
- - (1) switch: switch command text sometimes does not update properly on first run, continuing to look into this.
- - (2) If another mod has a function that keeps the terminal screen enabled, alwayson will not be able to disable it.
- - (2 Cont.) Recommend if you run into this issue to enable alwayson whenever you start playing so that the terminal functions as expected. 
- - (3) Mod is still incompatibile with Glowstick by Asylud (1.1.0).
- - (4) Picking up eachother's colored flashlights will not automatically change any colors. 
- - (4 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
- - (4 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
- - (5) More command is not hiding cams views (and should).
-
- <details open>
- <summary>Historical Patch Notes</summary>
 
 
 ## [2.2.0] 
