@@ -35,6 +35,7 @@ namespace TerminalStuff
         public static ConfigEntry<bool> terminalScolor; //Light colors command
         public static ConfigEntry<bool> terminalAlwaysOn; //AlwaysOn command
         public static ConfigEntry<bool> terminalLink; //Link command
+        public static ConfigEntry<bool> terminalLink2; //Link2 command
         public static ConfigEntry<bool> terminalRandomSuit; //RandomSuit command
 
 
@@ -85,6 +86,9 @@ namespace TerminalStuff
         public static ConfigEntry<string> defaultCamsView;
         public static ConfigEntry<int> ovOpacity; //Opacity Percentage for Overlay Cams View
         public static ConfigEntry<string> customLink;
+        public static ConfigEntry<string> customLink2;
+        public static ConfigEntry<string> customLinkHint;
+        public static ConfigEntry<string> customLink2Hint;
         public static ConfigEntry<string> homeLine1;
         public static ConfigEntry<string> homeLine2;
         public static ConfigEntry<string> homeLine3;
@@ -115,6 +119,7 @@ namespace TerminalStuff
         public static ConfigEntry<string> leverKeyword;
         public static ConfigEntry<string> scolorKeyword;
         public static ConfigEntry<string> linkKeyword;
+        public static ConfigEntry<string> link2Keyword;
 
 
 
@@ -145,7 +150,7 @@ namespace TerminalStuff
             ConfigSettings.terminalLever = Plugin.instance.Config.Bind<bool>("Controls Commands (On/Off)", "terminalLever", true, "Pull the lever from terminal <Lever>");
             ConfigSettings.terminalDanger = Plugin.instance.Config.Bind<bool>("Controls Commands (On/Off)", "terminalDanger", true, "Check moon danger level <Danger>");
             ConfigSettings.terminalVitals = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalVitals", true, "Scan player being tracked by monitor for their Health/Weight. <Vitals>");
-            ConfigSettings.terminalBioScan = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalBioScan", true, "Scan player being tracked by monitor for their Health/Weight. <BioScan>");
+            ConfigSettings.terminalBioScan = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalBioScan", true, "Scan for \"non-employee\" lifeforms. <BioScan>");
             ConfigSettings.terminalVitalsUpgrade = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalVitalsUpgrade", true, "Purchase-able upgrade to vitals to not cost anything each scan. <Vitals>");
             ConfigSettings.terminalTP = Plugin.instance.Config.Bind<bool>("Controls Commands (On/Off)", "terminalTP", true, "Command to Activate Teleporter <TP>");
             ConfigSettings.terminalITP = Plugin.instance.Config.Bind<bool>("Controls Commands (On/Off)", "terminalITP", true, "Command to Activate Inverse Teleporter <ITP>");
@@ -161,6 +166,7 @@ namespace TerminalStuff
             ConfigSettings.terminalOverlay = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalOverlay", true, "Command to view cams with radar overlayed on top. <Overlay>");
             ConfigSettings.terminalAlwaysOn = Plugin.instance.Config.Bind<bool>("Comfort Commands (On/Off)", "terminalAlwaysOn", true, $"Command to toggle Always-On Display <Alwayson>");
             ConfigSettings.terminalLink = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalLink", true, "Command to link to an external web-page <Link>");
+            ConfigSettings.terminalLink2 = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalLink2", false, "Command to link to a second external web-page <Link2>");
             ConfigSettings.terminalRandomSuit = Plugin.instance.Config.Bind<bool>("Fun Commands (On/Off)", "terminalRandomSuit", true, "Command to switch your suit from a random one off the rack <RandomSuit>");
 
 
@@ -193,7 +199,9 @@ namespace TerminalStuff
             ConfigSettings.mcString2 = Plugin.instance.Config.Bind<string>("Cams", "mcString2", "MiniCams disabled.", "Message returned when disabling minicams command (minicams).");
 
             ConfigSettings.customLink = Plugin.instance.Config.Bind<string>("Link", "customLink", "https://thunderstore.io/c/lethal-company/p/darmuh/darmuhsTerminalStuff/", "URL to send players to when using the \"link\" command.");
-
+            ConfigSettings.customLinkHint = Plugin.instance.Config.Bind<string>("Link", "customLinkHint", "Go to a specific web page.", "Hint given to players in extras menu for \"link\" command.");
+            ConfigSettings.customLink2 = Plugin.instance.Config.Bind<string>("Link", "customLink2", "https://github.com/darmuh/TerminalStuff", "URL to send players to when using the second \"link\" command.");
+            ConfigSettings.customLink2Hint = Plugin.instance.Config.Bind<string>("Link", "customLink2Hint", "Go to a specific web page.", "Hint given to players in extras menu for \"link\" command.");
 
             //Cost configs
             ConfigSettings.vitalsCost = Plugin.instance.Config.Bind<int>("Vitals", "vitalsCost", 10, "Credits cost to run Vitals Command each time it's run.");
@@ -240,6 +248,8 @@ namespace TerminalStuff
             ConfigSettings.leverKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "leverKeyword", "lever", "Keyword used in terminal to return <lever> command"); ;
             ConfigSettings.scolorKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "scolorKeyword", "scolor", "Keyword used in terminal to return <scolor> command"); ;
             ConfigSettings.linkKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "linkKeyword", "link", "Keyword used in terminal to return <link> command"); ;
+            ConfigSettings.link2Keyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "link2Keyword", "link2", "Keyword used in terminal to return <link2> command"); ;
+
 
             //homescreen lines
             ConfigSettings.homeLine1 = Plugin.instance.Config.Bind<string>("Home Page", "homeline1", "Welcome to the FORTUNE-9 OS PLUS", "First line of the home command (startup screen)");

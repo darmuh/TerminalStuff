@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Bootstrap;
-using FovAdjust;
 using GameNetcodeStuff;
 using HarmonyLib;
 using System;
@@ -18,6 +17,7 @@ using static TerminalStuff.AllMyTerminalPatches;
 using System.Security.Policy;
 using UnityEngine.Video;
 using Random = UnityEngine.Random;
+using FovAdjust;
 using System.Diagnostics;
 using Steamworks;
 
@@ -61,6 +61,14 @@ namespace TerminalStuff
                 return returnID;
             }
 
+            private static void FovAdjustStuff(TerminalNode node, Terminal instance, float number)
+            {
+                instance.QuitTerminal();
+                number = Mathf.Clamp(number, 66f, 130f);
+                PlayerControllerBPatches.newTargetFovBase = number;
+                PlayerControllerBPatches.calculateVisorStuff();
+                Terminal_ParsePlayerSentence_Patch.newParsedValue = false;
+            }
 
             private static string getRandomSuit(out string displayText)
             {
@@ -199,7 +207,7 @@ namespace TerminalStuff
                             Plugin.Log.LogInfo("report this as a bug with alwayson please");
                             node.displayText = "alwayson failed to initiate, report this as a bug please.";
                         }
-                                
+
 
                     }
                     if (node.terminalEvent == "quit")
@@ -229,9 +237,9 @@ namespace TerminalStuff
 
                     if (node.terminalEvent == "leverdo")
                     {
-                        
+                        NetworkManager networkManager = __instance.NetworkManager;
                         string getLevelName = StartOfRound.Instance.currentLevel.PlanetName;
-                        if (!GameNetworkManager.Instance.gameHasStarted && !StartOfRound.Instance.travellingToNewLevel)
+                        if (!GameNetworkManager.Instance.gameHasStarted && !StartOfRound.Instance.travellingToNewLevel && ((object)networkManager != null && networkManager.IsHost))
                         {
                             node.displayText = $"{ConfigSettings.leverString.Value}\n";
 
@@ -283,7 +291,7 @@ namespace TerminalStuff
                             node.displayText = "Cannot pull the lever at this time.\r\n\r\nNOTE:If game has not been started, only the host can do this.\r\n\r\n";
                         }
                     }
-                        //end of lever event    
+                    //end of lever event    
 
                     if (node.terminalEvent == "kickYes") //work dammit
                     {
@@ -319,10 +327,10 @@ namespace TerminalStuff
                         checkForSplitView("neither"); //disables split view components if enabled
 
                         RawImage termRawImage = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer/Image (1)").GetComponent<RawImage>();
-                        VideoPlayer termVP = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer/Image (1)").GetComponent <VideoPlayer>();
+                        VideoPlayer termVP = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer/Image (1)").GetComponent<VideoPlayer>();
 
-                        
-                        if(!isVideoPlaying)
+
+                        if (!isVideoPlaying)
                         {
                             Plugin.Log.LogInfo("video not playing, running lolevents");
                             // Play the next video if not playing
@@ -459,7 +467,7 @@ namespace TerminalStuff
                             {
                                 // Log if interactTrigger is null
                                 Plugin.Log.LogWarning($"Warning: InteractTrigger not found on button {buttonName}.");
-                            }   
+                            }
                         }
                         else
                         {
@@ -470,7 +478,7 @@ namespace TerminalStuff
                     if (node.terminalEvent == "lights")
                     {
                         StartOfRound.Instance.shipRoomLights.ToggleShipLights();
-                        if(StartOfRound.Instance.shipRoomLights.areLightsOn)
+                        if (StartOfRound.Instance.shipRoomLights.areLightsOn)
                             node.displayText = $"Ship Lights are [ON]\r\n\r\n";
                         else
                             node.displayText = $"Ship Lights are [OFF]\r\n\r\n";
@@ -512,17 +520,17 @@ namespace TerminalStuff
 
                                 // Convert the array to a List for sorting
                                 List<EnemyAI> enemiesList = RoundManager.Instance.SpawnedEnemies.ToList();
-                                
+
                                 // Filter the list based on the 'isEnemyDead' property
                                 var livingEnemies = enemiesList.Where(enemy => !enemy.isEnemyDead);
-                                
+
                                 // Create a string representation of each living enemy
                                 string livingEnemiesString = string.Join(Environment.NewLine, livingEnemies.Select(enemy => enemy.ToString()));
                                 string pattern = @"\([^)]*\)";
 
                                 // Apply the regular expression to remove text within parentheses
                                 string filteredLivingEnemiesString = Regex.Replace(livingEnemiesString, pattern, string.Empty);
-                                
+
                                 node.displayText = $"Biomatter scanner charged {costCreds} credits and has detected [{badNum}] non-employee organic objects.\r\n\r\nYour new balance is ■{newCreds} Credits.\r\n\r\nDetailed scan has defined these objects as the following in the registry: \r\n{filteredLivingEnemiesString}\r\n";
                                 Plugin.Log.LogInfo($"Living Enemies(filtered): {filteredLivingEnemiesString}");
                             }
@@ -542,7 +550,7 @@ namespace TerminalStuff
                         }
                         else
                             node.displayText = "Cannot scan for Biomatter at this time.\r\n";
-                       
+
                     }
 
                     if (node.terminalEvent == "betterescan")
@@ -586,14 +594,14 @@ namespace TerminalStuff
                         {
                             for (int i = 0; i < StartOfRound.Instance.mapScreen.radarTargets.Count; i++)
                             {
-                                if(StartOfRound.Instance.mapScreen.radarTargets[i].name.Contains(Plugin.instance.switchTarget))
+                                if (StartOfRound.Instance.mapScreen.radarTargets[i].name.Contains(Plugin.instance.switchTarget))
                                 {
                                     Plugin.Log.LogInfo("name match found");
                                     playerName = StartOfRound.Instance.mapScreen.radarTargets[i].name;
                                     break;
                                 }
                             }
-                            
+
                         }
                         isVideoPlaying = false;
 
@@ -671,7 +679,7 @@ namespace TerminalStuff
                             playerName = playerNameText.Remove(0, removeText.Length);
                         }
 
-                        
+
                         node.name = "ViewInsideShipCam 1";
                         isVideoPlaying = false;
 
@@ -803,7 +811,7 @@ namespace TerminalStuff
 
                             }
 
-                            
+
                         }
                         else node.displayText = "Can't Inverse Teleport at this time.\n Do you even have an Inverse Teleporter?\n";
                     }
@@ -821,7 +829,7 @@ namespace TerminalStuff
                                 __instance.SyncGroupCreditsClientRpc(newCreds, __instance.numberOfItemsInDropship);  //localhost
                                 __instance.SyncGroupCreditsServerRpc(newCreds, __instance.numberOfItemsInDropship);  //server
                                 vitalsUpgradeEnabled = true;
-                                node.displayText = $"Vitals Scanner software has been updated to the latest patch (2.0) and no longer requires credits to scan.\r\n\r\nYour new balance is ■{ newCreds } credits\r\n";
+                                node.displayText = $"Vitals Scanner software has been updated to the latest patch (2.0) and no longer requires credits to scan.\r\n\r\nYour new balance is ■{newCreds} credits\r\n";
                             }
                             else
                             {
@@ -882,7 +890,7 @@ namespace TerminalStuff
                                     else //no flashlight
                                         node.displayText = playername + " Vitals:\n\n Health: " + playerHealth.ToString() + "\n Weight: " + realWeight.ToString() + "\n Sanity: " + playerSanity.ToString() + "\n";
                                 }
-                                
+
                             }
                             else if (!vitalsUpgradeEnabled && getPlayerInfo.isPlayerDead)
                             {
@@ -955,7 +963,7 @@ namespace TerminalStuff
                             Plugin.Log.LogInfo($"Health = {getPlayerHealth}");
                             node.displayText = $"{ConfigSettings.healIsFullString.Value}\n";
                         }
-                            
+
                         else
                         {
                             Plugin.Log.LogInfo($"Health before = {getPlayerHealth}");
@@ -970,7 +978,7 @@ namespace TerminalStuff
                     {
                         isVideoPlaying = false;
                         string playerNameText = StartOfRound.Instance.mapScreenPlayerName.text;
-                        
+
                         string removeText = "MONITORING: ";
                         string playerName = playerNameText.Remove(0, removeText.Length);
                         node.name = "ViewInsideShipCam 1";
@@ -1099,13 +1107,13 @@ namespace TerminalStuff
                         Texture texture2 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture; // cams
 
 
-                        if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnOverlay == false )
+                        if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnOverlay == false)
                         {
                             Plugin.instance.rawImage2.texture = texture2;
                             Plugin.instance.rawImage1.texture = texture1;
                             __instance.terminalImage.enabled = true;
                             Color currentColor = Plugin.instance.rawImage1.color;
-                            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, opacityConfig); 
+                            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, opacityConfig);
                             Plugin.instance.rawImage1.color = newColor;
 
 
@@ -1132,7 +1140,7 @@ namespace TerminalStuff
                             {
                                 node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring... {ConfigSettings.ovString.Value}\n";
                             }
-                            
+
                         }
                         else if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnOverlay == true)
                         {
@@ -1161,7 +1169,7 @@ namespace TerminalStuff
                         Texture texture1 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[1].mainTexture; // radar
                         Texture texture2 = GameObject.Find("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001").GetComponent<MeshRenderer>().materials[2].mainTexture; // cams
 
-                        if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnMiniMap == false )
+                        if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnMiniMap == false)
                         {
                             Plugin.instance.rawImage2.texture = texture2;
                             Plugin.instance.rawImage1.texture = texture1;
@@ -1180,11 +1188,11 @@ namespace TerminalStuff
                             // Use Canvas's dimensions for positioning and scaling
                             RectTransform canvasRect = Plugin.instance.terminalCanvas.GetComponent<RectTransform>();
 
-                             // Calculate the dimensions for radar image (rawImage1)
-                             float topHeight = canvasRect.rect.height * 0.2f; // 20% of the canvas height
-                             float topWidth = canvasRect.rect.width * 0.25f; //quarter of the width
-                             Plugin.instance.rawImage1.rectTransform.sizeDelta = new Vector2(topWidth, topHeight);
-                             Plugin.instance.rawImage1.rectTransform.anchoredPosition = new Vector2(130f, 103f);
+                            // Calculate the dimensions for radar image (rawImage1)
+                            float topHeight = canvasRect.rect.height * 0.2f; // 20% of the canvas height
+                            float topWidth = canvasRect.rect.width * 0.25f; //quarter of the width
+                            Plugin.instance.rawImage1.rectTransform.sizeDelta = new Vector2(topWidth, topHeight);
+                            Plugin.instance.rawImage1.rectTransform.anchoredPosition = new Vector2(130f, 103f);
 
                             enabledSplitObjects = true;
                             checkForSplitView("minimap");
@@ -1261,7 +1269,7 @@ namespace TerminalStuff
                             {
                                 node.displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring... {ConfigSettings.mcString.Value}\n";
                             }
-                            
+
                         }
                         else if (Plugin.instance.splitViewCreated == true && Plugin.instance.isOnMiniCams == true)
                         {
@@ -1277,7 +1285,7 @@ namespace TerminalStuff
 
                     if (node.terminalEvent == "externalLink")
                     {
-                        Application.OpenURL(ConfigSettings.customLink.Value);
+                        Application.OpenURL(AllMyTerminalPatches.linktext);
                         yield return new WaitForSeconds(0.5f);
                         __instance.QuitTerminal();
                     }
@@ -1289,30 +1297,32 @@ namespace TerminalStuff
                     }
                     if (node.terminalEvent == "fov")
                     {
-                        int num = Terminal_ParsePlayerSentence_Patch.ParsedValue;
-                        float number = num;
-                        if (number != 0 && number >= 66f && number <= 130f && Terminal_ParsePlayerSentence_Patch.newParsedValue)  // Or use an appropriate default value
+                        if (!Plugin.instance.FovAdjust)
                         {
-                            node.clearPreviousText = true;
-                            node.displayText = ("Setting FOV to - " + num.ToString() + "\n");
-                            // Delay for 1 second
-                            yield return new WaitForSeconds(0.5f);
-
-                            __instance.QuitTerminal();
-                            number = Mathf.Clamp(number, 66f, 130f);
-                            PlayerControllerBPatches.newTargetFovBase = number;
-                            PlayerControllerBPatches.calculateVisorStuff();
-                            Terminal_ParsePlayerSentence_Patch.newParsedValue = false;
-                            
+                            node.displayText = "FovAdjust mod is not installed, command can not be run.\r\n";
                         }
                         else
                         {
-                            node.displayText = "Fov can only be set between 66 and 130\n"; //not sure why this isn't 66 to 130 lol
+                            int num = Terminal_ParsePlayerSentence_Patch.ParsedValue;
+                            float number = num;
+                            if (number != 0 && number >= 66f && number <= 130f && Terminal_ParsePlayerSentence_Patch.newParsedValue)  // Or use an appropriate default value
+                            {
+                                node.clearPreviousText = true;
+                                node.displayText = ("Setting FOV to - " + num.ToString() + "\n");
+                                // Delay for 1 second
+                                yield return new WaitForSeconds(0.5f);
+                                FovAdjustStuff(node, __instance, number);
+                            }
+                            else
+                            {
+                                node.displayText = "Fov can only be set between 66 and 130\n"; //not sure why this isn't 66 to 130 lol
+                            }
+
                         }
                     }
+                    // Ensure all code paths return a value in a coroutine
+                    yield break;
                 }
-                // Ensure all code paths return a value in a coroutine
-                yield break;
             }
 
             private static (int newGroupCredits, string displayText) Gamble(int currentGroupCredits, float percentage)
@@ -1389,7 +1399,7 @@ namespace TerminalStuff
                         }
                     }
                 }
-                Plugin.Log.LogInfo("Arg specified:" + whatisit);
+                //Plugin.Log.LogInfo("Arg specified:" + whatisit);
 
                 // Update bools, safe to just disable both every time i think
                 Plugin.instance.isOnOverlay = false;
@@ -1522,47 +1532,46 @@ namespace TerminalStuff
             }
         }
 
+        private static void AddCommand(string textFail, bool clearText, string terminalEvent, string keyWord, bool isVerb, string nodeName)
+        {
+            TerminalNode node = CreateTerminalNode(textFail, clearText, terminalEvent);
+            TerminalKeyword termWord = CreateTerminalKeyword(keyWord, isVerb, node);
+            AddTerminalKeyword(termWord);
+            node.name = nodeName;
+        }
+
+        private static void AddCommand(string textFail, bool clearText, string terminalEvent, string keyWord, bool isVerb, string nodeName, string keyWord2)
+        {
+            TerminalNode node = CreateTerminalNode(textFail, clearText, terminalEvent);
+            node.name = nodeName;
+            TerminalKeyword termWord = CreateTerminalKeyword(keyWord, isVerb, node);
+            TerminalKeyword termWord2 = CreateTerminalKeyword(keyWord2, isVerb, node);
+            AddTerminalKeyword(termWord);
+            AddTerminalKeyword(termWord2);          
+        }
+
         public static void AddMiniMap()
         {
-            TerminalNode splitNode = CreateTerminalNode("testing split mode\n", true, "minimap");
-            TerminalKeyword Keyword2 = CreateTerminalKeyword(ConfigSettings.minimapKeyword.Value, true, splitNode);
-            AddTerminalKeyword(Keyword2);
-            splitNode.name = "ViewInsideShipCam 1";
-            //Plugin.Log.LogInfo("added minimap keywords");
+            AddCommand("minimap command\n", true, "minimap", ConfigSettings.minimapKeyword.Value, true, "ViewInsideShipCam 1");
         }
+
         public static void AddMiniCams()
         {
-            TerminalNode splitNode = CreateTerminalNode("testing split mode\n", true, "minicams");
-            TerminalKeyword Keyword2 = CreateTerminalKeyword(ConfigSettings.minicamsKeyword.Value, true, splitNode);
-            AddTerminalKeyword(Keyword2);
-            //Plugin.Log.LogInfo("added minimap keywords");
-            splitNode.name = "ViewInsideShipCam 1";
+            AddCommand("minicams command\n", true, "minicams", ConfigSettings.minicamsKeyword.Value, true, "ViewInsideShipCam 1");
         }
 
         public static void AddOverlayView()
         {
-            TerminalNode splitNode = CreateTerminalNode("testing split mode\n", true, "overlay");
-            TerminalKeyword splitKeyword = CreateTerminalKeyword(ConfigSettings.overlayKeyword.Value, true, splitNode);
-            AddTerminalKeyword(splitKeyword);
-            //Plugin.Log.LogInfo("added overlay keyword");
-            splitNode.name = "ViewInsideShipCam 1";
+            AddCommand("overlay command\n", true, "overlay", ConfigSettings.overlayKeyword.Value, true, "ViewInsideShipCam 1");
         }
         public static void AddDoor()
         {
-            TerminalNode node = CreateTerminalNode("door terminalEvent", false, "door");
-            TerminalKeyword doorKW = CreateTerminalKeyword(ConfigSettings.doorKeyword.Value, true, node);
-            AddTerminalKeyword(doorKW);
-            //Plugin.Log.LogInfo($"Door keyword added");
-            node.name = "Toggle Doors";
+            AddCommand("door terminalEvent\n", true, "door", ConfigSettings.doorKeyword.Value, true, "Toggle Doors");
         }
 
         public static void AddLights()
         {
-            TerminalNode node = CreateTerminalNode("lights terminalEvent", false, "lights");
-            TerminalKeyword lightsKW = CreateTerminalKeyword(ConfigSettings.lightsKeyword.Value, true, node);
-            AddTerminalKeyword(lightsKW);
-            //Plugin.Log.LogInfo($"Lights keyword added");
-            node.name = "Toggle Lights";
+            AddCommand("lights terminalEvent\n", true, "lights", ConfigSettings.lightsKeyword.Value, true, "Toggle Lights");
         }
 
         public static void AddTest()
@@ -1575,140 +1584,64 @@ namespace TerminalStuff
 
         public static void AddRandomSuit()
         {
-            TerminalNode node = CreateTerminalNode("randomsuit terminalEvent\n", true, "randomsuit");
-            TerminalKeyword nodeKeyword = CreateTerminalKeyword(ConfigSettings.randomSuitKeyword.Value, true, node);
-            AddTerminalKeyword(nodeKeyword);
-            node.name = "RandomSuit";
+            AddCommand("randomsuit terminalEvent\n", true, "randomsuit", ConfigSettings.randomSuitKeyword.Value, true, "RandomSuit");
         }
 
         public static void AddAlwaysOnKeywords()
         {
-            TerminalNode aoNode = CreateTerminalNode("", true, "alwayson");
-            TerminalKeyword aoKeyword = CreateTerminalKeyword(ConfigSettings.alwaysOnKeyword.Value, true, aoNode);
-            AddTerminalKeyword(aoKeyword);
-            //Plugin.Log.LogInfo("Added always on keyword");
-            aoNode.name = "Always-On Display";
+            AddCommand("alwayson terminalEvent\n", true, "alwayson", ConfigSettings.alwaysOnKeyword.Value, true, "Always-On Display");
         }
 
         public static void AddModListKeywords()
         {
-            TerminalNode modList = CreateTerminalNode("grabbing mods\n", true, "modlist");
-            TerminalKeyword modlistKeyword = CreateTerminalKeyword(ConfigSettings.modsKeyword2.Value, true, modList);
-            TerminalKeyword modsKeyword = CreateTerminalKeyword("mods", true, modList);
-            AddTerminalKeyword(modlistKeyword);
-            AddTerminalKeyword(modsKeyword);
-            //Plugin.Log.LogInfo("Added Modlist keywords");
-            modList.name = "ModList";
+            AddCommand("modlist terminalEvent\n", true, "modlist", ConfigSettings.modsKeyword2.Value, true, "ModList", "mods");
         }
 
         public static void AddTeleportKeywords()
         {
-            TerminalNode tpNode = CreateTerminalNode("teleporter initiatied.\n", true, "teleport");
-            TerminalKeyword teleportKeyword = CreateTerminalKeyword(ConfigSettings.tpKeyword2.Value, true, tpNode);
-            TerminalKeyword tpKeyword = CreateTerminalKeyword("tp", true, tpNode);
-            AddTerminalKeyword(teleportKeyword);
-            AddTerminalKeyword(tpKeyword);
-            //Plugin.Log.LogInfo("---------Teleport & TP Keywords added!---------");
-            tpNode.name = "Use Teleporter";
+            AddCommand("teleporter terminalEvent\n", true, "teleport", ConfigSettings.tpKeyword2.Value, true, "Use Teleporter", "tp");
         }
 
         public static void AddInverseTeleportKeywords()
         {
-            TerminalNode tpNode = CreateTerminalNode("teleporter initiatied.\n", true, "inversetp");
-            TerminalKeyword inverseteleportKeyword = CreateTerminalKeyword(ConfigSettings.itpKeyword2.Value, true, tpNode);
-            TerminalKeyword itpKeyword = CreateTerminalKeyword("itp", true, tpNode);
-            AddTerminalKeyword(inverseteleportKeyword);
-            AddTerminalKeyword(itpKeyword);
-            //Plugin.Log.LogInfo("---------Inverse & ITP Keywords added!---------");
-            tpNode.name = "Use Inverse Teleporter";
+            AddCommand("inverseteleporter terminalEvent\n", true, "inversetp", ConfigSettings.itpKeyword2.Value, true, "Use Inverse Teleporter", "itp");
         }
 
         public static void AddQuitKeywords()
         {
-            TerminalNode quitNode = CreateTerminalNode("leaving.\n", true, "quit");
-            TerminalKeyword exitKeyword = CreateTerminalKeyword(ConfigSettings.quitKeyword2.Value, true, quitNode);
-            TerminalKeyword quitKeyword = CreateTerminalKeyword("quit", true, quitNode);
-            AddTerminalKeyword(exitKeyword);
-            AddTerminalKeyword(quitKeyword);
-            //Plugin.Log.LogInfo("---------Quit & Exit Keywords added!---------");
-            quitNode.name = "Quit Terminal";
+            AddCommand("leaving\n", true, "quit", ConfigSettings.quitKeyword2.Value, true, "Quit Terminal", "quit");
         }
         public static void hampterKeywords()
         {
-            TerminalNode lolNode = CreateTerminalNode($"lol.\n", false, "lolevent");
-            TerminalKeyword lolKeyword = CreateTerminalKeyword(ConfigSettings.lolKeyword.Value, true, lolNode);
-            //TerminalKeyword hampterKeyword = CreateTerminalKeyword("hampter", true, lolNode);
-            //AddTerminalKeyword(hampterKeyword);
-            AddTerminalKeyword(lolKeyword);
-            //Plugin.Log.LogInfo("lol");
-            lolNode.name = "darmuh's videoPlayer";
+            AddCommand("lol terminalEvent\n", false, "lolevent", ConfigSettings.lolKeyword.Value, true, "darmuh's videoPlayer");
         }
         public static void clearKeywords()
         {
-            TerminalNode clearNode = CreateTerminalNode($"\n", true);
-            TerminalKeyword clearKeyword = CreateTerminalKeyword("clear", true, clearNode);
-            TerminalKeyword clearKeyword2 = CreateTerminalKeyword(ConfigSettings.clearKeyword2.Value, true, clearNode);
-            AddTerminalKeyword(clearKeyword);
-            AddTerminalKeyword(clearKeyword2);
-            //Plugin.Log.LogInfo("Adding Clear keywords");
-            clearNode.name = "Clear Terminal Screen";
+            AddCommand("clear terminalEvent\n", true, "clear", ConfigSettings.clearKeyword2.Value, true, "Clear Terminal Screen", "clear");
         }
         public static void dangerKeywords()
         {
-            TerminalNode dangerNode = CreateTerminalNode($"\n", true, "danger");
-            TerminalKeyword dangerKeyword = CreateTerminalKeyword(ConfigSettings.dangerKeyword.Value, true, dangerNode);
-            AddTerminalKeyword(dangerKeyword);
-            //Plugin.Log.LogInfo("Adding danger keywords");
-            dangerNode.name = "Check Danger Level";
+            AddCommand("danger terminalEvent\n", true, "danger", ConfigSettings.dangerKeyword.Value, true, "Check Danger Level");
         }
         public static void vitalsKeywords()
         {
-            TerminalNode vitalsNode = CreateTerminalNode($"\n", true, "vitals");
-            TerminalKeyword vitalsKeyword = CreateTerminalKeyword("vitals", true, vitalsNode);
-            AddTerminalKeyword(vitalsKeyword);
-            //Plugin.Log.LogInfo("Adding vitals keywords");
-            vitalsNode.name = "Check Vitals";
+            AddCommand("vitals terminalEvent\n", true, "vitals", "vitals", true, "Check Vitals");
         }
         public static void healKeywords()
         {
-            TerminalNode healNode = CreateTerminalNode($"\n", true, "healme");
-            TerminalKeyword healKeyword = CreateTerminalKeyword("heal", true, healNode);
-            TerminalKeyword healmeKeyword = CreateTerminalKeyword(ConfigSettings.healKeyword2.Value, true, healNode);
-            AddTerminalKeyword(healKeyword);
-            AddTerminalKeyword(healmeKeyword);
-            //Plugin.Log.LogInfo("Added Heal Keywords");
-            healNode.name = "HealFromTerminal";
+            AddCommand("heal terminalEvent\n", true, "healme", ConfigSettings.healKeyword2.Value, true, "HealFromTerminal", "heal");
         }
         public static void lootKeywords()
         {
-            TerminalNode lootNode = CreateTerminalNode($"Attempting to grab total loot value on ship.\n", false, "loot");
-            TerminalKeyword lootKeyword = CreateTerminalKeyword("loot", true, lootNode);
-            TerminalKeyword shiplootKeyword = CreateTerminalKeyword(ConfigSettings.lootKeyword2.Value, true, lootNode);
-            AddTerminalKeyword(lootKeyword);
-            AddTerminalKeyword(shiplootKeyword);
-            //Plugin.Log.LogInfo("Loot commands added!");
-            lootNode.name = "Check Loot Value";
+            AddCommand("loot terminalEvent\n", true, "loot", ConfigSettings.lootKeyword2.Value, true, "Check Loot Value", "loot");
         }
         public static void camsKeywords()
         {
-            TerminalNode camsNode = CreateTerminalNode($"Toggling Cameras View.\n", true, "cams");
-            TerminalKeyword camsKeyword = CreateTerminalKeyword("cams", true, camsNode);
-            TerminalKeyword camerasKeyword = CreateTerminalKeyword(ConfigSettings.camsKeyword2.Value, false, camsNode);
-            AddTerminalKeyword(camsKeyword);
-            AddTerminalKeyword(camerasKeyword);
-            camsNode.name = "ViewInsideShipCam 1";
-            //Plugin.Log.LogInfo("Cameras commands added!");
-            //can't believe this was easier than displaying a custom video
+            AddCommand("cams terminalEvent\n", true, "cams", ConfigSettings.camsKeyword2.Value, true, "ViewInsideShipCam 1", "cams");
         }
         public static void mapKeywords()
         {
-            TerminalNode mapNode = CreateTerminalNode($"Toggling radar view.\n", true, "mapEvent");
-            TerminalKeyword mapKeyword = CreateTerminalKeyword("map", true, mapNode);
-            TerminalKeyword map2 = CreateTerminalKeyword(ConfigSettings.mapKeyword2.Value, true, mapNode);
-            AddTerminalKeyword(mapKeyword);
-            AddTerminalKeyword(map2);
-            mapNode.name = "ViewInsideShipCam 1";
-            //Plugin.Log.LogInfo("Map command added!");
+            AddCommand("map terminalEvent\n", true, "mapEvent", ConfigSettings.mapKeyword2.Value, true, "ViewInsideShipCam 1", "map");
         }
     }
 }

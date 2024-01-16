@@ -63,8 +63,8 @@
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
     <Reference Include="FovAdjust, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>C:\Users\irroy\AppData\Roaming\Thunderstore Mod Manager\DataFolder\LethalCompany\profiles\test profile\BepInEx\plugins\Rozebud-FOV_Adjust\FovAdjust.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\darmuh-darmuhsTerminalStuff\FovAdjust.dll</HintPath>
     </Reference>
     <Reference Include="HelmetCamera">
       <HintPath>C:\Users\irroy\AppData\Roaming\Thunderstore Mod Manager\DataFolder\LethalCompany\profiles\test profile\BepInEx\plugins\RickArg-Helmet_Cameras\HelmetCamera.dll</HintPath>

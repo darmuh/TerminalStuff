@@ -1,89 +1,64 @@
 ﻿# darmuhsTerminalStuff
 
-## List of Commands (current version):
- -Home (home) *info command*
+## Completely configurable Terminal expansion that adds up to 38 commands to the terminal!
 
- -More (more) *info command*
+## **For client-side only use, disable ModNetworking in config**
 
- -Comfort (comfort) *info command*
+### Features:
+ - Customizable keywords for a majority of commands
+ - (BETA) Networked Terminal nodes with Always On Display will let you see what your coworkers are doing on the terminal!
+ - Customizable pricing, strings, upgrades, etc.
+ - Customizable home (startup) page!
+ - Expanded compatibility with Advanced Company & Lategame Upgrades!
 
- -Extras (extras) *info command*
+### Comfort Commands:
+ - Lobby: Display the current lobby name.
+ - Quit: Exit the terminal via command rather than hitting escape or tab.
+ - Clear: Clear the terminal of all text.
+ - Heal: Heal yourself at the terminal.
+ - Fov: Change your Fov. (requires Fov_Adjust mod by Rozebud)
+ - Mods: Display a list of all loaded mods.
+ - Kick (host only): Kick another player from the ship (from the terminal)
+ - AlwaysOn: Keep the terminal screen on at all times.
 
- -Tools (tools) *info command*
+### Controls Commands:
+ - Lever: Pull the lever that controls the ship (take off/land).
+ - Danger: Show current hazard/danger level of the moon you are on.
+ - TP: Activate Teleporter
+ - ITP: Activate Inverse Teleporter
+ - Door: Control ship doors (open/closed) from terminal
+ - Lights: Control ship lights (on/off) from terminal
 
- -Functionality (fun, functionality) *info command*
- 
- -Lobby (lobby) *info command*
-  
- -Quit (quit)
+### Extras Commands:
+ - Loot: Scans ship for all loot and gives you the total value.
+ - Cams: View from the terminal that shows player pov (if helmetcams, bodycams, or another similar mod is installed)
+ - Vitals: Scan player being tracked by monitor for their Health/Weight.
+ - Bioscan: Scan for "non-employee" lifeforms.
+ - VitalsUpgrade: Upgrades Vitals command to cost 0 credits.
+ - Map: Shortened keyword for "view monitor"
+ - Minimap: View from the terminal that shows camera pov with a smaller radar in the top right
+ - Minicams: View from the terminal that shows radar with a smaller camera pov in the top right
+ - Overlay: View from the terminal that shows camera pov with radar overlayed on top (configurable opacity)
+ - Link: If enabled, allows for linking to an external website
+ - Link2: If enabled, allows for linking to an external website (2)
 
- -Door (door)
- 
- -Lights (lights)
- 
- -Loot (shiploot, loot)
- 
- -Cams (cameras, cams)
+### Fun Commands:
+ - Lol (videoplayer): Plays a random video from all videos located in the configured videoFolderPath folder.
+ - Gamble: Gamble a percentage of your ship credits
+ - Fcolor: Change the color of the light coming from your flashlight (networking required)
+ - Scolor: Change the color of the lights inside the ship (networking required)
+ - RandomSuit: Change your suit to a random suit from all suits available.
 
- -MiniMap (minimap)
+### Information Commands:
+ - More: main menu of darmuhsTerminalStuff
+ - Comfort: menu listing of all enabled commands in the comfort category
+ - Controls: menu listing of all enabled commands in the controls category
+ - Extras: menu listing of all enabled commands in the extras category
+ - Fun: menu listing of all enabled commands in the fun category
+ - Fcolor list: list of predefined fcolor names and usage examples
+ - Scolor list: list of predefined scolor names and usage examples
+ - Home: Terminal start screen
 
- -MiniCams (minicams)
-
- -Overlay (overlay)
- 
- -lol (lol)
- 
- -Clear (clear)
- 
- -Heal (heal, healme)
- 
- -Fov (fov <#>)
- 
- -Gamble (gamble <#>)
- 
- -Lever (lever)
- 
- -Danger (danger) 
- 
- -Vitals (vitals <playername>)
- 
- -VitalsPatch (vitalspatch)
-
- -Inverse Teleport (itp, inverse)
-
- -Teleport (tp, teleport)
- 
- -Modlist (modlist) *info command*
- 
- -Kick (kick <playername>)
-
- -BioScan (bioscan)
-
- -BioScanPatch (bioscanpatch)
-
- -Flashlight Color (fcolor "colorname")
-
- -Flashlight Color List (fcolor list) *info command*
-
- -ShipLights Color (scolor "all/front/middle/back" "colorname")
-
- -ShipLights Color List (scolor list) *info command*
-
- -Always-On Display (alwayson)
-
- -Link (link)
-
- -Random Suit (randomsuit)
-
-
-# Change Log
-
-All notable changes to this project will be documented in this file.
- 
-The format is based on [Keep a Changelog](http://keepachangelog.com/).
-This project does not adhere to Semantic Versioning at this time. Mostly because I refuse to learn about it.
- 
- 
 ## FYI Section
 
 ### NOTES:
@@ -114,25 +89,52 @@ This project does not adhere to Semantic Versioning at this time. Mostly because
  - ~~Networked color commands~~
  - ~~Networked Always-On Display so everyone could see what you're doing on the terminal~~ (Now in BETA)
  - ~~An option to remove networking from the mod~~
+ - integrate the time of the day on the monitor
+ - feature like STOCKoverview which let you see the equipement you have in ship
+ - ~~Make FovAdjust a soft dependency~~
 
-## [2.2.2] **CURRENT VERSION**
+///////////////////////////////////////////////////////////////////////
+
+# Change Log
+
+All notable changes to this project will be documented in this file.
+ 
+The format is based on [Keep a Changelog](http://keepachangelog.com/).
+This project does not adhere to Semantic Versioning at this time. Mostly because I refuse to learn about it.
+
+## [2.2.3] **CURRENT VERSION**
 
  ### Fixed
- - Fixed map command only ever saying the ship was in orbit.
+ - Cleaned up command adding logic to be more streamlined (this is more for me than anyone else lol)
+ - Adding further null exception handling when dealing with spawning the nethandler (thanks Zuploader for reporting this on GitHub)
+ - Fixed fcolor to also apply to non-pro flashlights
+ - No real fix action here but, the previously determined incompatible Glowsticks mod actually just needs a specific [configuration setting](https://github.com/darmuh/TerminalStuff/issues/13) in LC_API.
 
+ ### Added
+ - Added secondary link command per request
+ - Removed Fov_Adjust hard dependency (this mod will still be needed for the Fov command)
+ - Added the ability to use hexcodes for both fcolor and scolor (ex: fcolor 19C3A7)
+ - Added rainbow flashlight command "fcolor rainbow" (could affect performance, drop your flashlight to kill the rainbow effect)
+ - Added configurable hint strings (displayed in extras) for the new link commands.
 
+ 
  ### Known issues/bugs
  - (1) switch: switch command text sometimes does not update properly on first run, continuing to look into this.
  - (2) If another mod has a function that keeps the terminal screen enabled, alwayson will not be able to disable it.
  - (2 Cont.) Recommend if you run into this issue to enable alwayson whenever you start playing so that the terminal functions as expected. 
- - (3) Mod is still incompatibile with Glowstick by Asylud (1.1.0).
- - (4) Picking up eachother's colored flashlights will not automatically change any colors. 
- - (4 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
- - (4 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
- - (5) More command is not hiding cams views (and should).
+ - (3) Picking up eachother's colored flashlights will not automatically change any colors. 
+ - (3 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
+ - (3 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
+ - (4) More command is not hiding cams views (and should).
 
  <details open>
  <summary>Historical Patch Notes</summary>
+
+## [2.2.2]
+
+ ### Fixed
+ - Fixed map command only ever saying the ship was in orbit.
+
 
 ## [2.2.1]
  ### Added/Changed

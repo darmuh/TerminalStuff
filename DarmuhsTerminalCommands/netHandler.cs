@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 using System.Diagnostics.Eventing.Reader;
 using static TerminalApi.Events.Events;
 using Steamworks;
+using GameNetcodeStuff;
 
 namespace TerminalStuff
 {
@@ -19,6 +20,7 @@ namespace TerminalStuff
         public static NetHandler Instance { get; private set; }
         public static Terminal patchTerminal = null;
         public static bool netNodeSet = false;
+        public bool endFlashRainbow = false;
 
         //Load New Node SYNC
 
@@ -415,8 +417,8 @@ namespace TerminalStuff
             if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
             {
                 //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                Plugin.Log.LogInfo($"Server: Flashlight Color change received for {playerName}({playerID}). Color: {newColor} - {colorName} ");
-                setFlash(newColor, colorName, playerID, playerName);
+                //Plugin.Log.LogInfo($"syncing flashlight stuff");
+                //setFlash(newColor, colorName, playerID, playerName);
             }
             else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
             {
@@ -442,7 +444,7 @@ namespace TerminalStuff
                     //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
                     //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
                     //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"color set already?");
+                    //Plugin.Log.LogInfo($"color set already?");
 
                 }
 
@@ -450,43 +452,38 @@ namespace TerminalStuff
                 {
                     //string stringTest = "TEST - isHost/isServer (exec stage not client)";
                     setFlash(newColor, colorName, playerID, playerName);
-                    Plugin.Log.LogInfo($"Client: Flashlight Color change received for {playerName}({playerID}). Color: {newColor} - {colorName} ");
+                    //Plugin.Log.LogInfo($"Client: Flashlight Color change received for {playerName}({playerID}). Color: {newColor} - {colorName} ");
                 }
             }
         }
 
-        private void setFlash(Color newColor, string colorName, ulong playerID, string playerName)
+        private GrabbableObject FindFlashlightObject(string playerName)
         {
-            //Plugin.Log.LogInfo($"Finding ObjectsOfType GrabbableObject");
             GrabbableObject[] objectsOfType = Object.FindObjectsOfType<GrabbableObject>();
-            //Plugin.Log.LogInfo($"setting getMyFlash to null grabbableobject");
-            GrabbableObject getMyFlash = null; // Initialize to null outside the loop
-           //Plugin.Log.LogInfo($"for each new grabbable object in objects of type");
+            GrabbableObject getMyFlash = null;
+
             foreach (GrabbableObject thisFlash in objectsOfType)
             {
-
-                //Plugin.Log.LogInfo($"checking grabbable object for playername and flashlight properties");
-                if (thisFlash.playerHeldBy != null)  //nesting
+                if (thisFlash.playerHeldBy != null)
                 {
-                    if (thisFlash.playerHeldBy.playerUsername == playerName && thisFlash.gameObject.name == "FlashlightItem(Clone)") //explicitly set object name to avoid issues
+                    if (thisFlash.playerHeldBy.playerUsername == playerName && thisFlash.gameObject.name.Contains("Flashlight"))
                     {
-                        //Plugin.Log.LogInfo($"found a matching object");
-                        //Plugin.Log.LogInfo($"[FOUND OBJECT] Held by: {thisFlash.playerHeldBy} - Name {thisFlash.gameObject.name}");
                         getMyFlash = thisFlash;
                         break;
                     }
                 }
-                else
-                {
-                    //Plugin.Log.LogInfo($"[OBJECT] Held by: {thisFlash.playerHeldBy} - Name {thisFlash.gameObject.name}");
-                }
             }
+
+            return getMyFlash;
+        }
+
+        private void setFlash(Color newColor, string colorName, ulong playerID, string playerName)
+        {
+            GrabbableObject getMyFlash = FindFlashlightObject(playerName);
 
             // Move the null check outside the loop
             if (getMyFlash != null)
             {
-                Plugin.Log.LogInfo($"getMyFlash is not null, getting/setting components");
-
                 // Use TryGetComponent to safely get the FlashlightItem component
                 if (getMyFlash.gameObject.TryGetComponent<FlashlightItem>(out FlashlightItem flashlightItem))
                 {
@@ -494,13 +491,11 @@ namespace TerminalStuff
                     {
                         flashlightItem.flashlightBulb.color = newColor;
                         flashlightItem.flashlightBulbGlow.color = newColor;
-                        Plugin.Log.LogInfo($"Setting flashlight color to {colorName} for player {playerName}");
                         Plugin.instance.fSuccess = true;
 
                         if (StartOfRound.Instance.allPlayerScripts[playerID].helmetLight)
                         {
                             StartOfRound.Instance.allPlayerScripts[playerID].helmetLight.color = newColor;
-                            //GameNetworkManager.Instance.localPlayerController.helmetLight.color = flashlightColor;
                             Plugin.instance.hSuccess = true;
                         }
                     }
@@ -516,18 +511,86 @@ namespace TerminalStuff
             }
         }
 
-    //DO NOT REMOVE
-    public override void OnNetworkSpawn()
-    {
+        public void CycleThroughRainbowFlash()
+        {
 
-        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
-            Instance?.gameObject.GetComponent<NetworkObject>().Despawn();
-        Instance = this;
+            // Start the new coroutine for the rainbow effect
+            string playerName = GameNetworkManager.Instance.localPlayerController.playerUsername;
+            ulong playerID = GameNetworkManager.Instance.localPlayerController.playerClientId;
+            PlayerControllerB getPlayer = StartOfRound.Instance.localPlayerController;
 
-        base.OnNetworkSpawn();
+            endFlashRainbow = false;
+            StartCoroutine(RainbowFlashCoroutine(playerName, playerID, getPlayer));
+            Plugin.Log.LogInfo($"{playerName} trying to set flashlight to rainbow mode!");
+                
+        }
+
+        private IEnumerator RainbowFlashCoroutine(string playerName, ulong playerID, PlayerControllerB player)
+        {
+            GrabbableObject getMyFlash = FindFlashlightObject(playerName);
+            if (getMyFlash != null)
+            {
+                getMyFlash.itemProperties.itemName += "(Rainbow)";
+
+                while (!player.isPlayerDead && !endFlashRainbow)
+                {
+                    float rainbowSpeed = 0.4f;
+                    float hue = Mathf.PingPong(Time.time * rainbowSpeed, 1f);
+                    Color flashlightColor = Color.HSVToRGB(hue, 1f, 1f);
+
+                    if (getMyFlash.isHeld && !getMyFlash.deactivated)
+                    {
+                        NetHandler.Instance.FlashColorServerRpc(flashlightColor, "rainbow", playerID, playerName);
+
+                        // Wait for a short duration before updating the color again
+                        yield return new WaitForSeconds(0.05f);
+                    }
+                    else
+                    {
+                        yield return new WaitForSeconds(0.05f);
+                    }
+
+
+                    if (StartOfRound.Instance.allPlayersDead || getMyFlash.insertedBattery.empty || !getMyFlash.isHeld)
+                    {
+                        Plugin.Log.LogInfo("ending flashy rainbow");
+                        endFlashRainbow = true;
+                    }
+
+                }
+                string returnItemName = getMyFlash.itemProperties.itemName.Replace("(Rainbow)", "");
+                getMyFlash.itemProperties.itemName = returnItemName;
+            }
+            else
+                Plugin.Log.LogInfo("no flashlights found");
+
+            
+        }
+
+
+        //DO NOT REMOVE
+        public override void OnNetworkSpawn()
+        {
+            if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+            {
+                if (Instance != null && Instance.gameObject != null)
+                {
+                    NetworkObject networkObject = Instance.gameObject.GetComponent<NetworkObject>();
+
+                    if (networkObject != null)
+                    {
+                        networkObject.Despawn();
+                        Plugin.Log.LogInfo("Nethandler despawned!");
+                    }
+                }
+            }
+
+            Instance = this;
+            base.OnNetworkSpawn();
+            Plugin.Log.LogInfo("Nethandler Spawned!");
+        }
+
+
     }
-
-
-}
 }
 

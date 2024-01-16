@@ -10,9 +10,9 @@ using BepInEx.Bootstrap;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.2")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.3")]
     [BepInDependency("atomic.terminalapi")]
-    [BepInDependency("Rozebud.FovAdjust")]
+    //[BepInDependency("Rozebud.FovAdjust")]
 
     public class Plugin : BaseUnityPlugin 
     {
@@ -21,7 +21,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.darmuhsTerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "2.2.2";
+            public const string PLUGIN_VERSION = "2.2.3";
         }
 
         internal static new ManualLogSource Log;
@@ -29,6 +29,7 @@ namespace TerminalStuff
         //Compatibility
         public bool CompatibilityAC = false;
         public bool CompatibilityOther = false;
+        public bool FovAdjust = false;
 
 
         //public stuff for instance
@@ -66,24 +67,13 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.2!");
-            Plugin.Log.LogInfo((object)"--------Who woulda thought this would be another cams hotfix! :).---------");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.3!");
+            Plugin.Log.LogInfo((object)"--------Apparently we're at 37 commands, I had no clue lol.---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             //LeaveTerminal.AddTest(); //this command is only for devtesting
             //Addkeywords used to be here
             VideoManager.Load();
-
-            if (Chainloader.PluginInfos.ContainsKey("com.potatoepet.AdvancedCompany"))
-            {
-                Plugin.Log.LogInfo("Advanced Company detected, setting Advanced Company Compatibility options");
-                CompatibilityAC = true;
-            }
-            if (Chainloader.PluginInfos.ContainsKey("com.malco.lethalcompany.moreshipupgrades")) //other mods that simply append to the help command
-            {
-                Plugin.Log.LogInfo("Known mod detected that requires compatibility");
-                CompatibilityOther = true;
-            }
 
             //start of networking stuff
 

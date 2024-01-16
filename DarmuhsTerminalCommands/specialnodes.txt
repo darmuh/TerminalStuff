@@ -45,3 +45,10 @@ if (node.terminalEvent == "switchCamera")
 
 Switch command with player name:
 terminalNodes.specialNodes[20] <-
+
+
+
+
+Z:\games\modding\LC\networkpatcher\
+
+netcode-patch plugins\darmuh-darmuhsTerminalStuff deps

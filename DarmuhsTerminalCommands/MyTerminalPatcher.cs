@@ -18,6 +18,7 @@ using Object = UnityEngine.Object;
 using Steamworks;
 using BepInEx.Configuration;
 using AsmResolver.IO;
+using BepInEx.Bootstrap;
 
 namespace TerminalStuff
 {
@@ -31,6 +32,8 @@ namespace TerminalStuff
         public static string Lever;
         public static string sColor;
         public static string Link;
+        public static string Link2;
+        public static string linktext = string.Empty;
 
         //LoadNewNode(TerminalNode node)
         [HarmonyPatch(typeof(Terminal), "LoadNewNode")]
@@ -105,6 +108,7 @@ namespace TerminalStuff
                 doesITPexist = false;
                 isTermInUse = __instance.terminalInUse;
                 StopPersistingKeywords();
+                CompatibilityCheck();
                 CreateSpecialNode(__instance);
                
                 // Introduce a 3-second delay before calling checkForTPatStart
@@ -121,6 +125,25 @@ namespace TerminalStuff
                 camsNode.name = "ViewInsideShipCam 1";
                 instance.terminalNodes.specialNodes.Add(camsNode);
 
+            }
+
+            private static void CompatibilityCheck()
+            {
+                if (Chainloader.PluginInfos.ContainsKey("com.potatoepet.AdvancedCompany"))
+                {
+                    Plugin.Log.LogInfo("Advanced Company detected, setting Advanced Company Compatibility options");
+                    Plugin.instance.CompatibilityAC = true;
+                }
+                if (Chainloader.PluginInfos.ContainsKey("Rozebud.FovAdjust"))
+                {
+                    Plugin.Log.LogInfo("Rozebud's FovAdjust detected!");
+                    Plugin.instance.FovAdjust = true;
+                }
+                if (Chainloader.PluginInfos.ContainsKey("com.malco.lethalcompany.moreshipupgrades")) //other mods that simply append to the help command
+                {
+                    Plugin.Log.LogInfo("Known mod detected that requires compatibility");
+                    Plugin.instance.CompatibilityOther = true;
+                }
             }
 
 
@@ -329,58 +352,81 @@ namespace TerminalStuff
             // Public method to set the flashlight color
             public static void SetFlashlightColor(string colorKeyword)
             {
-                switch (colorKeyword.ToLower())
+                if (IsHexColorCode(colorKeyword))
                 {
-                    case "normal":
-                        FlashlightColor = Color.white;
-                        break;
-                    case "default":
-                        FlashlightColor = Color.white;
-                        break;
-                    case "red":
-                        FlashlightColor = Color.red;
-                        break;
-                    case "blue":
-                        FlashlightColor = Color.blue;
-                        break;
-                    case "yellow":
-                        FlashlightColor = Color.yellow;
-                        break;
-                    case "cyan":
-                        FlashlightColor = Color.cyan;
-                        break;
-                    case "magenta":
-                        FlashlightColor = Color.magenta;
-                        break;
-                    case "green":
-                        FlashlightColor = Color.green;
-                        break;
-                    case "purple":
-                        FlashlightColor = new Color32(144, 100, 254, 1);
-                        break;
-                    case "lime":
-                        FlashlightColor = new Color32(166, 254, 0, 1);
-                        break;
-                    case "pink":
-                        FlashlightColor = new Color32(242, 0, 254, 1);
-                        break;
-                    case "maroon":
-                        FlashlightColor = new Color32(114, 3, 3, 1); //new
-                        break;
-                    case "orange":
-                        FlashlightColor = new Color32(255, 117, 24, 1); //new
-                        break;
-                    case "sasstro":
-                        FlashlightColor = new Color32(212, 148, 180, 1);
-                        break;
-                    case "samstro":
-                        FlashlightColor = new Color32(180, 203, 240, 1);
-                        break;
-                    default:
-                        FlashlightColor = null; //this needs to be null for invalid results to return invalid
-                        break;
+                    // If it's a valid hex code, convert it to a Color
+                    FlashlightColor = HexToColor("#"+colorKeyword);
+                }
+                else
+                {
+                    switch (colorKeyword.ToLower())
+                    {
+                        case "normal":
+                            FlashlightColor = Color.white;
+                            break;
+                        case "default":
+                            FlashlightColor = Color.white;
+                            break;
+                        case "red":
+                            FlashlightColor = Color.red;
+                            break;
+                        case "blue":
+                            FlashlightColor = Color.blue;
+                            break;
+                        case "yellow":
+                            FlashlightColor = Color.yellow;
+                            break;
+                        case "cyan":
+                            FlashlightColor = Color.cyan;
+                            break;
+                        case "magenta":
+                            FlashlightColor = Color.magenta;
+                            break;
+                        case "green":
+                            FlashlightColor = Color.green;
+                            break;
+                        case "purple":
+                            FlashlightColor = new Color32(144, 100, 254, 1);
+                            break;
+                        case "lime":
+                            FlashlightColor = new Color32(166, 254, 0, 1);
+                            break;
+                        case "pink":
+                            FlashlightColor = new Color32(242, 0, 254, 1);
+                            break;
+                        case "maroon":
+                            FlashlightColor = new Color32(114, 3, 3, 1); //new
+                            break;
+                        case "orange":
+                            FlashlightColor = new Color32(255, 117, 24, 1); //new
+                            break;
+                        case "sasstro":
+                            FlashlightColor = new Color32(212, 148, 180, 1);
+                            break;
+                        case "samstro":
+                            FlashlightColor = new Color32(180, 203, 240, 1);
+                            break;
+                        default:
+                            FlashlightColor = null; //this needs to be null for invalid results to return invalid
+                            break;
+                    }
                 }
             }
+
+            public static bool IsHexColorCode(string input)
+            {
+                // Check if the input is a valid hex color code
+                return Regex.IsMatch(input, "^(?:[0-9a-fA-F]{3}){1,2}$");
+            }
+
+            public static Color HexToColor(string hex)
+            {
+                // Convert hex color code to Color
+                Color color = Color.white;
+                ColorUtility.TryParseHtmlString(hex, out color);
+                return color;
+            }
+
 
             private static bool HandleConfirmation(Terminal __instance, string[] words, Action confirmCallback, Action denyCallback)
             {
@@ -445,6 +491,11 @@ namespace TerminalStuff
                 else
                     Link = "link";
 
+                if (ConfigSettings.link2Keyword.Value != null && GetKeyword(ConfigSettings.link2Keyword.Value) == null)
+                    Link2 = ConfigSettings.link2Keyword.Value.ToLower();
+                else
+                    Link2 = "link2";
+
             }
 
             private static void HelpCompatibility(Terminal termstance)
@@ -483,7 +534,7 @@ namespace TerminalStuff
                 getConfigKeywordsToUse();
 
                 // custom keywords not using TerminalApi to trigger a node result directly
-                List<string> keywords = new List<string> { "lobby", "home", "more", "next", "comfort", "controls", "extras", "fun", "kick", fColor, "fov", Gamble, Lever, "vitalspatch", "bioscan", "bioscanpatch", sColor, Link }; // keyword catcher
+                List<string> keywords = new List<string> { "lobby", "home", "more", "next", "comfort", "controls", "extras", "fun", "kick", fColor, "fov", Gamble, Lever, "vitalspatch", "bioscan", "bioscanpatch", sColor, Link, Link2 }; // keyword catcher
                 List<string> confirmationKeywords = new List<string> { "confirm", "c", "co", "con", "conf", "confi", "confir", "deny", "d", "de", "den" }; //confirm or deny catcher & shortened
 
                 if (Plugin.instance.awaitingConfirmation && (!CheckForMYKeywords(__instance.screenText.text, __instance.textAdded, confirmationKeywords)))
@@ -655,10 +706,9 @@ namespace TerminalStuff
                     TerminalNode leverDO = CreateTerminalNode($"Lever pull confirmed, pulling now...\n", true, "leverdo");
                     TerminalNode leverDONT = CreateTerminalNode($"Lever pull cancelled...\n", true);
 
-                    //link nodes
-                    TerminalNode linkAsk = CreateTerminalNode($"Would you like to be taken to the following link?\n\n{ConfigSettings.customLink.Value}\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n", true);
-                    TerminalNode linkDO = CreateTerminalNode($"Taking you to {ConfigSettings.customLink.Value} now...\n", true, "externalLink");
-                    TerminalNode linkDONT = CreateTerminalNode($"You have cancelled visiting the site: {ConfigSettings.customLink.Value}\n", true);
+                    TerminalNode linkDO = CreateTerminalNode($"Taking you to {linktext} now...\n", true, "externalLink");
+                    TerminalNode linkDONT = CreateTerminalNode($"You have cancelled visiting the site: {linktext}\n", true);
+
 
                     //vitals nodes
                     TerminalNode VitalsUpgradeAsk = CreateTerminalNode($"", true, "upgradevitalsAsk");
@@ -768,7 +818,7 @@ namespace TerminalStuff
 
 
 
-                    if (words.Length == 1 && words[0].ToLower() == Lever && ConfigSettings.terminalLever.Value && ((object)networkManager != null && networkManager.IsHost))
+                    if (words.Length == 1 && words[0].ToLower() == Lever && ConfigSettings.terminalLever.Value)
                     {
                         Plugin.Log.LogInfo("command init: lever");
                         if (ConfigSettings.leverConfirmOverride.Value)
@@ -792,9 +842,20 @@ namespace TerminalStuff
                         
                     }
 
-                    if (words.Length == 1 && words[0].ToLower() == Link && ConfigSettings.terminalLink.Value)
+                    if (words.Length == 1 && ((words[0].ToLower() == Link && ConfigSettings.terminalLink.Value) || (words[0].ToLower() == Link2 && ConfigSettings.terminalLink2.Value)))
                     {
-                        Plugin.Log.LogInfo("command init: link");
+                        Plugin.Log.LogInfo("command init: links");
+
+                        if (words[0].ToLower() == Link)
+                            linktext = ConfigSettings.customLink.Value;
+                        else if (words[0].ToLower() == Link2)
+                            linktext = ConfigSettings.customLink2.Value;
+                        else
+                            Plugin.Log.LogInfo("failed to grab link");
+
+                        //link nodes
+                        TerminalNode linkAsk = CreateTerminalNode($"Would you like to be taken to the following link?\n\n{linktext}\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n", true);
+                        
                         __result = linkAsk; //Ask user to confirm or deny
                         Plugin.Log.LogInfo("__result set (1)");
                         Plugin.instance.awaitingConfirmation = true;
@@ -1009,12 +1070,22 @@ namespace TerminalStuff
                         Plugin.Log.LogInfo("fcolor command detected!");
                         string targetColor = words[1];
 
+                        if(targetColor == "rainbow")
+                        {
+                            NetHandler.Instance.CycleThroughRainbowFlash();
+                            Plugin.Log.LogInfo("rainbowflash detected!");
+                            TerminalNode tempNode = CreateTerminalNode($"Flashlight color set to Rainbow Mode! (performance may vary)\r\n");
+                            __result = tempNode;
+                            return;
+                        }
+
                         SetFlashlightColor(targetColor);
                         flashLightColor = targetColor;
 
                         if (FlashlightColor.HasValue)
                         {
                             Plugin.Log.LogInfo($"Using flashlight color: {targetColor}");
+                            NetHandler.Instance.endFlashRainbow = true;
                             __result = flashReturn;
                             return;
                         }
@@ -1171,6 +1242,12 @@ namespace TerminalStuff
                         extraLinesForInfoCommands = new StringBuilder("=== Extras Page 2 ===\r\n\r\n");
                         StringBuilder extraString = new StringBuilder("=== Category 2: Extras ===\r\n\r\n");
 
+                        if (ConfigSettings.terminalLink.Value)
+                            extraString.AppendLine($"> {ConfigSettings.linkKeyword.Value}\r\n {ConfigSettings.customLinkHint.Value}\r\n");
+
+                        if (ConfigSettings.terminalLink2.Value)
+                            extraString.AppendLine($"> {ConfigSettings.link2Keyword.Value}\r\n {ConfigSettings.customLink2Hint.Value}\r\n");
+
                         if (ConfigSettings.terminalCams.Value)
                             extraString.AppendLine($"> cams, {ConfigSettings.camsKeyword2.Value}\r\nToggle displaying cameras in terminal.\r\n");
                         
@@ -1198,9 +1275,7 @@ namespace TerminalStuff
                         if (ConfigSettings.terminalBioScan.Value && ConfigSettings.ModNetworking.Value)
                             extraString.AppendLine($"> bioscanpatch\r\n Purchase upgrade to BioScanner Software Patch 2.0\r\n");
 
-                        if (ConfigSettings.terminalLink.Value)
-                            extraString.AppendLine($"> {ConfigSettings.linkKeyword.Value}\r\n Go to a specific web page.\r\n");
-
+                        
                         int numberOfLines = extraString.ToString().Split(new[] { ".\r\n" }, StringSplitOptions.None).Length;
                         (string remainingLines, StringBuilder shortenedStringBuilder) = LimitLinesInStringBuilder(ref extraString, maxLines);
                         if (remainingLines == String.Empty)
