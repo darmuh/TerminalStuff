@@ -191,7 +191,7 @@ namespace TerminalStuff
             {
                 if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
                 {
-                    Plugin.Log.LogInfo($"Nothing needed here I think.");
+                    Plugin.Log.LogInfo($"Nethandler failed to initialize.");
                 }
 
                 if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
@@ -200,7 +200,11 @@ namespace TerminalStuff
                     patchTerminal = Object.FindObjectOfType<Terminal>();
                     Terminal_Awake_Patch.alwaysOnDisplay = aod;
                     if(Terminal_Awake_Patch.isTermInUse == false && Terminal_Awake_Patch.alwaysOnDisplay == true)
-                        patchTerminal.StartCoroutine(patchTerminal.waitUntilFrameEndToSetActive(active: true));
+                    {
+                        Terminal_Awake_Patch.turnScreenOn();
+
+                    }
+                        
                     else if (Terminal_Awake_Patch.isTermInUse == false && Terminal_Awake_Patch.alwaysOnDisplay == false)
                         patchTerminal.StartCoroutine(patchTerminal.waitUntilFrameEndToSetActive(active: false));
                     Plugin.Log.LogInfo($"Client: set alwaysondisplay to {aod}");

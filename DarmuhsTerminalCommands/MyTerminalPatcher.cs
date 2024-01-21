@@ -19,12 +19,16 @@ using Steamworks;
 using BepInEx.Configuration;
 using AsmResolver.IO;
 using BepInEx.Bootstrap;
+using TMPro;
+using UnityEngine.UI;
 
 namespace TerminalStuff
 {
-    public class AllMyTerminalPatches
+    public class AllMyTerminalPatches : MonoBehaviour
     {
         public static AllMyTerminalPatches Instance;
+
+        public static bool showTime = false;
 
         //non-terminalAPI keywords
         public static string fColor;
@@ -42,7 +46,7 @@ namespace TerminalStuff
             static void Postfix(ref Terminal __instance, ref TerminalNode node)
             {
                 
-                if (Terminal_Awake_Patch.alwaysOnDisplay && NetHandler.netNodeSet == false && ConfigSettings.networkedNodes.Value)
+                if (Terminal_Awake_Patch.alwaysOnDisplay && NetHandler.netNodeSet == false && ConfigSettings.networkedNodes.Value && Terminal_Awake_Patch.firstload)
                 {
                     Plugin.Log.LogInfo("setting nodeset to true, syncing with other clients.");
                     NetHandler.netNodeSet = true;
@@ -51,6 +55,83 @@ namespace TerminalStuff
 
             }
         }
+
+        [HarmonyPatch(typeof(Terminal), "Update")]
+        public class UpdatePatch : Terminal
+        {
+            private static TextMeshProUGUI textComponent;
+            static void Postfix(ref Terminal __instance)
+            {
+                if (!ConfigSettings.terminalClock.Value)
+                    return;
+
+                if (__instance.terminalInUse && showTime && StartOfRound.Instance.shipDoorsEnabled)
+                {
+                    if (!textComponent.gameObject.activeSelf)
+                        textComponent.gameObject.SetActive(true);
+                    string clockTime = HUDManager.Instance.clockNumber.text;
+                    string TimeText = clockTime.Replace("\n", "").Replace("\r", "");
+                    textComponent.text = $"{TimeText}";
+                }
+                else if (__instance.terminalInUse && showTime && !StartOfRound.Instance.shipDoorsEnabled)
+                {
+                    if (textComponent.gameObject.activeSelf)
+                        textComponent.gameObject.SetActive(false);
+                }
+                else if(!showTime && textComponent != null)
+                {
+                    if (textComponent.gameObject.activeSelf)
+                        textComponent.gameObject.SetActive(false);
+                }
+                    
+
+            }
+            public static void MakeTimeText()
+            {
+                // Create a new TextMeshProUGUI GameObject
+                GameObject textGO = new GameObject("TimeTextAddon");
+                Terminal getTerminal = FindObjectOfType<Terminal>();
+
+                // Attach the TextMeshProUGUI component to the GameObject
+                textComponent = textGO.AddComponent<TextMeshProUGUI>();
+
+                // Set properties of the TextMeshProUGUI
+                textComponent.gameObject.SetActive(false);
+                textComponent.text = "time";
+                textComponent.fontSize = 30;
+                textComponent.fontStyle = FontStyles.SmallCaps;
+                textComponent.horizontalAlignment = HorizontalAlignmentOptions.Left;
+                textComponent.margin = new Vector4(285, -199, 0, 0);
+                textComponent.enableWordWrapping = false;
+                //textComponent.enableAutoSizing
+
+                if (getTerminal != null && getTerminal.topRightText != null)
+                {
+                    textComponent.font = getTerminal.topRightText.font;
+                    textComponent.color = getTerminal.topRightText.color;
+                }
+                else
+                {
+                    textComponent.color = Color.red;
+                }
+               
+                textComponent.alignment = TextAlignmentOptions.Top;
+
+                // Set additional properties as needed
+
+                // Attach the TextMeshProUGUI to the Canvas
+                Canvas canvas = GameObject.Find("Environment/HangarShip/Terminal/Canvas").GetComponent<Canvas>();
+                if (canvas != null)
+                    textGO.transform.SetParent(canvas.transform, false);
+                else
+                    Plugin.Log.LogInfo("failed to find canvas");
+            }
+
+        }
+
+        
+
+       
 
         [HarmonyPatch(typeof(Terminal), "QuitTerminal")]
         public class QuitPatch : Terminal
@@ -91,6 +172,7 @@ namespace TerminalStuff
             public static bool alwaysOnDisplay = false;
             public static bool isTermInUse = false;
             public static bool helpModified = false;
+            public static bool firstload = false;
             //change vanilla terminal stuff here
             static void Postfix(ref Terminal __instance)
             {
@@ -99,23 +181,48 @@ namespace TerminalStuff
                 TerminalNode helpNode = __instance.terminalNodes.specialNodes.ToArray()[13];
                 if (!Plugin.instance.CompatibilityAC && !Plugin.instance.CompatibilityOther)
                     helpNode.displayText = ">MOONS\r\nList of moons the autopilot can route to.\r\n\r\n>STORE\r\nCompany store's selection of useful items.\r\n\r\n>BESTIARY\r\nTo see the list of wildlife on record.\r\n\r\n>STORAGE\r\nTo access objects placed into storage.\r\n\r\n>OTHER\r\nTo see the list of other commands\r\n\r\n>MORE\r\nTo see a list of commands added via darmuhsTerminalStuff\r\n\r\n[numberOfItemsOnRoute]\r\n"; //appended
-                else if (Plugin.instance.CompatibilityAC)
-                    alwaysOnDisplay = true;
+               
+                    
 
                 //no known compatibility issues with home screen
                 startNode.displayText = $"{ConfigSettings.homeLine1.Value}\r\n{ConfigSettings.homeLine2.Value}\r\n\r\nType \"Help\" for a list of commands.\r\n\r\nType \"More\" for a list of darmuh's commands.\r\n\r\n     ._______.\r\n     | \\   / |\r\n  .--|.O.|.O.|______.\r\n__).-| = | = |/   \\ |\r\np__) (.'---`.)Q.|.Q.|--.\r\n      \\\\___// = | = |-.(__\r\n       `---'( .---. ) (__&lt;\r\n             \\\\.-.//\r\n              `---'\r\n\t\t\t  \r\n{ConfigSettings.homeLine3.Value}\r\n\r\n";
                 doesTPexist = false;
                 doesITPexist = false;
                 isTermInUse = __instance.terminalInUse;
+                AllMyTerminalPatches.showTime = ConfigSettings.terminalClock.Value;
                 StopPersistingKeywords();
                 CompatibilityCheck();
                 CreateSpecialNode(__instance);
-               
+                Terminal thisterm = __instance;
+
+                if(ConfigSettings.terminalClock.Value)
+                    UpdatePatch.MakeTimeText();
+
                 // Introduce a 3-second delay before calling checkForTPatStart
                 Task.Run(() =>
                 {
                     Thread.Sleep(3000);
                     checkForTPatStart();
+
+                    if (ConfigSettings.alwaysOnAtStart.Value && !firstload)
+                    {
+                        plugin.Log.LogInfo("Setting AlwaysOn Display.");
+                        if (ConfigSettings.networkedNodes.Value && ConfigSettings.ModNetworking.Value)
+                        {
+                            Terminal_Awake_Patch.alwaysOnDisplay = true;
+                            NetHandler.Instance.alwaysOnServerRpc(true);
+                            firstload = true;
+                        }
+                            
+                        else
+                        {
+                            Terminal_Awake_Patch.alwaysOnDisplay = true;
+                            turnScreenOn();
+                            thisterm.LoadNewNode(thisterm.terminalNodes.specialNodes.ToArray()[1]);
+                            firstload = true;
+                        }
+                            
+                    }
                 });
             }
 
@@ -125,6 +232,16 @@ namespace TerminalStuff
                 camsNode.name = "ViewInsideShipCam 1";
                 instance.terminalNodes.specialNodes.Add(camsNode);
 
+            }
+
+            public static void turnScreenOn()
+            {
+                Terminal getTerminal = Object.FindObjectOfType<Terminal>();
+                if (getTerminal != null && Terminal_Awake_Patch.alwaysOnDisplay)
+                {
+                    getTerminal.StartCoroutine(getTerminal.waitUntilFrameEndToSetActive(active: true));
+                    Plugin.Log.LogInfo("Screen set to active");
+                }
             }
 
             private static void CompatibilityCheck()
@@ -218,6 +335,7 @@ namespace TerminalStuff
             static void Postfix(ref Terminal __instance)
             {
                 Terminal_Awake_Patch.isTermInUse = __instance.terminalInUse;
+                __instance.StartCoroutine(walkieTerm.TalkinTerm(__instance));
 
                 if (__instance.terminalInUse && Plugin.instance.CompatibilityAC && !Terminal_Awake_Patch.helpModified) //specifically for AdvancedCompany
                 {
@@ -283,7 +401,6 @@ namespace TerminalStuff
                     }
                         
                 }
-
             }
         }
 
@@ -572,7 +689,8 @@ namespace TerminalStuff
                     "Check Vitals",
                     "HealFromTerminal",
                     "Check Loot Value",
-                    "RandomSuit"
+                    "RandomSuit",
+                    "Terminal Clock"
                 };
 
                 //20,21,22
@@ -1262,7 +1380,13 @@ namespace TerminalStuff
 
                         if (ConfigSettings.terminalLoot.Value)
                             extraString.AppendLine($"> loot, {ConfigSettings.lootKeyword2.Value}\r\nDisplay total value of all loot on-board.\r\n");
-                        
+
+                        if (ConfigSettings.terminalLootDetail.Value)
+                            extraString.AppendLine($"> lootlist, {ConfigSettings.ListScrapKeyword.Value}\r\nDisplay a detailed list of all loot on-board.\r\n");
+
+                        if (ConfigSettings.terminalListItems.Value)
+                            extraString.AppendLine($"> itemlist, {ConfigSettings.ListItemsKeyword.Value}\r\nDisplay a detailed list of all non-scrap items on-board that are not being held.\r\n");
+
                         if (ConfigSettings.terminalVitals.Value && ConfigSettings.ModNetworking.Value)
                             extraString.AppendLine($"> vitals\r\nDisplay vitals of employee being tracked on radar.\r\n");
 
@@ -1315,6 +1439,8 @@ namespace TerminalStuff
                             controlString.AppendLine($"> {ConfigSettings.tpKeyword2.Value}, tp\r\nRemotely push the Teleporter button.\r\n");
                         if (ConfigSettings.terminalITP.Value)
                             controlString.AppendLine($"> {ConfigSettings.itpKeyword2.Value}, itp\r\nRemotely push the Inverse Teleporter button.\r\n");
+                        if (ConfigSettings.terminalClockCommand.Value)
+                            controlString.AppendLine($">clock, {ConfigSettings.clockKeyword2.Value}\r\nToggle Terminal Clock display on/off.\r\n");
 
                         int numberOfLines = controlString.ToString().Split(new[] { ".\r\n" }, StringSplitOptions.None).Length;
                         (string remainingLines, StringBuilder shortenedStringBuilder) = LimitLinesInStringBuilder(ref controlString, maxLines);

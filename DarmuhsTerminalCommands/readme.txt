@@ -10,6 +10,8 @@
  - Customizable pricing, strings, upgrades, etc.
  - Customizable home (startup) page!
  - Expanded compatibility with Advanced Company & Lategame Upgrades!
+ - [NEW in 2.2.4] Configurable Terminal Clock feature that will always be displayed alongside credits!
+ - [NEW in 2.2.4] Configurable Use-Walkie at Terminal feature that will allow you to bind one key and one mousebutton to use any powered walkie from your inventory!
 
 ### Comfort Commands:
  - Lobby: Display the current lobby name.
@@ -28,6 +30,7 @@
  - ITP: Activate Inverse Teleporter
  - Door: Control ship doors (open/closed) from terminal
  - Lights: Control ship lights (on/off) from terminal
+ - Clock: Toggle Custom Terminal Clock display on/off
 
 ### Extras Commands:
  - Loot: Scans ship for all loot and gives you the total value.
@@ -41,6 +44,8 @@
  - Overlay: View from the terminal that shows camera pov with radar overlayed on top (configurable opacity)
  - Link: If enabled, allows for linking to an external website
  - Link2: If enabled, allows for linking to an external website (2)
+ - Lootlist: Detailed loot command which displays all scrap items onboard and their worth.
+ - Itemlist: Display a detailed list of all non-scrap items on-board that are not being held.
 
 ### Fun Commands:
  - Lol (videoplayer): Plays a random video from all videos located in the configured videoFolderPath folder.
@@ -69,9 +74,10 @@
  - Please report compatibility issues when you find them, it's not difficult for me to resolve these issues but I have to know about them.
 
 ### Work for future updates
- - keybind to use radio while at the terminal (might run into issues with other mods here)
+ - ~~keybind to use radio while at the terminal (might run into issues with other mods here)~~
+ - Integrate keybind config options into the controls menu of the game (but I don't want to add InputUtils as a dependency)
  - Help/Info command to show info on other commands, eg. "info fcolor"
- - minimap/minicams/overlay: Configuration options to make these purchasable upgrades. Not highly desired but I think it'd be nice to have the option.
+ - ~~minimap/minicams/overlay: Configuration options to make these purchasable upgrades. Not highly desired but I think it'd be nice to have the option.~~ (Not going to put effort into this unless it is requested)
  - ~~minimap/minicams/overlay: Configurable Opacity levels for these.~~
  - more custom configurable keywords
  - more door commands: Purchasable upgrade for the door open/close system (maybe, this might only be possible for the host player)
@@ -82,16 +88,18 @@
 
 ### Requested Features from Community
  - Terminal customization (colors, etc.)
- - Control terminal via chat commands
+ - Control terminal via chat commands (Need to identify which commands I'd want to allow through this feature, ie. no free minimap)
  - Custom home page with custom image rather than the current mask ascii art
- - Option to have the terminal on at load-in
+ - ~~Option to have the terminal on at load-in~~
  - Option to have the terminal on & play a video at load-in
  - ~~Networked color commands~~
  - ~~Networked Always-On Display so everyone could see what you're doing on the terminal~~ (Now in BETA)
  - ~~An option to remove networking from the mod~~
- - integrate the time of the day on the monitor
- - feature like STOCKoverview which let you see the equipement you have in ship
+ - ~~integrate the time of the day on the monitor~~
+ - ~~feature like STOCKoverview which let you see the equipement you have in ship~~
  - ~~Make FovAdjust a soft dependency~~
+ - a terminal radar zoom in/out option would be quite nice, something like zoom [value], and perhaps w/ a configurable default value
+ - config option to have alwayson by default
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -102,7 +110,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does not adhere to Semantic Versioning at this time. Mostly because I refuse to learn about it.
 
-## [2.2.3] **CURRENT VERSION**
+## [2.2.4] **CURRENT VERSION**
+
+ ### Added
+ - Configuration option to start with Always On Enabled (alwaysOnAtStart)
+ - Added Terminal Clock feature, this can be disabled via configuration option (terminalClock) and will be on by default (does not show in orbit)
+ - Added clock toggle command to toggle the new Terminal Clock feature on/off (terminalClockCommand)
+ - Added new feature to use the walkie-talkie item while at the terminal. This can be disabled via configuration option (walkieTerm)
+ - walkieTerm feature comes with configuration binds for both a keyboard key (walkieTermKey) and a mousebutton (walkieTermMB)
+ - walkieTerm keybindings will only do something while at the terminal with a walkie in your inventory
+ - Added new detailed loot command which will display all scrap onboard and their worth (terminalLootDetail)
+ - Added new List Items command which will display all non-scrap items that are not currently being held on the ship (terminalListItems)
+ 
+ ### Known issues/bugs
+ - (1) switch: switch command text sometimes does not update properly on first run.
+ - (2) If another mod has a function that keeps the terminal screen enabled, alwayson will not be able to disable it.
+ - (2 Cont.) Recommend if you run into this issue to set alwaysOnAtStart to true. 
+ - (3) Picking up eachother's colored flashlights will not automatically change any colors. 
+ - (3 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
+ - (3 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
+ - (4) More command is not hiding cams views (and should).
+
+ <details open>
+ <summary>Historical Patch Notes</summary>
+
+## [2.2.3]
 
  ### Fixed
  - Cleaned up command adding logic to be more streamlined (this is more for me than anyone else lol)
@@ -116,19 +148,6 @@ This project does not adhere to Semantic Versioning at this time. Mostly because
  - Added the ability to use hexcodes for both fcolor and scolor (ex: fcolor 19C3A7)
  - Added rainbow flashlight command "fcolor rainbow" (could affect performance, drop your flashlight to kill the rainbow effect)
  - Added configurable hint strings (displayed in extras) for the new link commands.
-
- 
- ### Known issues/bugs
- - (1) switch: switch command text sometimes does not update properly on first run, continuing to look into this.
- - (2) If another mod has a function that keeps the terminal screen enabled, alwayson will not be able to disable it.
- - (2 Cont.) Recommend if you run into this issue to enable alwayson whenever you start playing so that the terminal functions as expected. 
- - (3) Picking up eachother's colored flashlights will not automatically change any colors. 
- - (3 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
- - (3 Cont.) I'm exploring some ways to fix this without causing any potential performance issues.
- - (4) More command is not hiding cams views (and should).
-
- <details open>
- <summary>Historical Patch Notes</summary>
 
 ## [2.2.2]
 

@@ -10,7 +10,7 @@ using BepInEx.Bootstrap;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.3")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "2.2.4")]
     [BepInDependency("atomic.terminalapi")]
     //[BepInDependency("Rozebud.FovAdjust")]
 
@@ -21,7 +21,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.darmuhsTerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "2.2.3";
+            public const string PLUGIN_VERSION = "2.2.4";
         }
 
         internal static new ManualLogSource Log;
@@ -67,8 +67,8 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.3!");
-            Plugin.Log.LogInfo((object)"--------Apparently we're at 37 commands, I had no clue lol.---------");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 2.2.4!");
+            Plugin.Log.LogInfo((object)"--------[40 commands in one mod kinda cwazy.]---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
             //LeaveTerminal.AddTest(); //this command is only for devtesting
@@ -95,8 +95,6 @@ namespace TerminalStuff
             //end of networking stuff
         }
 
-
-
         public static void AddKeywords()
         {
             AddKeywordIfEnabled(ConfigSettings.terminalQuit.Value, LeaveTerminal.AddQuitKeywords);
@@ -116,6 +114,9 @@ namespace TerminalStuff
             AddKeywordIfEnabled(ConfigSettings.terminalAlwaysOn.Value, LeaveTerminal.AddAlwaysOnKeywords);
             AddKeywordIfEnabled(ConfigSettings.terminalLights.Value, LeaveTerminal.AddLights);
             AddKeywordIfEnabled(ConfigSettings.terminalRandomSuit.Value, LeaveTerminal.AddRandomSuit);
+            AddKeywordIfEnabled(ConfigSettings.terminalClockCommand.Value, LeaveTerminal.AddClockKeywords);
+            AddKeywordIfEnabled(ConfigSettings.terminalListItems.Value, LeaveTerminal.AddCommandAction("List Items TermEvent\n", true, "getitemslist", ConfigSettings.ListItemsKeyword.Value, true, "List Items on Ship", "itemlist"));
+            AddKeywordIfEnabled(ConfigSettings.terminalListItems.Value, LeaveTerminal.AddCommandAction("Detailed Loot TermEvent\n", true, "getscraplist", ConfigSettings.ListScrapKeyword.Value, true, "List Items on Ship", "lootlist"));
         }
 
         private static void AddKeywordIfEnabled(bool isEnabled, Action keywordAction)
@@ -123,6 +124,14 @@ namespace TerminalStuff
             if (isEnabled)
             {
                 keywordAction();
+            }
+        }
+
+        private static void AddKeywordIfEnabled(bool isEnabled, Action<object[]> keywordAction, params object[] arguments)
+        {
+            if (isEnabled)
+            {
+                keywordAction(arguments);
             }
         }
 

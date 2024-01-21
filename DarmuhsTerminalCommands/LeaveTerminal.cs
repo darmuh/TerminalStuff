@@ -20,6 +20,7 @@ using Random = UnityEngine.Random;
 using FovAdjust;
 using System.Diagnostics;
 using Steamworks;
+using System.Text;
 
 namespace TerminalStuff
 {
@@ -227,12 +228,93 @@ namespace TerminalStuff
                         __instance.QuitTerminal();
                     }
 
+                    if (node.terminalEvent == "timetoggle")
+                    {
+                        if (!AllMyTerminalPatches.showTime)
+                        {
+                            AllMyTerminalPatches.showTime = true;
+                            node.displayText = "Terminal Clock [ENABLED].\r\n";
+                        }
+                        else
+                        {
+                            AllMyTerminalPatches.showTime = false;
+                            node.displayText = "Terminal Clock [DISABLED].\r\n";
+                        }
+                    }
+
                     if (node.terminalEvent == "randomsuit")
                     {
                         string suitString;
                         getRandomSuit(out suitString);
                         node.displayText = suitString;
 
+                    }
+
+                    if(node.terminalEvent == "getitemslist")
+                    {
+                        LoadGrabbablesOnShip.LoadAllItems();
+
+                        StringBuilder sb = new StringBuilder();
+                        Dictionary<string, int> lineOccurrences = new Dictionary<string, int>();
+
+                        foreach (var grabbableItem in LoadGrabbablesOnShip.ItemsOnShip)
+                        {
+                            string itemName = grabbableItem.itemProperties.itemName;
+
+                            if (!grabbableItem.itemProperties.isScrap && !grabbableItem.isHeld)
+                                lineOccurrences[itemName] = lineOccurrences.TryGetValue(itemName, out int count) ? count + 1 : 1;
+                            // Increment the occurrence count or add to the dictionary with an initial count of 1
+                        }
+
+                        foreach (var kvp in lineOccurrences)
+                        {
+                            if (kvp.Value > 1)
+                            {
+                                sb.AppendLine($"{kvp.Key} x{kvp.Value}");
+                            }
+                            else
+                                sb.AppendLine($"{kvp.Key}");
+                        }
+
+                        node.displayText = $"Items on ship:\n\n{sb}\n\n";
+                    }
+
+                    if (node.terminalEvent == "getscraplist")
+                    {
+                        LoadGrabbablesOnShip.LoadAllItems();
+
+                        StringBuilder sb = new StringBuilder();
+                        Dictionary<string, int> lineOccurrences = new Dictionary<string, int>();
+                        int totalCredsWorth = 0;
+
+                        foreach (var grabbableItem in LoadGrabbablesOnShip.ItemsOnShip)
+                        {
+                            string itemName = grabbableItem.itemProperties.itemName;
+                            int scrapWorth = grabbableItem.scrapValue;
+                            
+
+                            if (grabbableItem.itemProperties.isScrap)
+                            {
+                                // Concatenate the itemName and scrapWorth to form the line
+                                string line = $"{itemName} ({scrapWorth} credits)";
+                                Plugin.Log.LogInfo(line + "added to output");
+                                totalCredsWorth += scrapWorth;
+
+                                lineOccurrences[line] = lineOccurrences.TryGetValue(line, out int count) ? count + 1 : 1;
+                            }
+                        }
+
+                        foreach (var kvp in lineOccurrences)
+                        {
+                            if (kvp.Value > 1)
+                            {
+                                sb.AppendLine($"{kvp.Key} x{kvp.Value}");
+                            }
+                            else
+                                sb.AppendLine($"{kvp.Key}");
+                        }
+
+                        node.displayText = $"Scrap on ship:\n\n{sb}\n\n\tTotal Value: {totalCredsWorth}\n\n";
                     }
 
                     if (node.terminalEvent == "leverdo")
@@ -1522,7 +1604,7 @@ namespace TerminalStuff
             public static float CalculateLootValue()
             {
                 List<GrabbableObject> list = ((IEnumerable<GrabbableObject>)GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>())
-                    .Where<GrabbableObject>(obj => obj.name != "ClipboardManual" && obj.name != "StickyNoteItem").ToList<GrabbableObject>();
+                    .Where<GrabbableObject>(obj => obj.name != "ClipboardManual" && obj.name != "StickyNoteItem" && obj.name != "Key(Clone)").ToList<GrabbableObject>(); //!obj.name.Contains("Key") or Key(Clone)
 
                 Plugin.Log.LogDebug((object)"Calculating total ship scrap value.");
 
@@ -1550,6 +1632,31 @@ namespace TerminalStuff
             AddTerminalKeyword(termWord2);          
         }
 
+        public static Action AddCommandAction(string textFail, bool clearText, string terminalEvent, string keyWord, bool isVerb, string nodeName)
+        {
+            return () =>
+            {
+                TerminalNode node = CreateTerminalNode(textFail, clearText, terminalEvent);
+                TerminalKeyword termWord = CreateTerminalKeyword(keyWord, isVerb, node);
+                AddTerminalKeyword(termWord);
+                node.name = nodeName;
+            };
+        }
+
+        public static Action AddCommandAction(string textFail, bool clearText, string terminalEvent, string keyWord, bool isVerb, string nodeName, string keyWord2)
+        {
+            return () =>
+            {
+                TerminalNode node = CreateTerminalNode(textFail, clearText, terminalEvent);
+                node.name = nodeName;
+                TerminalKeyword termWord = CreateTerminalKeyword(keyWord, isVerb, node);
+                TerminalKeyword termWord2 = CreateTerminalKeyword(keyWord2, isVerb, node);
+                AddTerminalKeyword(termWord);
+                AddTerminalKeyword(termWord2);
+            };
+        }
+
+
         public static void AddMiniMap()
         {
             AddCommand("minimap command\n", true, "minimap", ConfigSettings.minimapKeyword.Value, true, "ViewInsideShipCam 1");
@@ -1576,7 +1683,7 @@ namespace TerminalStuff
 
         public static void AddTest()
         {
-            TerminalNode test = CreateTerminalNode("test\n", true, "randomsuit");
+            TerminalNode test = CreateTerminalNode("test\n", true, "getscraplist");
             TerminalKeyword testKeyword = CreateTerminalKeyword("test", true, test);
             AddTerminalKeyword(testKeyword);
             Plugin.Log.LogInfo("This should only be enabled for dev testing");
@@ -1611,6 +1718,12 @@ namespace TerminalStuff
         {
             AddCommand("leaving\n", true, "quit", ConfigSettings.quitKeyword2.Value, true, "Quit Terminal", "quit");
         }
+
+        public static void AddClockKeywords()
+        {
+            AddCommand("timetoggle event\n", false, "timetoggle", ConfigSettings.clockKeyword2.Value, true, "Terminal Clock", "clock");
+        }
+
         public static void hampterKeywords()
         {
             AddCommand("lol terminalEvent\n", false, "lolevent", ConfigSettings.lolKeyword.Value, true, "darmuh's videoPlayer");

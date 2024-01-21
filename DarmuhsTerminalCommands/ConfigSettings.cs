@@ -5,8 +5,14 @@ namespace TerminalStuff
 {
     public static class ConfigSettings
     {
+        //keybinds
+        public static ConfigEntry<string> walkieTermKey;
+        public static ConfigEntry<string> walkieTermMB;
+
         //establish commands that can be turned on or off here
         public static ConfigEntry<bool> ModNetworking;
+        public static ConfigEntry<bool> terminalClock; //Clock object itself
+        public static ConfigEntry<bool> walkieTerm; //Use walkie at terminal function
         public static ConfigEntry<bool> terminalLobby; //lobby name command
         public static ConfigEntry<bool> terminalCams; //cams command
         public static ConfigEntry<bool> terminalQuit; //quit command
@@ -37,6 +43,9 @@ namespace TerminalStuff
         public static ConfigEntry<bool> terminalLink; //Link command
         public static ConfigEntry<bool> terminalLink2; //Link2 command
         public static ConfigEntry<bool> terminalRandomSuit; //RandomSuit command
+        public static ConfigEntry<bool> terminalClockCommand; //toggle clock command
+        public static ConfigEntry<bool> terminalListItems; //List Items Command
+        public static ConfigEntry<bool> terminalLootDetail; //List Scrap Command
 
 
         //Strings for display messages
@@ -92,6 +101,7 @@ namespace TerminalStuff
         public static ConfigEntry<string> homeLine1;
         public static ConfigEntry<string> homeLine2;
         public static ConfigEntry<string> homeLine3;
+        public static ConfigEntry<bool> alwaysOnAtStart;
 
         //keyword strings (terminalapi)
         public static ConfigEntry<string> alwaysOnKeyword; //string to match keyword
@@ -112,6 +122,9 @@ namespace TerminalStuff
         public static ConfigEntry<string> camsKeyword2;
         public static ConfigEntry<string> mapKeyword2;
         public static ConfigEntry<string> randomSuitKeyword;
+        public static ConfigEntry<string> clockKeyword2;
+        public static ConfigEntry<string> ListItemsKeyword; //List Items Command
+        public static ConfigEntry<string> ListScrapKeyword; //List Scrap Command
 
         //terminal patcher keywords
         public static ConfigEntry<string> fcolorKeyword;
@@ -135,6 +148,12 @@ namespace TerminalStuff
             //Network Configs
             ConfigSettings.networkedNodes = Plugin.instance.Config.Bind<bool>("Networked Things", "networkedNodes", false, "Enable networked Always-On Display & displaying synced terminal nodes (BETA)");
             ConfigSettings.ModNetworking = Plugin.instance.Config.Bind<bool>("__General", "ModNetworking", true, "Disable this if you want to disable networking and use this mod as a Client-sided mod");
+            ConfigSettings.terminalClock = Plugin.instance.Config.Bind<bool>("__General", "terminalClock", true, "Enable or Disable the terminalClock");
+            ConfigSettings.walkieTerm = Plugin.instance.Config.Bind<bool>("__General", "walkieTerm", true, "Enable or Disable the ability to use a walkie from your inventory at the terminal (vanilla method still works)");
+
+            //keybinds
+            ConfigSettings.walkieTermKey = Plugin.instance.Config.Bind<string>("__General", "walkieTermKey", "LeftAlt", "Key used to activate your walkie while at the terminal, see here for valid key names https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.Key.html");
+            ConfigSettings.walkieTermMB = Plugin.instance.Config.Bind<string>("__General", "walkieTermMB", "Left", "Mousebutton used to activate your walkie while at the terminal, see here for valid button names https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/api/UnityEngine.InputSystem.LowLevel.MouseButton.html");
 
 
             //enable or disable
@@ -168,6 +187,9 @@ namespace TerminalStuff
             ConfigSettings.terminalLink = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalLink", true, "Command to link to an external web-page <Link>");
             ConfigSettings.terminalLink2 = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalLink2", false, "Command to link to a second external web-page <Link2>");
             ConfigSettings.terminalRandomSuit = Plugin.instance.Config.Bind<bool>("Fun Commands (On/Off)", "terminalRandomSuit", true, "Command to switch your suit from a random one off the rack <RandomSuit>");
+            ConfigSettings.terminalClockCommand = Plugin.instance.Config.Bind<bool>("Controls Commands (On/Off)", "terminalClockCommand", true, "Command to toggle the terminal Clock off/on <Clock>");
+            ConfigSettings.terminalListItems = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalListItems", true, "Command to list all non-scrap & not currently held items on the ship <ItemsList>");
+            ConfigSettings.terminalLootDetail = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalLootDetail", true, "Command to display an extensive list of all scrap on the ship <LootList>");
 
 
             //String Configs
@@ -219,6 +241,7 @@ namespace TerminalStuff
             ConfigSettings.camsNeverHide = Plugin.instance.Config.Bind<bool>("Cams", "camsNeverHide", false, "Setting this to true will make it so no command will ever auto-hide any cams command.");
             ConfigSettings.defaultCamsView = Plugin.instance.Config.Bind("Cams", "defaultCamsView", "map", new ConfigDescription("Set the default view switch commands will use when nothing is active.", new AcceptableValueList<string>("map", "cams", "minimap", "minicams", "overlay")));
             ConfigSettings.ovOpacity = Plugin.instance.Config.Bind("Cams", "ovOpacity", 10, new ConfigDescription("Opacity percentage for Overlay View.", new AcceptableValueRange<int>(0, 100)));
+            ConfigSettings.alwaysOnAtStart = Plugin.instance.Config.Bind<bool>("__General", "alwaysOnAtStart", false, "Setting this to true will set <alwayson> to enabled at launch.");
 
 
             //Keyword configs (terminalapi)
@@ -240,7 +263,12 @@ namespace TerminalStuff
             ConfigSettings.healKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "healKeyword2", "healme", "Additional Keyword used in terminal to return <heal> command");
             ConfigSettings.lootKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "lootKeyword2", "shiploot", "Additional Keyword used in terminal to return <loot> command");
             ConfigSettings.randomSuitKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "randomSuitKeyword", "randomsuit", "Keyword used in terminal to return <randomsuit> command");
+            ConfigSettings.clockKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "clockKeyword2", "time", "Additional Keyword used in terminal to toggle Terminal Clock display");
+            ConfigSettings.ListItemsKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "ListItemsKeyword", "get items", "Additional Keyword used in terminal to return <itemlist> command");
+            ConfigSettings.ListScrapKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "ListScrapKeyword", "loot detail", "Additional Keyword used in terminal to return <lootlist> command");
 
+            //public static ConfigEntry<bool> ListItemsKeyword; //List Items Command
+            //public static ConfigEntry<bool> ListScrapKeyword; //List Scrap Command
 
             //terminal patcher keywords
             ConfigSettings.fcolorKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "fcolorKeyword", "fcolor", "Keyword used in terminal to return <fcolor> command");

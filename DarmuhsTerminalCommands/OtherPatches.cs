@@ -1,14 +1,7 @@
 ﻿using HarmonyLib;
-using System.Reflection;
-using System.Text;
-using Unity.Netcode;
-using UnityEngine;
 using static TerminalStuff.LeaveTerminal;
-using Object = UnityEngine.Object;
-using TerminalApi;
-using Plugin = TerminalStuff.Plugin;
-using AssetBundle = UnityEngine.AssetBundle;
-using static TerminalStuff.AllMyTerminalPatches;
+using System.Collections.Generic;
+using UnityEngine;
 
 
 namespace TerminalStuff
@@ -33,6 +26,25 @@ namespace TerminalStuff
         }
 
     }
+
+    public class LoadGrabbablesOnShip
+    {
+        public static List<GrabbableObject> ItemsOnShip = new List<GrabbableObject>();
+        public static void LoadAllItems()
+        {
+            ItemsOnShip.Clear();
+            GameObject ship = GameObject.Find("/Environment/HangarShip");
+            var grabbableObjects = ship.GetComponentsInChildren<GrabbableObject>();
+            foreach (GrabbableObject item in grabbableObjects)
+            {
+                ItemsOnShip.Add(item);
+                Plugin.Log.LogInfo($"{item.itemProperties.itemName} added to list");
+            }
+
+        }
+
+    }
+
     [HarmonyPatch(typeof(GameNetworkManager), "Start")]
     public class GameStartPatch
     {
