@@ -1,27 +1,22 @@
-﻿using UnityEngine;
-using UnityEngine.InputSystem;
+﻿using System;
 using System.Collections;
-using GameNetcodeStuff;
-using System;
-using System.Net.Mail;
+using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.InputSystem.Controls;
 
 namespace TerminalStuff
 {
-    public class walkieTerm : MonoBehaviour
+    public class WalkieTerm : MonoBehaviour
     {
         //static PlayerControllerB getmyself = GameNetworkManager.Instance.localPlayerController;
 
         public static string UseWalkieKey = ConfigSettings.walkieTermKey.Value;
         public static string UseWalkieMB = ConfigSettings.walkieTermMB.Value;
 
-        public walkieTerm(string useWalkieKey)
+        public WalkieTerm(string useWalkieKey)
         {
             UseWalkieKey = useWalkieKey;
         }
-
-
 
         public static GrabbableObject getWalkie(out GrabbableObject walkie)
         {
@@ -53,7 +48,7 @@ namespace TerminalStuff
 
         public static string GetUseWalkieMouseButton()
         {
-            for(int i = 0; i < Enum.GetValues(typeof(MouseButton)).Length; i++)
+            for (int i = 0; i < Enum.GetValues(typeof(MouseButton)).Length; i++)
             {
                 MouseButton mb = (MouseButton)i;
                 string thisbutton = mb.ToString();
@@ -69,7 +64,7 @@ namespace TerminalStuff
             string defbutton = "leftButton";
             return defbutton;
         }
-        
+
         private static bool activateWalkie()
         {
             Key walkieKey = GetUseWalkieKey();
@@ -82,8 +77,7 @@ namespace TerminalStuff
 
         public static IEnumerator TalkinTerm(Terminal tinstance)
         {
-            GrabbableObject result;
-            GrabbableObject getmywalkie = getWalkie(out result);
+            GrabbableObject getmywalkie = getWalkie(out getmywalkie);
 
             bool usingWalkFromTerm = false;
 
@@ -95,13 +89,13 @@ namespace TerminalStuff
                     {
                         getmywalkie.UseItemOnClient(true);
                         usingWalkFromTerm = true;
-                        Plugin.Log.LogInfo("push to use walkie key was pressed");
+                        Plugin.MoreLogs("push to use walkie key was pressed");
                         yield return new WaitForSeconds(0.2f);
                     }
-                    else if(!activateWalkie() && usingWalkFromTerm)
+                    else if (!activateWalkie() && usingWalkFromTerm)
                     {
-                        
-                        Plugin.Log.LogInfo("ending walkie use");
+
+                        Plugin.MoreLogs("ending walkie use");
                         usingWalkFromTerm = false;
                         getmywalkie.UseItemOnClient(false);
                         yield return new WaitForSeconds(0.2f);
@@ -112,11 +106,11 @@ namespace TerminalStuff
                 }
             }
             else
-                Plugin.Log.LogInfo("no walkie found in inventory");
+                Plugin.MoreLogs("no walkie found in inventory");
 
 
-            if(!tinstance.terminalInUse)
-                Plugin.Log.LogInfo("out of terminal");
+            if (!tinstance.terminalInUse)
+                Plugin.MoreLogs("out of terminal");
             yield break;
         }
     }

@@ -36,6 +36,38 @@ Plugin.instance.confirmationNodeNum List:
 5 - Custom Link
 
 
+ViewNodes:
+1 - cams
+2 - overlay
+3 - minimap
+4 - minicams
+5 - map
+
+
+[Info   :darmuhsTerminalStuff] infoOnlyNodes:
+0) Quit Terminal
+[Info   :darmuhsTerminalStuff] infoOnlyNodes:
+1) HealFromTerminal
+[Info   :darmuhsTerminalStuff] infoOnlyNodes:
+2) Check Vitals
+[Info   :darmuhsTerminalStuff] infoOnlyNodes:
+3) Always-On Display
+[Info   :darmuhsTerminalStuff] infoOnlyNodes:
+4) RandomSuit
+[Info   :darmuhsTerminalStuff] infoOnlyNodes:
+5) Terminal Clock
+[Info   :darmuhsTerminalStuff] otherActionNodes:
+0) Check Loot Value
+[Info   :darmuhsTerminalStuff] otherActionNodes:
+1) Clear Terminal Screen
+[Info   :darmuhsTerminalStuff] otherActionNodes:
+2) Check Danger Level
+[Info   :darmuhsTerminalStuff] otherActionNodes:
+3) ModList
+[Info   :darmuhsTerminalStuff] shipControlNodes:
+0) Toggle Doors
+[Info   :darmuhsTerminalStuff] shipControlNodes:
+1) Toggle Lights
 
 Regular switch command:
 if (node.terminalEvent == "switchCamera")

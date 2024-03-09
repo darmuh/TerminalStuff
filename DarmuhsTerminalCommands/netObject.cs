@@ -6,13 +6,13 @@ using UnityEngine;
 using GameObject = UnityEngine.GameObject;
 
 [HarmonyPatch]
-public class netObject
+public class NetObject
 {
 
     [HarmonyPostfix, HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.Start))]
     public static void Init()
     {
-        if(ConfigSettings.ModNetworking.Value)
+        if (ConfigSettings.ModNetworking.Value)
         {
             if (networkPrefab != null)
                 return;
@@ -23,7 +23,7 @@ public class netObject
 
             NetworkManager.Singleton.AddNetworkPrefab(networkPrefab);
         }
-        
+
     }
 
     [HarmonyPostfix, HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.Awake))]
@@ -36,7 +36,7 @@ public class netObject
                 var networkHandlerHost = Object.Instantiate(networkPrefab, Vector3.zero, Quaternion.identity);
                 networkHandlerHost.GetComponent<NetworkObject>().Spawn();
             }
-        }   
+        }
     }
 
     static GameObject networkPrefab;

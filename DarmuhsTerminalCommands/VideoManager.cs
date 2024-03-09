@@ -1,9 +1,6 @@
 ﻿using BepInEx;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Video;
 
 namespace TerminalStuff
 {
@@ -14,7 +11,7 @@ namespace TerminalStuff
 
         public static void Load()
         {
-            
+
             {
                 foreach (string directory in Directory.GetDirectories(Paths.PluginPath))
                 {
@@ -33,7 +30,7 @@ namespace TerminalStuff
                 if (!Directory.Exists(path1))
                 {
                     Directory.CreateDirectory(path1);
-                    Plugin.Log.LogInfo("[VIDEO] Creating directory if doesn't exist");
+                    Plugin.MoreLogs("[VIDEO] Creating directory if doesn't exist");
                 }
 
                 string[] files1 = Directory.GetFiles(path1, "*.mp4");

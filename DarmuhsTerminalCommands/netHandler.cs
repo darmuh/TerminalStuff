@@ -1,16 +1,14 @@
-﻿using System;
+﻿using GameNetcodeStuff;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Mail;
 using Unity.Netcode;
 using UnityEngine;
-using TerminalApi;
+using static TerminalApi.TerminalApi;
 using static TerminalStuff.AllMyTerminalPatches;
-using static UnityEngine.GraphicsBuffer;
 using Object = UnityEngine.Object;
-using System.Diagnostics.Eventing.Reader;
-using static TerminalApi.Events.Events;
-using Steamworks;
-using GameNetcodeStuff;
 
 namespace TerminalStuff
 {
@@ -20,196 +18,225 @@ namespace TerminalStuff
         public static NetHandler Instance { get; private set; }
         public static Terminal patchTerminal = null;
         public static bool netNodeSet = false;
+        public static bool arraySender = false;
         public bool endFlashRainbow = false;
+        internal static TerminalNode netNode = CreateTerminalNode("", true);
 
         //Load New Node SYNC
 
         [ServerRpc(RequireOwnership = false)]
-        public void nodeLoadServerRpc(string nodeName, string terminalEvent)
+        public void NodeLoadServerRpc(string nodeName, string nodeText, int nodeNumber = -1)
         {
             NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
+            if (netNodeSet && (networkManager.IsHost || networkManager.IsServer))
             {
-                Plugin.Log.LogInfo($"Server: Attempting to sync {nodeName} / {terminalEvent} between players...");
+                Plugin.MoreLogs("RPC called from host, sending to client RPC ");
+                if (nodeNumber != -1)
+                    NodeLoadClientRpc(nodeName, nodeText, true, nodeNumber);
+                else
+                    NodeLoadClientRpc(nodeName, nodeText, true);
+                return;
             }
-
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
+            else if (!netNodeSet && networkManager.IsHost || networkManager.IsServer)
             {
-                Plugin.Log.LogInfo($"Exec stage not server");
+                Plugin.MoreLogs($"Host: attempting to sync node {nodeName}/{nodeNumber}");
+                if (nodeNumber != -1)
+                    SyncNodes(nodeName, nodeText, nodeNumber);
+                else
+                    SyncNodes(nodeName, nodeText);
             }
             else
             {
-                Plugin.Log.LogInfo("no conditions met");
+                Plugin.MoreLogs($"Server: This should only be coming from clients");
+                if (nodeNumber != -1)
+                    NodeLoadClientRpc(nodeName, nodeText, true, nodeNumber);
+                else
+                    NodeLoadClientRpc(nodeName, nodeText, true);
             }
 
-            nodeLoadClientRpc(nodeName, terminalEvent);
+            Plugin.MoreLogs("Server: Attempting to sync nodes between clients.");
         }
 
         [ClientRpc]
-        public void nodeLoadClientRpc(string nodeName, string terminalEvent)
+        public void NodeLoadClientRpc(string nodeName, string nodeText, bool fromHost, int nodeNumber = -1)
         {
             NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
+            if(fromHost && (networkManager.IsHost || networkManager.IsServer))
             {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    Plugin.Log.LogInfo($"Nothing needed here I think.");
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    if (!netNodeSet)
-                    {
-                        Plugin.Log.LogInfo("Client syncing node");
-                        NetHandler.Instance.syncNodes(nodeName, terminalEvent);
-                    }
-                    else
-                    {
-                        Plugin.Log.LogInfo("netNodeSet is true. setting to false and NOT duplicating code run.");
-                        netNodeSet = false; //test
-                        Plugin.instance.syncedNodes = false;
-                        return;
-                    }
-
-                }
+                NetNodeReset(false);
+                Plugin.MoreLogs("Node detected coming from host, resetting nNS and ending RPC");
+                return;
             }
-        }
 
-        private void syncNodes(string nodeName, string terminalEvent)
-        {
-            Terminal getTerminal = Object.FindObjectOfType<Terminal>();
-            if (getTerminal !=null && nodeName != null && nodeName != "Always-On Display" && !Plugin.instance.syncedNodes)
+            if (!netNodeSet)
             {
-                Plugin.Log.LogInfo($"getTerminal: {getTerminal}");
-                TerminalKeyword[] terminalKeywords = FindObjectsOfType<TerminalKeyword>();
-                TerminalKeyword[] wordsList = getTerminal.terminalNodes.allKeywords;
-
-                List<string> excludedEvents = new List<string>
-                {
-                    "enemies",
-                    "doors",
-                    "lights",
-                    "alwayson",
-                    "shipLightsColor",
-                    "quit",
-                    "leverdo",
-                    "betterescan",
-                    "flashlight",
-                    "teleport",
-                    "inversetp",
-                    "vitalsUpgrade",
-                    "vitals",
-                    "danger",
-                    "gamble",
-                    "healme",
-                    "fov",
-                    "kickYes",
-                    "externalLink",
-                    "randomsuit"
-                };
-
-                if (terminalEvent != string.Empty && !excludedEvents.Contains(terminalEvent) )
-                {
-                    TerminalNode dummyNode = TerminalNode.CreateInstance<TerminalNode>();
-                    dummyNode.terminalEvent = terminalEvent;
-                    getTerminal.RunTerminalEvents(dummyNode);
-                    netNodeSet = true; //test
-                    Plugin.instance.syncedNodes = true;
-                }
+                Plugin.MoreLogs($"Client: attempting to sync node, {nodeName}/{nodeNumber}");
+                if (nodeNumber != -1)
+                    SyncNodes(nodeName, nodeText, nodeNumber);
                 else
-                {
-                    foreach (TerminalKeyword terminalKeyword in wordsList)
-                    {
-                        if(terminalKeyword != null && terminalKeyword.specialKeywordResult != null)
-                        {
-                            if (terminalKeyword.specialKeywordResult.name == nodeName && getTerminal.currentNode != null)
-                            {
-                                TerminalNode dummyNode = TerminalNode.CreateInstance<TerminalNode>();
-                                dummyNode.displayText = terminalKeyword.specialKeywordResult.displayText;
-                                getTerminal.LoadNewNode(dummyNode);
-                                Plugin.Log.LogInfo("currentNode was not null loaded text from node?");
-                                netNodeSet = true; //test
-                                Plugin.instance.syncedNodes = true;
-                                break;
-                            }
-                            else if (terminalKeyword.specialKeywordResult.name == nodeName && getTerminal.currentNode == null)
-                            {
-                                TerminalNode dummyNode = TerminalNode.CreateInstance<TerminalNode>();
-                                dummyNode.displayText = terminalKeyword.specialKeywordResult.displayText;
-                                getTerminal.LoadNewNode(dummyNode);
-                                Plugin.Log.LogInfo("currentNode was null - loaded text from node?");
-                                netNodeSet = true; //test
-                                Plugin.instance.syncedNodes = true;
-                                break;
-                            }
-
-                        } 
-                    }
-                }
-                netNodeSet = false; //test
-                Plugin.instance.syncedNodes = false;
+                    SyncNodes(nodeName, nodeText); 
             }
             else
-                Plugin.Log.LogInfo($"Client: failed to set node with node name ({nodeName})");
+            {
+                Plugin.MoreLogs("Client: netNodeSet is true, no sync required.");
+                NetNodeReset(false);
+                return;
+            }
         }
 
+        internal static bool NetNodeReset(bool set)
+        {
+            netNodeSet = set;
+            return netNodeSet;
+        }
 
-        //Always-On Display SYNC
+        private static void SyncViewNodeWithNum(TerminalNode node, int nodeNumber)
+        {
+            if (nodeNumber == 1) // cams
+            {
+                ViewCommands.TermCamsEvent(out string displayText);
+                node.displayText = displayText;
+                return;
+            }
+            else if (nodeNumber == 2) //overlay
+            {
+                ViewCommands.OverlayTermEvent(out string displayText);
+                node.displayText = displayText;
+                return;
+            }
+            else if (nodeNumber == 3) //minimap
+            {
+                ViewCommands.MiniMapTermEvent(out string displayText);
+                node.displayText = displayText;
+                return;
+            }
+            else if (nodeNumber == 4) //minicams
+            {
+                ViewCommands.MiniCamsTermEvent(out string displayText);
+                node.displayText = displayText;
+                return;
+            }
+            else if (nodeNumber == 5) //map
+            {
+                ViewCommands.TermMapEvent(out string displayText);
+                node.displayText = displayText;
+                return;
+            }
+            else
+                Plugin.MoreLogs("No matching views detected");
+        }
+
+        private void SyncNodes(string nodeName, string nodeText, int nodeNumber = -1)
+        {
+            
+            TerminalNode node = Object.FindObjectsOfType<TerminalNode>().FirstOrDefault(obj => obj.name == nodeName);
+
+            NetNodeReset(true);
+
+            if (nodeNumber != -1 && nodeNumber <= ViewCommands.termViewNodes.Count)
+            {
+                TerminalNode viewNode = ViewCommands.termViewNodes[nodeNumber];
+                //viewNode.displayText = nodeText;
+                Plugin.Terminal.LoadNewNode(viewNode);
+                SyncViewNodeWithNum(viewNode, nodeNumber);
+                ViewCommands.DisplayTextUpdater(out string newText);
+                viewNode.displayText = newText;
+                Plugin.MoreLogs($"Attempting to load {nodeName}, ViewNode: {nodeNumber}");
+            }
+            else if (MoreCommands.infoOnlyNodes.Contains(node) || MoreCommands.otherActionNodes.Contains(node) || ShipControls.shipControlNodes.Contains(node))
+            {
+                netNode.displayText = nodeText;
+                Plugin.Terminal.LoadNewNode(netNode);
+                Plugin.MoreLogs($"Attempting to load {nodeName}'s displayText:\n {nodeText}");
+            }
+            else
+            {
+                netNode.displayText = nodeText;
+                Plugin.Terminal.LoadNewNode(netNode);
+                Plugin.MoreLogs($"{nodeName} not matching known nodes. Only displaying text:\n{nodeText}");
+            }
+
+            NetNodeReset(false);
+
+        }
 
         [ServerRpc(RequireOwnership = false)]
-        public void alwaysOnServerRpc(bool aod)
+        public void SyncDropShipServerRpc()
         {
-            NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                //Terminal_Awake_Patch.alwaysOnDisplay = aod;
-                Plugin.Log.LogInfo($"Server: telling all to set alwaysondisplay to {aod}");
-            }
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                Plugin.Log.LogInfo($"Exec stage not server");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("no conditions met");
-            }
-
-            alwaysOnClientRpc(aod);
+            Plugin.MoreLogs($"Server: Attempting to sync dropship between players...");
+            SyncDropShipClientRpc();
         }
 
         [ClientRpc]
-        public void alwaysOnClientRpc(bool aod)
+        public void SyncDropShipClientRpc()
         {
             NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
+            if (networkManager.IsHost || networkManager.IsServer)
             {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    Plugin.Log.LogInfo($"Nethandler failed to initialize.");
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    patchTerminal = Object.FindObjectOfType<Terminal>();
-                    Terminal_Awake_Patch.alwaysOnDisplay = aod;
-                    if(Terminal_Awake_Patch.isTermInUse == false && Terminal_Awake_Patch.alwaysOnDisplay == true)
-                    {
-                        Terminal_Awake_Patch.turnScreenOn();
-
-                    }
-                        
-                    else if (Terminal_Awake_Patch.isTermInUse == false && Terminal_Awake_Patch.alwaysOnDisplay == false)
-                        patchTerminal.StartCoroutine(patchTerminal.waitUntilFrameEndToSetActive(active: false));
-                    Plugin.Log.LogInfo($"Client: set alwaysondisplay to {aod}");
-                }
+                Plugin.MoreLogs("Syncing dropship from host");
+                int[] itemsOrdered = Plugin.Terminal.orderedItemsFromTerminal.ToArray();
+                SendItemsToAllServerRpc(itemsOrdered);
             }
+            
+        }
+
+        [ServerRpc(RequireOwnership = true)]
+        public void SendItemsToAllServerRpc(int[] itemsOrdered)
+        {
+            Plugin.MoreLogs("Server: Sending items to clients...");
+            SendItemsToAllClientRpc(itemsOrdered);
+        }
+        [ClientRpc]
+        public void SendItemsToAllClientRpc(int[] itemsOrdered)
+        {
+            NetworkManager networkManager = base.NetworkManager;
+            if (!networkManager.IsHost || !networkManager.IsServer)
+            {
+                Plugin.MoreLogs("Client: Converting item list to terminal...");
+                List<int> receivedList = new List<int>(itemsOrdered);
+                Plugin.Terminal.orderedItemsFromTerminal = receivedList;
+            }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void SyncCreditsServerRpc(int newCreds, int items)
+        {
+            Plugin.MoreLogs("Server: syncing credits and items...");
+            SyncCreditsClientRpc(newCreds, items);
+        }
+        [ClientRpc]
+        public void SyncCreditsClientRpc(int newCreds, int items)
+        {
+            
+            NetworkManager networkManager = base.NetworkManager;
+            if (networkManager.IsHost || networkManager.IsServer)
+            {
+                Plugin.Terminal.SyncGroupCreditsServerRpc(newCreds, items);
+            }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void StartAoDServerRpc(bool aod)
+        {
+            Plugin.MoreLogs($"Server: syncing alwaysondisplay to {aod}");
+            AoDClientRpc(aod);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void AoDServerRpc(bool aod)
+        {
+            Plugin.MoreLogs($"Server: syncing alwaysondisplay to {aod}");
+            AoDClientRpc(aod);
+        }
+        [ClientRpc]
+        public void AoDClientRpc(bool aod)
+        {
+            Plugin.MoreLogs($"Client: setting alwaysondisplay to {aod}");
+            TerminalStartPatch.alwaysOnDisplay = aod;
+            if (TerminalStartPatch.isTermInUse == false && aod == true)
+                TerminalStartPatch.ToggleScreen(aod);
+            else if (TerminalStartPatch.isTermInUse == false && aod == false)
+                TerminalStartPatch.ToggleScreen(aod);   
         }
 
 
@@ -217,197 +244,57 @@ namespace TerminalStuff
         [ServerRpc(RequireOwnership = false)]
         public void ShipColorALLServerRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                Plugin.Log.LogInfo($"Server: Ship Color change for all lights received. Color: {newColor} Name: {target} ");
-            }
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                Plugin.Log.LogInfo($"Exec stage not server");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("no conditions met");
-            }
-
             ShipColorALLClientRpc(newColor, target);
         }
 
         [ClientRpc]
         public void ShipColorALLClientRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
-            {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"color set already?");
-
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                    GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                    GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"Client: Ship Color change for all lights received. Color: {newColor} Name: {target} ");
-                }
-            }
+            GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
+            GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
+            GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
+            Plugin.MoreLogs($"Client: Ship Color change for all lights received. Color: {newColor} Name: {target} ");
         }
 
         [ServerRpc(RequireOwnership = false)]
         public void ShipColorFRONTServerRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                Plugin.Log.LogInfo($"Server: Ship Color change received for front lights. Color: {newColor} Name: {target} ");
-            }
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                Plugin.Log.LogInfo($"Exec stage not server");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("no conditions met");
-            }
-
             ShipColorFRONTClientRpc(newColor, target);
         }
 
         [ClientRpc]
         public void ShipColorFRONTClientRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
-            {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"color set already?");
-
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"Client: Ship Color change received for front lights. Color: {newColor} Name: {target} ");
-                }
-            }
+            GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
+            Plugin.MoreLogs($"Client: Ship Color change received for front lights. Color: {newColor} Name: {target} ");
         }
 
         [ServerRpc(RequireOwnership = false)]
         public void ShipColorMIDServerRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                Plugin.Log.LogInfo($"Server: Ship Color change received for middle lights. Color: {newColor} Name: {target} ");
-            }
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                Plugin.Log.LogInfo($"Exec stage not server");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("no conditions met");
-            }
-
+            Plugin.MoreLogs("serverRpc called");
             ShipColorMIDClientRpc(newColor, target);
         }
 
         [ClientRpc]
         public void ShipColorMIDClientRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
-            {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"color set already?");
-
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"Client: Ship Color change received for middle lights. Color: {newColor} Name: {target} ");
-                }
-            }
+            GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
+            Plugin.MoreLogs($"Client: Ship Color change received for middle lights. Color: {newColor} Name: {target} ");
         }
 
         [ServerRpc(RequireOwnership = false)]
         public void ShipColorBACKServerRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                Plugin.Log.LogInfo($"Server: Ship Color change received for back lights. Color: {newColor} Name: {target} ");
-            }
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                Plugin.Log.LogInfo($"Exec stage not server");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("no conditions met");
-            }
-
+            Plugin.MoreLogs("serverRpc called");
             ShipColorBACKClientRpc(newColor, target);
         }
 
         [ClientRpc]
         public void ShipColorBACKClientRpc(Color newColor, string target)
         {
-            NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
-            {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"color set already?");
-
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    Plugin.Log.LogInfo($"Client: Ship Color change received for back lights. Color: {newColor} Name: {target} ");
-                }
-            }
+            GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
+            Plugin.MoreLogs($"Client: Ship Color change received for back lights. Color: {newColor} Name: {target} ");
         }
 
 
@@ -416,49 +303,15 @@ namespace TerminalStuff
         [ServerRpc(RequireOwnership = false)]
         public void FlashColorServerRpc(Color newColor, string colorName, ulong playerID, string playerName)
         {
-            NetworkManager networkManager = base.NetworkManager;
-
-            if (__rpc_exec_stage == __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                //Plugin.Log.LogInfo($"syncing flashlight stuff");
-                //setFlash(newColor, colorName, playerID, playerName);
-            }
-            else if (__rpc_exec_stage != __RpcExecStage.Server && (networkManager.IsHost || networkManager.IsServer))
-            {
-                Plugin.Log.LogInfo($"Exec stage not server");
-            }
-            else
-            {
-                Plugin.Log.LogInfo("no conditions met");
-            }
-
+            //Plugin.MoreLogs("Fcolor serverRpc called");
             FlashColorClientRpc(newColor, colorName, playerID, playerName);
         }
 
         [ClientRpc]
         public void FlashColorClientRpc(Color newColor, string colorName, ulong playerID, string playerName)
         {
-            NetworkManager networkManager = base.NetworkManager;
-            if ((object)networkManager != null && networkManager.IsListening)
-            {
-                if (__rpc_exec_stage != __RpcExecStage.Client && (networkManager.IsServer || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-                    //GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-                    //Plugin.Log.LogInfo($"color set already?");
-
-                }
-
-                if (__rpc_exec_stage == __RpcExecStage.Client && (networkManager.IsClient || networkManager.IsHost))
-                {
-                    //string stringTest = "TEST - isHost/isServer (exec stage not client)";
-                    setFlash(newColor, colorName, playerID, playerName);
-                    //Plugin.Log.LogInfo($"Client: Flashlight Color change received for {playerName}({playerID}). Color: {newColor} - {colorName} ");
-                }
-            }
+            //Plugin.MoreLogs("Fcolor clientRpc called");
+            SetFlash(newColor, playerID, playerName);
         }
 
         private GrabbableObject FindFlashlightObject(string playerName)
@@ -481,7 +334,7 @@ namespace TerminalStuff
             return getMyFlash;
         }
 
-        private void setFlash(Color newColor, string colorName, ulong playerID, string playerName)
+        private void SetFlash(Color newColor, ulong playerID, string playerName)
         {
             GrabbableObject getMyFlash = FindFlashlightObject(playerName);
 
@@ -505,12 +358,12 @@ namespace TerminalStuff
                     }
                     else
                     {
-                        Plugin.Log.LogInfo($"flashlightBulb or flashlightBulbGlow is null on {getMyFlash.gameObject}");
+                        Plugin.MoreLogs($"flashlightBulb or flashlightBulbGlow is null on {getMyFlash.gameObject}");
                     }
                 }
                 else
                 {
-                    Plugin.Log.LogInfo($"FlashlightItem component not found on {getMyFlash.gameObject}");
+                    Plugin.Log.LogError($"FlashlightItem component not found on {getMyFlash.gameObject}");
                 }
             }
         }
@@ -525,8 +378,8 @@ namespace TerminalStuff
 
             endFlashRainbow = false;
             StartCoroutine(RainbowFlashCoroutine(playerName, playerID, getPlayer));
-            Plugin.Log.LogInfo($"{playerName} trying to set flashlight to rainbow mode!");
-                
+            Plugin.MoreLogs($"{playerName} trying to set flashlight to rainbow mode!");
+
         }
 
         private IEnumerator RainbowFlashCoroutine(string playerName, ulong playerID, PlayerControllerB player)
@@ -544,7 +397,7 @@ namespace TerminalStuff
 
                     if (getMyFlash.isHeld && !getMyFlash.deactivated)
                     {
-                        NetHandler.Instance.FlashColorServerRpc(flashlightColor, "rainbow", playerID, playerName);
+                        Instance.FlashColorServerRpc(flashlightColor, "rainbow", playerID, playerName);
 
                         // Wait for a short duration before updating the color again
                         yield return new WaitForSeconds(0.05f);
@@ -557,7 +410,7 @@ namespace TerminalStuff
 
                     if (StartOfRound.Instance.allPlayersDead || getMyFlash.insertedBattery.empty || !getMyFlash.isHeld)
                     {
-                        Plugin.Log.LogInfo("ending flashy rainbow");
+                        Plugin.MoreLogs("ending flashy rainbow");
                         endFlashRainbow = true;
                     }
 
@@ -566,9 +419,9 @@ namespace TerminalStuff
                 getMyFlash.itemProperties.itemName = returnItemName;
             }
             else
-                Plugin.Log.LogInfo("no flashlights found");
+                Plugin.Log.LogError("no flashlights found");
 
-            
+
         }
 
 

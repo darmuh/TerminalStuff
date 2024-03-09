@@ -1,5 +1,5 @@
 ﻿using BepInEx.Configuration;
-using JetBrains.Annotations;
+using System.Collections.Generic;
 
 namespace TerminalStuff
 {
@@ -8,11 +8,17 @@ namespace TerminalStuff
         //keybinds
         public static ConfigEntry<string> walkieTermKey;
         public static ConfigEntry<string> walkieTermMB;
+        public static ConfigEntry<string> keyActionsConfig;
+
+        //cams special
+        public static ConfigEntry<bool> camsUseDetectedMods;
 
         //establish commands that can be turned on or off here
         public static ConfigEntry<bool> ModNetworking;
         public static ConfigEntry<bool> terminalClock; //Clock object itself
+        public static ConfigEntry<bool> extensiveLogging;
         public static ConfigEntry<bool> walkieTerm; //Use walkie at terminal function
+        public static ConfigEntry<bool> terminalShortcuts; //adds the bind keyword and the enumerator checking for shortcuts
         public static ConfigEntry<bool> terminalLobby; //lobby name command
         public static ConfigEntry<bool> terminalCams; //cams command
         public static ConfigEntry<bool> terminalQuit; //quit command
@@ -46,6 +52,10 @@ namespace TerminalStuff
         public static ConfigEntry<bool> terminalClockCommand; //toggle clock command
         public static ConfigEntry<bool> terminalListItems; //List Items Command
         public static ConfigEntry<bool> terminalLootDetail; //List Scrap Command
+        public static ConfigEntry<bool> terminalMirror; //mirror command
+        public static ConfigEntry<bool> terminalRefund; //refund command
+        public static ConfigEntry<bool> terminalRestart; //restart command
+        public static ConfigEntry<bool> terminalPrevious; //previous switch command
 
 
         //Strings for display messages
@@ -90,6 +100,7 @@ namespace TerminalStuff
         public static ConfigEntry<string> gamblePoorString; //gamble credits too low string
         public static ConfigEntry<string> videoFolderPath; //Specify a different folder with videos
         public static ConfigEntry<bool> leverConfirmOverride; //disable confirmation check for lever
+        public static ConfigEntry<bool> restartConfirmOverride; //disable confirmation check for lever
         public static ConfigEntry<bool> camsNeverHide;
         public static ConfigEntry<bool> networkedNodes; //enable or disable networked terminal nodes (beta)
         public static ConfigEntry<string> defaultCamsView;
@@ -101,7 +112,9 @@ namespace TerminalStuff
         public static ConfigEntry<string> homeLine1;
         public static ConfigEntry<string> homeLine2;
         public static ConfigEntry<string> homeLine3;
+        public static ConfigEntry<string> homeTextArt;
         public static ConfigEntry<bool> alwaysOnAtStart;
+        public static ConfigEntry<bool> alwaysOnDynamic;
 
         //keyword strings (terminalapi)
         public static ConfigEntry<string> alwaysOnKeyword; //string to match keyword
@@ -111,7 +124,9 @@ namespace TerminalStuff
         public static ConfigEntry<string> doorKeyword;
         public static ConfigEntry<string> lightsKeyword;
         public static ConfigEntry<string> modsKeyword2;
+        public static ConfigEntry<string> tpKeyword;
         public static ConfigEntry<string> tpKeyword2;
+        public static ConfigEntry<string> itpKeyword;
         public static ConfigEntry<string> itpKeyword2;
         public static ConfigEntry<string> quitKeyword2;
         public static ConfigEntry<string> lolKeyword;
@@ -150,11 +165,17 @@ namespace TerminalStuff
             ConfigSettings.ModNetworking = Plugin.instance.Config.Bind<bool>("__General", "ModNetworking", true, "Disable this if you want to disable networking and use this mod as a Client-sided mod");
             ConfigSettings.terminalClock = Plugin.instance.Config.Bind<bool>("__General", "terminalClock", true, "Enable or Disable the terminalClock");
             ConfigSettings.walkieTerm = Plugin.instance.Config.Bind<bool>("__General", "walkieTerm", true, "Enable or Disable the ability to use a walkie from your inventory at the terminal (vanilla method still works)");
+            ConfigSettings.terminalShortcuts = Plugin.instance.Config.Bind<bool>("__General", "terminalShortcuts", true, "Enable this for the ability to bind commands to any valid key (also enables the \"bind\" keyword.");
+            ConfigSettings.extensiveLogging = Plugin.instance.Config.Bind<bool>("__General", "extensiveLogging", false, "Enable or Disable extensive logging for this mod.");
+            ConfigSettings.keyActionsConfig = Plugin.instance.Config.Bind<string>("Terminal Shortcuts", "keyActionsConfig", "", "Stored keybinds, don't modify this unless you know what you're doing!");
+
 
             //keybinds
             ConfigSettings.walkieTermKey = Plugin.instance.Config.Bind<string>("__General", "walkieTermKey", "LeftAlt", "Key used to activate your walkie while at the terminal, see here for valid key names https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.Key.html");
             ConfigSettings.walkieTermMB = Plugin.instance.Config.Bind<string>("__General", "walkieTermMB", "Left", "Mousebutton used to activate your walkie while at the terminal, see here for valid button names https://docs.unity3d.com/Packages/com.unity.inputsystem@1.3/api/UnityEngine.InputSystem.LowLevel.MouseButton.html");
 
+            //Cams Mod Config
+            ConfigSettings.camsUseDetectedMods = Plugin.instance.Config.Bind<bool>("__General", "camsUseDetectedMods", true, "With this enabled, this mod will detect if another mod that adds player cams is enabled and use the mod's camera for all cams commands. Currently detects the following: Helmet Cameras by Rick Arg, Body Cameras by Solo, OpenBodyCams by ");
 
             //enable or disable
             ConfigSettings.terminalLobby = Plugin.instance.Config.Bind<bool>("Comfort Commands (On/Off)", "terminalLobby", true, "Shows the current lobby name <Lobby Name>");
@@ -190,7 +211,10 @@ namespace TerminalStuff
             ConfigSettings.terminalClockCommand = Plugin.instance.Config.Bind<bool>("Controls Commands (On/Off)", "terminalClockCommand", true, "Command to toggle the terminal Clock off/on <Clock>");
             ConfigSettings.terminalListItems = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalListItems", true, "Command to list all non-scrap & not currently held items on the ship <ItemsList>");
             ConfigSettings.terminalLootDetail = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalLootDetail", true, "Command to display an extensive list of all scrap on the ship <LootList>");
-
+            ConfigSettings.terminalMirror = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalMirror", true, "Command to toggle displaying a Mirror Cam in the terminal <Mirror>");
+            ConfigSettings.terminalRefund = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalRefund", true, "Command to cancel an undelivered order and get your credits back <Refund>");
+            ConfigSettings.terminalRestart = Plugin.instance.Config.Bind<bool>("Controls Commands (On/Off)", "terminalRestart", true, "Command to restart the lobby (skips firing sequence) <Restart>");
+            ConfigSettings.terminalPrevious = Plugin.instance.Config.Bind<bool>("Extras Commands (On/Off)", "terminalPrevious", true, "Command to switch back to previous radar target <Previous>");
 
             //String Configs
             ConfigSettings.doorOpenString = Plugin.instance.Config.Bind<string>("Door", "doorOpenString", "Opening door.", "Message returned on door (open) command.");
@@ -238,10 +262,12 @@ namespace TerminalStuff
             ConfigSettings.gamblePoorString = Plugin.instance.Config.Bind<string>("Gamble", "gamblePoorString", "You don't meet the minimum credits requirement to gamble.", "Message returned when your credits is less than the gambleMinimum set.");
             ConfigSettings.videoFolderPath = Plugin.instance.Config.Bind<string>("Lol", "videoFolderPath", "darmuh-darmuhsTerminalStuff", "Folder name where videos will be pulled from, needs to be in BepInEx/plugins");
             ConfigSettings.leverConfirmOverride = Plugin.instance.Config.Bind<bool>("Lever", "leverConfirmOverride", false, "Setting this to true will disable the confirmation check for the <lever> command.");
+            ConfigSettings.restartConfirmOverride = Plugin.instance.Config.Bind<bool>("Restart", "restartConfirmOverride", false, "Setting this to true will disable the confirmation check for the <restart> command.");
             ConfigSettings.camsNeverHide = Plugin.instance.Config.Bind<bool>("Cams", "camsNeverHide", false, "Setting this to true will make it so no command will ever auto-hide any cams command.");
             ConfigSettings.defaultCamsView = Plugin.instance.Config.Bind("Cams", "defaultCamsView", "map", new ConfigDescription("Set the default view switch commands will use when nothing is active.", new AcceptableValueList<string>("map", "cams", "minimap", "minicams", "overlay")));
             ConfigSettings.ovOpacity = Plugin.instance.Config.Bind("Cams", "ovOpacity", 10, new ConfigDescription("Opacity percentage for Overlay View.", new AcceptableValueRange<int>(0, 100)));
             ConfigSettings.alwaysOnAtStart = Plugin.instance.Config.Bind<bool>("__General", "alwaysOnAtStart", false, "Setting this to true will set <alwayson> to enabled at launch.");
+            ConfigSettings.alwaysOnDynamic = Plugin.instance.Config.Bind<bool>("__General", "alwaysOnDynamic", true, "Setting this to true will disable the terminal screen whenever you are not on the ship when alwayson is enabled.");
 
 
             //Keyword configs (terminalapi)
@@ -254,7 +280,9 @@ namespace TerminalStuff
             ConfigSettings.doorKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "doorKeyword", "door", "Keyword used in terminal to return <door> command");
             ConfigSettings.lightsKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "lightsKeyword", "lights", "Keyword used in terminal to return <lights> command");
             ConfigSettings.modsKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "modsKeyword2", "modlist", "Additional Keyword used in terminal to return <mods> command");
+            ConfigSettings.tpKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "tpKeyword", "tp", "Primary keyword used in terminal to return <tp> command");
             ConfigSettings.tpKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "tpKeyword2", "teleport", "Additional Keyword used in terminal to return <tp> command");
+            ConfigSettings.itpKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "itpKeyword", "itp", "Primary keyword used in terminal to return <itp> command");
             ConfigSettings.itpKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "itpKeyword2", "inverse", "Additional Keyword used in terminal to return <itp> command");
             ConfigSettings.quitKeyword2 = Plugin.instance.Config.Bind<string>("Custom Keywords", "quitKeyword2", "exit", "Additional Keyword used in terminal to return <quit> command");
             ConfigSettings.lolKeyword = Plugin.instance.Config.Bind<string>("Custom Keywords", "lolKeyword", "lol", "Keyword used in terminal to return <lol> command");
@@ -283,6 +311,7 @@ namespace TerminalStuff
             ConfigSettings.homeLine1 = Plugin.instance.Config.Bind<string>("Home Page", "homeline1", "Welcome to the FORTUNE-9 OS PLUS", "First line of the home command (startup screen)");
             ConfigSettings.homeLine2 = Plugin.instance.Config.Bind<string>("Home Page", "homeline2", "\tUpgraded by Employee: darmuh", "Second line of the home command (startup screen)");
             ConfigSettings.homeLine3 = Plugin.instance.Config.Bind<string>("Home Page", "homeline3", "Have a wonderful [currentDay]!", "Last line of the home command (startup screen)");
+            ConfigSettings.homeTextArt = Plugin.instance.Config.Bind<string>("Home Page", "homeTextArt", "[leadingSpacex4][leadingSpace]^^      .-=-=-=-.  ^^\r\n ^^        (`-=-=-=-=-`)         ^^\r\n         (`-=-=-=-=-=-=-`)  ^^         ^^\r\n   ^^   (`-=-=-=-=-=-=-=-`)   ^^          \r\n       ( `-=-=-=-(@)-=-=-` )      ^^\r\n       (`-=-=-=-=-=-=-=-=-`)  ^^          \r\n       (`-=-=-=-=-=-=-=-=-`)  ^^\r\n        (`-=-=-=-=-=-=-=-`)          ^^\r\n         (`-=-=-=-=-=-=-`)  ^^            \r\n           (`-=-=-=-=-`)\r\n            `-=-=-=-=-`", "ASCII Art goes here");
         }
     }
 }
