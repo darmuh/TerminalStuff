@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
@@ -26,6 +27,7 @@ namespace TerminalStuff
             string firstWord = words[0].ToLower();
 
             InitCallbackNums();
+            MenuBuild.CheckAndResetMenuVariables(firstWord);
 
             if (Plugin.instance.awaitingConfirmation)
             {

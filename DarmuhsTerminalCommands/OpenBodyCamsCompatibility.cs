@@ -1,22 +1,24 @@
-﻿using OpenBodyCams;
-using OpenBodyCams.API;
+﻿using System.Runtime.CompilerServices;
 using UnityEngine;
+using OpenBodyCams;
+using OpenBodyCams.API;
 
 namespace TerminalStuff
 {
     internal class OpenBodyCamsCompatibility
     {
-        internal static BodyCamComponent TerminalBodyCam;
+        internal static MonoBehaviour TerminalBodyCam;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void UpdateCamsTarget()
         {
             Plugin.MoreLogs("Getting ZaggyCam texture");
-            if (TerminalBodyCam == null || TerminalBodyCam.gameObject == null)
+            if (TerminalBodyCam == null || TerminalBodyCam.gameObject == null || ((BodyCamComponent)TerminalBodyCam) == null)
                 CreateTerminalBodyCam();
             Plugin.MoreLogs($"Attempting to grab targetTexture");
+            ((BodyCamComponent)TerminalBodyCam).UpdateTargetStatus();
             ForceEnableOBC(true);
-            TerminalBodyCam.UpdateTargetStatus();
-            ViewCommands.SetBodyCamTexture(TerminalBodyCam.GetCamera().targetTexture);
+            SetBodyCamTexture(((BodyCamComponent)TerminalBodyCam).GetCamera().targetTexture);
         }
 
         private static void CameraEvent(Camera cam)
@@ -38,6 +40,7 @@ namespace TerminalStuff
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void CreateTerminalBodyCam()
         {
             if (!Plugin.instance.OpenBodyCamsMod)
@@ -50,40 +53,52 @@ namespace TerminalStuff
 
             if (Plugin.instance.TwoRadarMapsMod)
             {
-                Plugin.MoreLogs("Tying bodycam to tworadarmaps radarview");
-                TerminalBodyCam = BodyCam.CreateBodyCam(Plugin.Terminal.gameObject, screenMaterial: null, TwoRadarMaps.Plugin.TerminalMapRenderer);
-                TerminalBodyCam.OnRenderTextureCreated += SetBodyCamTexture;
-                TerminalBodyCam.OnBlankedSet += BlankedEvent;
-                TerminalBodyCam.OnCameraCreated += CameraEvent;
-                TerminalBodyCam.EnsureCameraExists();
-                Camera cam = TerminalBodyCam.GetCamera();
-                cam.fieldOfView = 100;
-                SetBodyCamTexture(cam.targetTexture);
+                TwoRadarMapsCamCreate();
             }
             else
             {
                 Plugin.MoreLogs("Attaching bodycam to standard mapscreen");
-                TerminalBodyCam = BodyCam.CreateBodyCam(Plugin.Terminal.gameObject, screenMaterial: null, StartOfRound.Instance.mapScreen);
-                TerminalBodyCam.OnRenderTextureCreated += ViewCommands.SetBodyCamTexture;
-                TerminalBodyCam.EnsureCameraExists();
-                Camera cam = TerminalBodyCam.GetCamera();
-                cam.fieldOfView = 100;
+                var terminalBodyCam = BodyCam.CreateBodyCam(Plugin.Terminal.gameObject, screenMaterial: null, StartOfRound.Instance.mapScreen);
+                TerminalBodyCam = terminalBodyCam;
+                terminalBodyCam.OnRenderTextureCreated += ViewCommands.SetBodyCamTexture;
+                terminalBodyCam.EnsureCameraExists();
+                Camera cam = terminalBodyCam.GetCamera();
                 ViewCommands.SetBodyCamTexture(cam.targetTexture);
             }
 
             Plugin.MoreLogs("darmuh's OBC termcam updated!");
         }
 
-        internal static void ForceEnableOBC(bool enabled)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void TwoRadarMapsCamCreate()
         {
-            if (TerminalBodyCam != null)
-                TerminalBodyCam.ForceEnableCamera = enabled;
+            Plugin.MoreLogs("Tying bodycam to tworadarmaps radarview");
+            var terminalBodyCam = BodyCam.CreateBodyCam(Plugin.Terminal.gameObject, screenMaterial: null, TwoRadarMaps.Plugin.TerminalMapRenderer);
+            TerminalBodyCam = terminalBodyCam;
+            terminalBodyCam.OnRenderTextureCreated += SetBodyCamTexture;
+            terminalBodyCam.OnBlankedSet += BlankedEvent;
+            terminalBodyCam.OnCameraCreated += CameraEvent;
+            terminalBodyCam.EnsureCameraExists();
+            Camera cam = terminalBodyCam.GetCamera();
+            SetBodyCamTexture(cam.targetTexture);
         }
 
-        internal static void BlankedEvent(bool blanked)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ForceEnableOBC(bool enabled)
         {
-            if (TerminalBodyCam != null)
-                TerminalBodyCam.ForceEnableCamera = !blanked;
+            if (TerminalBodyCam != null || ((BodyCamComponent)TerminalBodyCam) != null)
+            {
+                ((BodyCamComponent)TerminalBodyCam).ForceEnableCamera = enabled;
+            }
+                
+        }
+
+        private static void BlankedEvent(bool blanked)
+        {
+            if (TerminalBodyCam != null || ((BodyCamComponent)TerminalBodyCam) != null)
+            {
+                ((BodyCamComponent)TerminalBodyCam).ForceEnableCamera = !blanked;
+            }
             Plugin.MoreLogs($"Blanked event: {blanked}");
         }
     }

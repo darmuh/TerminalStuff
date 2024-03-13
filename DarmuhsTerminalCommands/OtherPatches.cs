@@ -61,7 +61,7 @@ namespace TerminalStuff
             if (Plugin.instance.TwoRadarMapsMod)
                 return;
 
-            if (!ViewCommands.IsExternalCamsPresent())
+            if (!ViewCommands.IsExternalCamsPresent() && ViewCommands.AnyActiveMonitoring())
             {
                 SwitchedRadarEvent();
             }
@@ -134,6 +134,8 @@ namespace TerminalStuff
             {
                 Plugin.MoreLogs("Advanced Company detected, setting Advanced Company Compatibility options");
                 Plugin.instance.CompatibilityAC = true;
+                //if (ConfigSettings.ModNetworking.Value)
+                    //AdvancedCompanyCompat.AdvancedCompanyStuff();
             }
             if (Chainloader.PluginInfos.ContainsKey("Rozebud.FovAdjust"))
             {

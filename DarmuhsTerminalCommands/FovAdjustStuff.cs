@@ -1,10 +1,12 @@
 ﻿using FovAdjust;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace TerminalStuff
 {
     internal class FovAdjustStuff
     {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void FovAdjustFunc(TerminalNode node, Terminal instance, float number)
         {
             instance.QuitTerminal();

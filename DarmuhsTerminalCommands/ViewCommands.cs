@@ -31,6 +31,8 @@ namespace TerminalStuff
             Plugin.MoreLogs("Updating Cams");
             if (IsExternalCamsPresent())
                 GetPlayerCamsFromExternalMod();
+            else if (Plugin.instance.TwoRadarMapsMod)
+                TwoRadarMapsCompatibility.UpdateCamsTarget();
             else
                 UpdateCamsTarget();
 
@@ -76,7 +78,10 @@ namespace TerminalStuff
             else
             {
                 Plugin.MoreLogs("No external mods detected, defaulting to internal cams system.");
-                UpdateCamsTarget();
+                if (Plugin.instance.TwoRadarMapsMod)
+                    TwoRadarMapsCompatibility.UpdateCamsTarget();
+                else
+                    UpdateCamsTarget();
             }
         }
 
@@ -123,7 +128,6 @@ namespace TerminalStuff
 
             if (StartOfRound.Instance != null && StartOfRound.Instance.shipDoorsEnabled)
             {
-                node.name = "ViewInsideShipCam 1";
                 HandleMapEvent(out string message);
                 displayText = message;
                 return;
@@ -243,10 +247,8 @@ namespace TerminalStuff
 
         internal static void TermCamsEvent(out string displayText)
         {
-            TerminalNode node = Plugin.Terminal.currentNode;
 
             isVideoPlaying = false;
-            node.name = "ViewInsideShipCam 1";
 
             if (Plugin.instance.isOnCamera == false && Plugin.instance.splitViewCreated)
             {
@@ -289,7 +291,6 @@ namespace TerminalStuff
             TerminalNode node = Plugin.Terminal.currentNode;
 
             isVideoPlaying = false;
-            node.name = "ViewInsideShipCam 1";
             node.clearPreviousText = true;
             displayText = string.Empty;
 
@@ -335,7 +336,6 @@ namespace TerminalStuff
             TerminalNode node = Plugin.Terminal.currentNode;
 
             isVideoPlaying = false;
-            node.name = "ViewInsideShipCam 1";
             displayText = string.Empty;
             string playerNameText = StartOfRound.Instance.mapScreenPlayerName.text;
             string removeText = "MONITORING: ";
@@ -381,7 +381,6 @@ namespace TerminalStuff
 
             isVideoPlaying = false;
             node.clearPreviousText = true;
-            node.name = "ViewInsideShipCam 1";
             displayText = string.Empty;
             string playerNameText = StartOfRound.Instance.mapScreenPlayerName.text;
             string removeText = "MONITORING: ";
@@ -421,7 +420,7 @@ namespace TerminalStuff
             }
         }
 
-        private static void ResetPluginInstanceBools()
+        internal static void ResetPluginInstanceBools()
         {
             Plugin.instance.isOnMiniMap = false;
             Plugin.instance.isOnMap = false;

@@ -67,9 +67,11 @@
     <Reference Include="FovAdjust, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\plugins\darmuh-darmuhsTerminalStuff\FovAdjust.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="OpenBodyCams">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\Zaggy1024-OpenBodyCams\OpenBodyCams.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -130,6 +132,7 @@
   <ItemGroup>
     <Compile Include="AddTPKeywords.cs" />
     <Compile Include="AdminCommands.cs" />
+    <Compile Include="AdvancedCompanyCompat.cs" />
     <Compile Include="AllTheLootStuff.cs" />
     <Compile Include="ColorCommands.cs" />
     <Compile Include="CostCommands.cs" />

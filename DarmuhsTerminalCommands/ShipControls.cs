@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;

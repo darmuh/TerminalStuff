@@ -5,7 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to Semantic Versioning at this time. Mostly because I don't have the time to learn it.
 
-## [3.0.0] **CURRENT VERSION**
+## [3.0.2] **CURRENT VERSION**
+
+ ### Added
+ - Added support for multiword terminal shortcuts.
+	- Multiword shortcuts will be stored regardless of whether they are valid commands or not.
+	- Proper usage is: bind <key> <multiple word command>
+	- Handling for multi-word shortcuts differs from single-word shortcuts.
+ - Added terminal shortcuts commands to controls commands menu.
+
+ ### Fixed
+ - (hopefully) Fixed issue where pressing switch button on ship monitors without any active monitoring mode would cause odd visual bugs of seeing other player's POVs instead of your own.
+ - Fixed minor compatibility issue with monitoring commands and only having the TwoRadarMaps mod on where the cams views would not update to the right target.
+ - Removed *most* references to AdvancedCompany due to it being removed from Thunderstore. Compatibility functions will be added back if it does ever make it back to thunderstore.
+
+
+ ### Known issues/bugs
+ - (1) If another mod has a function that keeps the terminal screen enabled, alwayson will not always be able to disable it.
+ - (2) Picking up eachother's colored flashlights will not automatically change any colors. 
+	- So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
+ - (3) Some users have reported issues with some vanilla commands returning errors in the console.
+	- Only seeing this in certain profile codes with 100+ mods, will take some time to narrow down what the issue is.
+ - (4) If another mod dev wishes to access any of my commands, I suggest taking a look at "GetCommandDisplayTextSupplier(TerminalNode query)" in TerminalEvents.cs and how it is used in ShortcutBindings.cs
+ 
+ ### Note (from 3.0.0)
+ - Since this update took so long I'm probably forgetting some things that have been changed/fixed/updated. This was a substantial update effort and I wanted to make sure my next release was as stable as possible following the mod rework.
+ - If you have any questions regarding this update feel free to post on github, discord, etc. I may not see it right away but I will answer once I have the time.
+
+ <details open>
+ <summary>Historical Patch Notes</summary>
+
+## [3.0.1]
+
+ ### Fixed
+ - Fixed issue with menus where next page would get stuck after using any of the view commands (cams/map/minicams/minimap/overlay)
+ - Fixed compatibility integration issues with OpenBodyCams
+ - Fixed certain patching issues that would break the terminal. This was caused by some other mods for some people and shouldn't occur anymore.
+
+## [3.0.0]
 
  ### Added/Changed
  - COMPATIBILITY UPDATES FOR: LethalLevelLoader, OpenBodyCams, and TwoRadarMaps.
@@ -34,18 +71,6 @@ This project does NOT adhere to Semantic Versioning at this time. Mostly because
  - Fixed numerous compatibility issues with OpenBodyCams and TwoRadarMaps. Thanks Zaggy1024 for all the help!
  - Fixed issue where teleport keywords were still being deleted even with this section of the mod disabled.
  - Fixed issue where sometimes typing "extras" for the menu option would bring up buying an extension ladder.
- 
- ### Known issues/bugs
- - (1) If another mod has a function that keeps the terminal screen enabled, alwayson will not always be able to disable it.
- - (2) Picking up eachother's colored flashlights will not automatically change any colors. 
- - (2 Cont.) So your helmetlight will stay as-is and the flashlight you pick up will have the color the other player selected.
- 
- ### Note
- - Since this update took so long I'm probably forgetting some things that have been changed/fixed/updated. This was a substantial update effort and I wanted to make sure my next release was as stable as possible following the mod rework.
- - If you have any questions regarding this update feel free to post on github, discord, etc. I may not see it right away but I will answer once I have the time.
-
- <details open>
- <summary>Historical Patch Notes</summary>
  
 ## [2.2.4] **CURRENT VERSION**
 

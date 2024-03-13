@@ -11,7 +11,7 @@
  - Customizable home (startup) page! **NOW WITH THE ABILITY TO ADD YOUR OWN ASCII ART IN UPDATE 3.0.0**
  - Configurable Terminal Clock feature that will always be displayed alongside credits!
  - Configurable Use-Walkie at Terminal feature that will allow you to bind one key and one mousebutton to use any powered walkie from your inventory!
- - [NEW in 3.0.0] Terminal Shortcuts can be set using the bind command and removed using the unbind command! These binds will be saved in the config for continued use and can be bound to any one-word terminal command.
+ - [NEW in 3.0.0] Terminal Shortcuts can be set using the bind command and removed using the unbind command! These binds will be saved in the config for continued use.
  - [NEW in 3.0.0] Cams commands will now show player povs even without a bodycam mod present. See the changelog for more info!
  - [NEW in 3.0.0] Expanded compatibility with LethalLevelLoader, OpenBodyCams, and TwoRadarMaps!
 

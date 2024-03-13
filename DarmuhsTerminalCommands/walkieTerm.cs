@@ -18,7 +18,7 @@ namespace TerminalStuff
             UseWalkieKey = useWalkieKey;
         }
 
-        public static GrabbableObject getWalkie(out GrabbableObject walkie)
+        public static GrabbableObject GetWalkie(out GrabbableObject walkie)
         {
             walkie = null;
 
@@ -65,7 +65,7 @@ namespace TerminalStuff
             return defbutton;
         }
 
-        private static bool activateWalkie()
+        internal static bool ActivateWalkie()
         {
             Key walkieKey = GetUseWalkieKey();
             string walkieMouseButton = GetUseWalkieMouseButton();
@@ -75,42 +75,41 @@ namespace TerminalStuff
                 return false;
         }
 
-        public static IEnumerator TalkinTerm(Terminal tinstance)
+        public static IEnumerator TalkinTerm()
         {
-            GrabbableObject getmywalkie = getWalkie(out getmywalkie);
-
+            GetWalkie(out GrabbableObject getmywalkie);
             bool usingWalkFromTerm = false;
 
             if (getmywalkie != null)
             {
-                while (tinstance.terminalInUse && ConfigSettings.walkieTerm.Value)
+                while (Plugin.Terminal.terminalInUse && ConfigSettings.walkieTerm.Value)
                 {
-                    if (activateWalkie() && !usingWalkFromTerm)
+                    if (ActivateWalkie() && !usingWalkFromTerm)
                     {
                         getmywalkie.UseItemOnClient(true);
                         usingWalkFromTerm = true;
                         Plugin.MoreLogs("push to use walkie key was pressed");
-                        yield return new WaitForSeconds(0.2f);
+                        yield return new WaitForSeconds(0.1f);
                     }
-                    else if (!activateWalkie() && usingWalkFromTerm)
+                    else if (!ActivateWalkie() && usingWalkFromTerm)
                     {
 
                         Plugin.MoreLogs("ending walkie use");
                         usingWalkFromTerm = false;
                         getmywalkie.UseItemOnClient(false);
-                        yield return new WaitForSeconds(0.2f);
+                        yield return new WaitForSeconds(0.1f);
                     }
                     else
-                        yield return new WaitForSeconds(0.2f);
+                        yield return new WaitForSeconds(0.1f);
 
                 }
             }
             else
-                Plugin.MoreLogs("no walkie found in inventory");
+                Plugin.MoreLogs("no comms item found in inventory");
 
 
-            if (!tinstance.terminalInUse)
-                Plugin.MoreLogs("out of terminal");
+            if (!Plugin.Terminal.terminalInUse)
+                Plugin.MoreLogs("leaving terminal, ending comms monitoring");
             yield break;
         }
     }

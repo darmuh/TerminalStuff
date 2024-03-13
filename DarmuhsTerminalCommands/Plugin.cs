@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace TerminalStuff
 {
-    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "3.0.0")]
+    [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", "3.0.2")]
     [BepInDependency("atomic.terminalapi")]
     //[BepInDependency("Rozebud.FovAdjust")]
 
@@ -20,7 +20,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.lethalcompany.darmuhsTerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "3.0.0";
+            public const string PLUGIN_VERSION = "3.0.2";
         }
 
         internal static new ManualLogSource Log;
@@ -70,7 +70,7 @@ namespace TerminalStuff
         {
             Plugin.instance = this;
             Plugin.Log = base.Logger;
-            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 3.0.0!");
+            Plugin.Log.LogInfo((object)"Plugin darmuhsTerminalCommands is loaded with version 3.0.2!");
             Plugin.Log.LogInfo((object)"--------[Completely reworked for Optimal Compatibility]---------");
             ConfigSettings.BindConfigSettings();
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());

@@ -7,6 +7,7 @@ using Key = UnityEngine.InputSystem.Key;
 using System.Collections;
 using UnityEngine;
 using System.Linq;
+using System.Text;
 
 namespace TerminalStuff
 {
@@ -104,9 +105,40 @@ namespace TerminalStuff
             }
             Plugin.MoreLogs("Bind command detected!");
             string givenKey = words[1].ToLower();
+            
+
+            if(wordCount > 3)
+            {
+                if (!IsValidKey(givenKey))
+                {
+                    Plugin.MoreLogs("Invalid key detected!");
+                    shortcutNode.displayText = invalidBind;
+                    outNode = shortcutNode;
+                    return outNode;
+                }
+                else
+                {
+                    StringBuilder command = new StringBuilder();
+                    for(int i = 2; i < words.Length; i++)
+                    {
+                        command.Append($"{words[i]} ");
+                    }
+
+                    Plugin.MoreLogs($"Command: {command}");
+                    Enum.TryParse(givenKey, ignoreCase: true, out Key keyFromString);
+                    keyActions.Add(keyFromString, command.ToString());
+                    SaveShortcutsToConfig();
+                    shortcutNode.displayText = $"Keybind created! Key: {givenKey} has been mapped to the following multi-word input: {command}\r\n";
+                    outNode = shortcutNode;
+                    Plugin.MoreLogs($"Keybind created mapping {givenKey} to [{command}]");
+                    return outNode;
+
+                }
+            }
+
             string givenWord = words[2].ToLower();
 
-            if(!MatchToKeyword(givenWord))
+            if (!MatchToKeyword(givenWord))
             {
                 Plugin.MoreLogs("Invalid word detected!");
                 shortcutNode.displayText = invalidBind;
@@ -271,9 +303,16 @@ namespace TerminalStuff
                 if (value == string.Empty)
                     return;
 
+                if (value.Contains(" "))
+                {
+                    SetTerminalInput(value);
+                    Plugin.Terminal.OnSubmit();
+                    return;
+                }
                 // Execute the action corresponding to the key
                 Plugin.MoreLogs($"Attempting to match given word to keyword: {value}");
                 MatchToBind(value);
+                return;
             }
             else
                 Plugin.Log.LogError("Shortcut KeyActions list not updating properly");

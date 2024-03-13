@@ -2,6 +2,7 @@
 using HarmonyLib;
 using System;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,10 +61,13 @@ namespace TerminalStuff
                 else
                 {
                     if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                        OpenBodyCamsCompatibility.ForceEnableOBC(false);
+                        ForceEnableOBC(false);
                 }
-                
+            }
 
+            private static void ForceEnableOBC(bool status)
+            {
+                OpenBodyCamsCompatibility.ForceEnableOBC(status);
             }
 
             private static IEnumerator AlwaysOnDynamic(Terminal instance)
@@ -75,7 +79,7 @@ namespace TerminalStuff
                         instance.terminalUIScreen.gameObject.SetActive(false);
 
                         if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                            OpenBodyCamsCompatibility.ForceEnableOBC(false);
+                            ForceEnableOBC(false);
 
                         Plugin.MoreLogs("Disabling terminal screen.");
                     }  
@@ -84,7 +88,7 @@ namespace TerminalStuff
                         instance.terminalUIScreen.gameObject.SetActive(true);
 
                         if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                            OpenBodyCamsCompatibility.ForceEnableOBC(true);
+                            ForceEnableOBC(true);
 
                         Plugin.MoreLogs("Enabling terminal screen.");
                     }      
@@ -96,7 +100,7 @@ namespace TerminalStuff
                 {
                     instance.terminalUIScreen.gameObject.SetActive(false);
                     if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                        OpenBodyCamsCompatibility.ForceEnableOBC(false);
+                        ForceEnableOBC(false);
 
                     Plugin.MoreLogs("Player detected dead, disabling terminal screen.");
                 }
@@ -132,6 +136,7 @@ namespace TerminalStuff
                 TerminalClockStuff.MakeClock();
                 MenuBuild.CreateMenus();
                 AlwaysOnStart(Plugin.Terminal, startNode);
+                ViewCommands.ResetPluginInstanceBools();
                 ViewCommands.DetermineCamsTargets();
                 InitSecondBodyCam();
                 ShortcutBindings.InitSavedShortcuts();
@@ -168,7 +173,7 @@ namespace TerminalStuff
 
                 //string dontuse = ">MOONS\r\nTo see the list of moons the autopilot can route to.\r\n\r\n>STORE\r\nTo see the company store's selection of useful items.\r\n\r\n>BESTIARY\r\nTo see the list of wildlife on record.\r\n\r\n>STORAGE\r\nTo access objects placed into storage.\r\n\r\n>OTHER\r\nTo see the list of other commands\r\n\r\n>MORE\r\nTo see a list of commands added via darmuhsTerminalStuff\r\n\r\n1 purchased items on route.";
                 Plugin.Terminal.terminalNodes.specialNodes.ToArray()[13].displayText = replacement;
-                Plugin.MoreLogs(Plugin.Terminal.terminalNodes.specialNodes.ToArray()[13].displayText);
+                //Plugin.MoreLogs(Plugin.Terminal.terminalNodes.specialNodes.ToArray()[13].displayText);
                 Plugin.MoreLogs("~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HELP MODIFIED ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
                 //string maskasciiart = "     ._______.\r\n     | \\   / |\r\n  .--|.O.|.O.|______.\r\n__).-| = | = |/   \\ |\r\np__) (.'---`.)Q.|.Q.|--.\r\n      \\\\___// = | = |-.(__\r\n       `---'( .---. ) (__&lt;\r\n             \\\\.-.//\r\n              `---'\r\n\t\t\t  ";
@@ -324,27 +329,30 @@ namespace TerminalStuff
             internal static void StartUsingTerminalCheck(Terminal instance)
             {
                 //refund init
-                if (ConfigSettings.terminalRefund.Value)
+                if (ConfigSettings.terminalRefund.Value && ConfigSettings.ModNetworking.Value)
                 {
+                    Plugin.MoreLogs("Syncing items between players for refund command");
                     NetHandler.Instance.SyncDropShipServerRpc();
                 }
 
                 //walkie functions
                 if(ConfigSettings.walkieTerm.Value)
                 {
-                    instance.StartCoroutine(WalkieTerm.TalkinTerm(instance));
+                    Plugin.MoreLogs("Starting TalkinTerm Coroutine");
+                    instance.StartCoroutine(WalkieTerm.TalkinTerm());
                 }
 
                 if(ConfigSettings.terminalShortcuts.Value)
                 {
+                    Plugin.MoreLogs("Starting Shorcuts Coroutine");
                     instance.StartCoroutine(ShortcutBindings.TerminalShortCuts());
                 }
 
                 //AlwaysOn Functions
                 if (!TerminalStartPatch.alwaysOnDisplay)
                 {
-                    SplitViewChecks.DisableSplitView("neither");
                     Plugin.MoreLogs("disabling cams views");
+                    SplitViewChecks.DisableSplitView("neither");
                     ViewCommands.isVideoPlaying = false;
 
                     //Always load to start if alwayson disabled
@@ -352,6 +360,7 @@ namespace TerminalStuff
                 }
                 else
                 {
+                    Plugin.MoreLogs("Terminal is Always On, checking for active monitoring to return to.");
                     if (Plugin.instance.isOnMirror || Plugin.instance.isOnCamera || Plugin.instance.isOnMap || Plugin.instance.isOnMiniCams || Plugin.instance.isOnMiniMap || Plugin.instance.isOnOverlay)
                     {
                         ViewCommands.HandleReturnCamsEvent(instance, out string displayText);
@@ -371,11 +380,22 @@ namespace TerminalStuff
 
             }
 
-            static void Postfix(ref Terminal __instance)
+            static void Postfix(Terminal __instance)
             {
-                TerminalStartPatch.isTermInUse = __instance.terminalInUse;
-                StartUsingTerminalCheck(__instance);
-                StartofHandling.CheckNetNode(__instance.currentNode);
+                Plugin.MoreLogs("Start Using Terminal Postfix");
+                if (__instance != null)
+                {
+                    TerminalStartPatch.isTermInUse = __instance.terminalInUse;
+                    Plugin.MoreLogs("__instance is not null");
+                }       
+                else
+                {
+                    Plugin.MoreLogs("__instance is null, trying Plugin.Terminal instead");
+                    TerminalStartPatch.isTermInUse = Plugin.Terminal.terminalInUse;
+                }
+                    
+                StartUsingTerminalCheck(Plugin.Terminal);
+                StartofHandling.CheckNetNode(Plugin.Terminal.currentNode);
             }
         }
 
@@ -474,12 +494,13 @@ namespace TerminalStuff
         [HarmonyPatch(typeof(Terminal), "LoadNewNodeIfAffordable")]
         public class AffordableNodePatch
         {
-            static void Postfix(Terminal __instance)
+            static void Postfix()
             {
-                if (!ConfigSettings.terminalRefund.Value)
+                if (!ConfigSettings.terminalRefund.Value || !ConfigSettings.ModNetworking.Value)
                     return;
+
                 NetHandler.Instance.SyncDropShipServerRpc();
-                Plugin.MoreLogs($"items: {__instance.orderedItemsFromTerminal.Count}");
+                Plugin.MoreLogs($"items: {Plugin.Terminal.orderedItemsFromTerminal.Count}");
             }
         }
 

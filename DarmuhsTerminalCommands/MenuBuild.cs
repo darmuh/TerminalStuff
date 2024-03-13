@@ -19,6 +19,17 @@ namespace TerminalStuff
         internal static Dictionary<string, StringBuilder> categoryBuilders = new Dictionary<string, StringBuilder>();
         internal static Dictionary<string, int> getCategoryPageCount = new Dictionary<string, int>();
 
+        internal static void CheckAndResetMenuVariables(string word)
+        {
+            if(isNextEnabled && word != "next")
+            {
+                isNextEnabled = false;
+                nextCount = 1;
+                currentCategory = string.Empty;
+                Plugin.MoreLogs("Reset Menu Variables");
+            }
+        }
+
         internal static TerminalNode HandleMenus(string keyWord, out TerminalNode outNode)
         {
             outNode = null;
@@ -69,8 +80,6 @@ namespace TerminalStuff
                     maxPages = getCategoryPageCount[category];
                     break;
                 }
-                else
-                    Plugin.Log.LogWarning($"Category is not {category}");
             }
             if (maxPages == 0)
                 Plugin.Log.LogWarning("Unable to get max pages");
@@ -102,6 +111,14 @@ namespace TerminalStuff
                         isNextEnabled = false;
 
                     Plugin.MoreLogs($"Attempting to show page {nextCount} of {keywordList[i]}");
+
+                    if (outNode == null)
+                    {
+                        foreach (TerminalNode node in menuNodes)
+                        {
+                            Plugin.MoreLogs($"Menu Nodes: {node.name}");
+                        }
+                    }
                     break;
                 }
             }
@@ -288,7 +305,13 @@ namespace TerminalStuff
             if (ConfigSettings.terminalClockCommand.Value)
                 controlsStringBuilder.AppendLine($"> clock, {ConfigSettings.clockKeyword2.Value}\r\nToggle Terminal Clock display on/off.\r\n");
             if (ConfigSettings.terminalRestart.Value)
-                controlsStringBuilder.AppendLine($"> restart\r\nRestart the lobby and get a new ship (skips firing sequence)");
+                controlsStringBuilder.AppendLine($"> restart\r\nRestart the lobby and get a new ship. (skips firing sequence)\r\n");
+
+            if(ConfigSettings.terminalShortcuts.Value)
+            {
+                controlsStringBuilder.AppendLine($"> bind\r\nBind a command to a key of your choosing! (saved to config)\r\n");
+                controlsStringBuilder.AppendLine($"> unbind\r\nUnbind any shortcut key binding. (saved to config)\r\n");
+            }
 
             // Add more controls commands...
         }
