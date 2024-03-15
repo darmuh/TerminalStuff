@@ -5,19 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to Semantic Versioning at this time. Mostly because I don't have the time to learn it.
 
-## [3.0.2] **CURRENT VERSION**
-
- ### Added
- - Added support for multiword terminal shortcuts.
-	- Multiword shortcuts will be stored regardless of whether they are valid commands or not.
-	- Proper usage is: bind <key> <multiple word command>
-	- Handling for multi-word shortcuts differs from single-word shortcuts.
- - Added terminal shortcuts commands to controls commands menu.
+## [3.0.3] **CURRENT VERSION**
 
  ### Fixed
- - (hopefully) Fixed issue where pressing switch button on ship monitors without any active monitoring mode would cause odd visual bugs of seeing other player's POVs instead of your own.
- - Fixed minor compatibility issue with monitoring commands and only having the TwoRadarMaps mod on where the cams views would not update to the right target.
- - Removed *most* references to AdvancedCompany due to it being removed from Thunderstore. Compatibility functions will be added back if it does ever make it back to thunderstore.
+ - Fixed an issue when using OpenBodyCams to create a camera and having AlwaysOn disabled, the camera would freeze after exiting the terminal.
+	- Camera should now be properly disabled when leaving the terminal.
+	- Added extensiveLogging statements to show when the camera is disabled or enabled.
 
 
  ### Known issues/bugs
@@ -34,6 +27,21 @@ This project does NOT adhere to Semantic Versioning at this time. Mostly because
 
  <details open>
  <summary>Historical Patch Notes</summary>
+
+## [3.0.2]
+
+ ### Added
+ - Added support for multiword terminal shortcuts.
+	- Multiword shortcuts will be stored regardless of whether they are valid commands or not.
+	- Proper usage is: bind <key> <multiple word command>
+	- Handling for multi-word shortcuts differs from single-word shortcuts.
+ - Added terminal shortcuts commands to controls commands menu.
+
+ ### Fixed
+ - (hopefully) Fixed issue where pressing switch button on ship monitors without any active monitoring mode would cause odd visual bugs of seeing other player's POVs instead of your own.
+ - Fixed minor compatibility issue with monitoring commands and only having the TwoRadarMaps mod on where the cams views would not update to the right target.
+ - Removed *most* references to AdvancedCompany due to it being removed from Thunderstore. Compatibility functions will be added back if it does ever make it back to thunderstore.
+
 
 ## [3.0.1]
 

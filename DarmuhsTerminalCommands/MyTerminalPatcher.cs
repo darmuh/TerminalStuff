@@ -41,33 +41,48 @@ namespace TerminalStuff
         [HarmonyPatch(typeof(Terminal), "QuitTerminal")]
         public class QuitPatch : Terminal
         {
-            static void Postfix(ref Terminal __instance)
+            static void Postfix(Terminal __instance)
             {
                 TerminalStartPatch.isTermInUse = __instance.terminalInUse;
                 //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}");
                 if (TerminalStartPatch.alwaysOnDisplay)
                 {
-                    __instance.StartCoroutine(__instance.waitUntilFrameEndToSetActive(active: true));
-                    Plugin.MoreLogs("Screen set to active");
-                    if (ViewCommands.isVideoPlaying)
-                    {
-                        __instance.videoPlayer.Pause();
-                        __instance.StartCoroutine(WaitUntilFrameEndVideo(__instance));
-                    }
-
-                    if(ConfigSettings.alwaysOnDynamic.Value)
-                        __instance.StartCoroutine(AlwaysOnDynamic(__instance));
+                    HandleAlwaysOnQuit(__instance);
                 }
                 else
                 {
-                    if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                        ForceEnableOBC(false);
+                    HandleRegularQuit(__instance);
                 }
             }
 
-            private static void ForceEnableOBC(bool status)
+            private static void TerminalCameraStatus(bool status)
             {
-                OpenBodyCamsCompatibility.ForceEnableOBC(status);
+                OpenBodyCamsCompatibility.TerminalCameraStatus(status);
+            }
+
+            private static void HandleRegularQuit(Terminal instance)
+            {
+                if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && ViewCommands.AnyActiveMonitoring())
+                {
+                    Plugin.MoreLogs("Leaving terminal and disabling any active monitoring");
+                    TerminalCameraStatus(false);
+                    SplitViewChecks.CheckForSplitView("neither");
+                    ViewCommands.ResetPluginInstanceBools();
+                }          
+            }
+
+            private static void HandleAlwaysOnQuit(Terminal instance)
+            {
+                instance.StartCoroutine(instance.waitUntilFrameEndToSetActive(active: true));
+                Plugin.MoreLogs("Screen set to active");
+                if (ViewCommands.isVideoPlaying)
+                {
+                    instance.videoPlayer.Pause();
+                    instance.StartCoroutine(WaitUntilFrameEndVideo(instance));
+                }
+
+                if (ConfigSettings.alwaysOnDynamic.Value)
+                    instance.StartCoroutine(AlwaysOnDynamic(instance));
             }
 
             private static IEnumerator AlwaysOnDynamic(Terminal instance)
@@ -78,8 +93,8 @@ namespace TerminalStuff
                     {
                         instance.terminalUIScreen.gameObject.SetActive(false);
 
-                        if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                            ForceEnableOBC(false);
+                        if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && ViewCommands.AnyActiveMonitoring())
+                            TerminalCameraStatus(false);
 
                         Plugin.MoreLogs("Disabling terminal screen.");
                     }  
@@ -87,8 +102,8 @@ namespace TerminalStuff
                     {
                         instance.terminalUIScreen.gameObject.SetActive(true);
 
-                        if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                            ForceEnableOBC(true);
+                        if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && ViewCommands.AnyActiveMonitoring())
+                            TerminalCameraStatus(true);
 
                         Plugin.MoreLogs("Enabling terminal screen.");
                     }      
@@ -99,8 +114,12 @@ namespace TerminalStuff
                 if(StartOfRound.Instance.localPlayerController.isPlayerDead)
                 {
                     instance.terminalUIScreen.gameObject.SetActive(false);
-                    if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && Plugin.instance.activeCam)
-                        ForceEnableOBC(false);
+                    if (ViewCommands.externalcamsmod && Plugin.instance.OpenBodyCamsMod && ViewCommands.AnyActiveMonitoring())
+                    {
+
+                        TerminalCameraStatus(false);
+                    }
+                        
 
                     Plugin.MoreLogs("Player detected dead, disabling terminal screen.");
                 }
@@ -136,7 +155,7 @@ namespace TerminalStuff
                 TerminalClockStuff.MakeClock();
                 MenuBuild.CreateMenus();
                 AlwaysOnStart(Plugin.Terminal, startNode);
-                ViewCommands.ResetPluginInstanceBools();
+                SplitViewChecks.CheckForSplitView("neither");
                 ViewCommands.DetermineCamsTargets();
                 InitSecondBodyCam();
                 ShortcutBindings.InitSavedShortcuts();

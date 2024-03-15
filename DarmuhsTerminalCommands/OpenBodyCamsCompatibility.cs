@@ -8,6 +8,7 @@ namespace TerminalStuff
     internal class OpenBodyCamsCompatibility
     {
         internal static MonoBehaviour TerminalBodyCam;
+        internal static bool showingBodyCam = false;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void UpdateCamsTarget()
@@ -15,9 +16,10 @@ namespace TerminalStuff
             Plugin.MoreLogs("Getting ZaggyCam texture");
             if (TerminalBodyCam == null || TerminalBodyCam.gameObject == null || ((BodyCamComponent)TerminalBodyCam) == null)
                 CreateTerminalBodyCam();
+
+            TerminalCameraStatus(true);
             Plugin.MoreLogs($"Attempting to grab targetTexture");
             ((BodyCamComponent)TerminalBodyCam).UpdateTargetStatus();
-            ForceEnableOBC(true);
             SetBodyCamTexture(((BodyCamComponent)TerminalBodyCam).GetCamera().targetTexture);
         }
 
@@ -35,7 +37,7 @@ namespace TerminalStuff
             if(ViewCommands.AnyActiveMonitoring() && (Plugin.Terminal.terminalInUse || AllMyTerminalPatches.TerminalStartPatch.alwaysOnDisplay))
             {
                 Plugin.MoreLogs("Active Cams mode detected on terminal");
-                ForceEnableOBC(true);
+                TerminalCameraStatus(true);
                 ViewCommands.ReInitCurrentMode(texture);
             }
         }
@@ -76,7 +78,6 @@ namespace TerminalStuff
             var terminalBodyCam = BodyCam.CreateBodyCam(Plugin.Terminal.gameObject, screenMaterial: null, TwoRadarMaps.Plugin.TerminalMapRenderer);
             TerminalBodyCam = terminalBodyCam;
             terminalBodyCam.OnRenderTextureCreated += SetBodyCamTexture;
-            terminalBodyCam.OnBlankedSet += BlankedEvent;
             terminalBodyCam.OnCameraCreated += CameraEvent;
             terminalBodyCam.EnsureCameraExists();
             Camera cam = terminalBodyCam.GetCamera();
@@ -84,22 +85,15 @@ namespace TerminalStuff
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void ForceEnableOBC(bool enabled)
+        internal static void TerminalCameraStatus(bool enabled)
         {
             if (TerminalBodyCam != null || ((BodyCamComponent)TerminalBodyCam) != null)
             {
+                Plugin.MoreLogs($"Screen Enabled: [{enabled}]");
                 ((BodyCamComponent)TerminalBodyCam).ForceEnableCamera = enabled;
+                showingBodyCam = enabled;
             }
-                
-        }
 
-        private static void BlankedEvent(bool blanked)
-        {
-            if (TerminalBodyCam != null || ((BodyCamComponent)TerminalBodyCam) != null)
-            {
-                ((BodyCamComponent)TerminalBodyCam).ForceEnableCamera = !blanked;
-            }
-            Plugin.MoreLogs($"Blanked event: {blanked}");
         }
     }
 }

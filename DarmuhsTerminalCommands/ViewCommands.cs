@@ -143,9 +143,7 @@ namespace TerminalStuff
 
         private static void HandleMapEvent(out string displayText)
         {
-
-            if (radarTexture == null)
-                InitializeTextures();
+            InitializeTextures();
 
             if (Plugin.instance.isOnMap == false)
             {
@@ -302,9 +300,7 @@ namespace TerminalStuff
             if (Plugin.instance.splitViewCreated && !Plugin.instance.isOnMiniCams)
             {
                 Plugin.instance.activeCam = true; //needs to be set before initializing textures
-
-                if (radarTexture == null || camsTexture == null) //get textures for radar/cams
-                    InitializeTextures();
+                InitializeTextures();
 
                 SetTexturesAndVisibility(Plugin.Terminal, radarTexture, camsTexture);
 
@@ -346,8 +342,7 @@ namespace TerminalStuff
             {
                 Plugin.instance.activeCam = true; //needs to be set before initializing textures
 
-                if (radarTexture == null || camsTexture == null) //get textures for radar/cams
-                    InitializeTextures();
+                InitializeTextures();
 
                 SetTexturesAndVisibility(Plugin.Terminal, camsTexture, radarTexture);
 
@@ -376,11 +371,7 @@ namespace TerminalStuff
 
         internal static void OverlayTermEvent(out string displayText)
         {
-            
-            TerminalNode node = Plugin.Terminal.currentNode;
-
             isVideoPlaying = false;
-            node.clearPreviousText = true;
             displayText = string.Empty;
             string playerNameText = StartOfRound.Instance.mapScreenPlayerName.text;
             string removeText = "MONITORING: ";
@@ -392,8 +383,7 @@ namespace TerminalStuff
             {
                 Plugin.instance.activeCam = true; //needs to be set before initializing textures
 
-                if (radarTexture == null || camsTexture == null) //get textures for radar/cams
-                    InitializeTextures();
+                InitializeTextures();
 
                 SetTexturesAndVisibility(Plugin.Terminal, radarTexture, camsTexture);
 

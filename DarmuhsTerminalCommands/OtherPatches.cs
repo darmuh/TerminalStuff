@@ -65,8 +65,14 @@ namespace TerminalStuff
             {
                 SwitchedRadarEvent();
             }
-            else
-                ViewCommands.GetPlayerCamsFromExternalMod();
+            else if (ViewCommands.IsExternalCamsPresent() && ViewCommands.AnyActiveMonitoring())
+            {
+                if (Plugin.instance.OpenBodyCamsMod && !OpenBodyCamsCompatibility.showingBodyCam)
+                    Plugin.MoreLogs("OBC Terminal Body Cam is NOT active");
+                else
+                    ViewCommands.GetPlayerCamsFromExternalMod();
+            }
+                
 
             UpdateDisplayText();
             
@@ -79,7 +85,7 @@ namespace TerminalStuff
 
             if (!Plugin.instance.radarNonPlayer && StartOfRound.Instance.mapScreen.targetedPlayer == null)
                 return;
-            if (!Plugin.instance.activeCam)
+            if (!Plugin.instance.activeCam || !ViewCommands.AnyActiveMonitoring())
                 return;
 
             if (getTerm != null && getTerm.currentNode != null)
@@ -91,7 +97,7 @@ namespace TerminalStuff
 
         private static void SwitchedRadarEvent()
         {
-            if (Plugin.instance.activeCam && !ViewCommands.externalcamsmod)
+            if (ViewCommands.AnyActiveMonitoring() && !ViewCommands.externalcamsmod)
             {
                 ViewCommands.UpdateCamsTarget();
                 return;

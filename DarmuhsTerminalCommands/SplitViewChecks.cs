@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace TerminalStuff
@@ -58,28 +59,29 @@ namespace TerminalStuff
         {
             // Assuming you have a reference to the ImageContainer GameObject
             GameObject imageContainer = GameObject.Find("Environment/HangarShip/Terminal/Canvas/MainContainer/ImageContainer");
+            List<string> singleViewModes = new List<string>() { "cams", "map", "mirror"};
 
             if (enabledSplitObjects == false)
             {
                 DisableCloneChildren(imageContainer);
                 ResetPluginInstanceBools();
             }
-            else if (enabledSplitObjects == true && (whatIsIt != "cams" && whatIsIt != "map" || whatIsIt != "mirror"))
-            {
-                EnableCloneChildren(imageContainer);
-                Plugin.instance.activeCam = true;
-                UpdatePluginInstanceBools(whatIsIt);
-            }
-            else if (enabledSplitObjects == true && (whatIsIt == "cams" || whatIsIt == "map" || whatIsIt == "mirror"))
-            {
-                EnableFullScreenAndDisableSmallScreen(imageContainer, whatIsIt);
-                UpdatePluginInstanceBools(whatIsIt);
-            }
             else if (whatIsIt == "neither")
             {
                 enabledSplitObjects = false;
                 DisableCloneChildren(imageContainer);
                 ResetPluginInstanceBools();
+            }
+            else if (enabledSplitObjects == true && (!singleViewModes.Contains(whatIsIt)))
+            {
+                EnableCloneChildren(imageContainer);
+                Plugin.instance.activeCam = true;
+                UpdatePluginInstanceBools(whatIsIt);
+            }
+            else if (enabledSplitObjects == true && (singleViewModes.Contains(whatIsIt)))
+            {
+                EnableFullScreenAndDisableSmallScreen(imageContainer, whatIsIt);
+                UpdatePluginInstanceBools(whatIsIt);
             }
             else
             {
