@@ -9,7 +9,6 @@ using static OpenLib.CoreMethods.AddingThings;
 using static TerminalStuff.PluginCore.TerminalCustomizer;
 using static TerminalStuff.StringStuff;
 using static TerminalStuff.MoreCamStuff;
-using Steamworks.Ugc;
 
 namespace TerminalStuff
 {
@@ -21,9 +20,6 @@ namespace TerminalStuff
         public static bool clockDisabledByCommand = false;
         internal static TerminalSettings terminalSettings = new();
         internal static bool quitTerminalEnum = false;
-
-        //internal static GameObject dummyObject;
-        internal static TerminalNode switchNode = CreateDummyNode("switchDummy", true, "this should not display, switch command");
 
         internal static void StorePacks()
         {
@@ -90,19 +86,25 @@ namespace TerminalStuff
 
         internal static string ClockToggle()
         {
-            if (!TerminalClockStuff.showTime)
+            if (TerminalClockStuff.textComponent == null)
+                return "Unable to find Terminal Clock component!\r\n\r\n";
+
+            if (StartOfRound.Instance.inShipPhase)
+                return "Unable to determine time zone while in Orbit!\r\n\r\n";
+
+            if (!clockDisabledByCommand && TerminalClockStuff.IsClockVisible())
             {
-                TerminalClockStuff.showTime = true;
-                clockDisabledByCommand = false;
-                string displayText = "Terminal Clock [ENABLED].\r\n";
-                return displayText;
+                Plugin.Spam("Disabling clock via command!");
+                clockDisabledByCommand = true;
+                TerminalClockStuff.SetClockVisible(false);
+                return "Terminal Clock [DISABLED].\r\n";
             }
             else
             {
-                TerminalClockStuff.showTime = false;
-                clockDisabledByCommand = true;
-                string displayText = "Terminal Clock [DISABLED].\r\n";
-                return displayText;
+                Plugin.Spam("Enabling clock via command!");
+                clockDisabledByCommand = false;
+                TerminalClockStuff.SetClockVisible(true);
+                return "Terminal Clock [ENABLED].\r\n";
             }
         }
 

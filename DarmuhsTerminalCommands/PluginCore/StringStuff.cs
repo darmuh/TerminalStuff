@@ -10,7 +10,7 @@ namespace TerminalStuff
         internal static string[] GetWords()
         {
             string cleanedText = Plugin.instance.Terminal.screenText.text.Substring(Plugin.instance.Terminal.screenText.text.Length - Plugin.instance.Terminal.textAdded);
-            string[] words = cleanedText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] words = cleanedText.Split([' '], StringSplitOptions.RemoveEmptyEntries);
             return words;
         }
 

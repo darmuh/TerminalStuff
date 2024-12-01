@@ -1,6 +1,7 @@
 ﻿using OpenLib.Menus;
 using System.Collections.Generic;
 using System.Text;
+using TerminalStuff.EventSub;
 using UnityEngine;
 using static OpenLib.Menus.MenuBuild;
 using static TerminalStuff.AllMyTerminalPatches;
@@ -12,12 +13,10 @@ namespace TerminalStuff
 {
     internal class ViewCommands
     {
-        internal static bool externalcamsmod = false;
         internal static bool isVideoPlaying = false;
         internal static RenderTexture mycamTexture;
         internal static Camera playerCam = null;
 
-        internal static int targetInt = 0;
         internal static float radarZoom;
 
         internal static string TermMapEvent()
@@ -71,20 +70,65 @@ namespace TerminalStuff
             Plugin.MoreLogs("switching to previous player event detected");
 
             if (!AnyActiveMonitoring())
-                return "There is no active monitoring to switch!";
+                return "There is no active monitoring to switch!\r\n\r\n";
 
-            if (Plugin.instance.TwoRadarMapsMod)
-                TwoRadarMapsCompatibility.UpdateTerminalRadarTarget(Plugin.instance.Terminal, -2);
-            else
-            {
-                int newTarget = GetPrevValidTarget(StartOfRound.Instance.mapScreen.radarTargets, StartOfRound.Instance.mapScreen.targetTransformIndex);
-                StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(newTarget);
-                UpdateCamsTarget(newTarget);
-            }
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
 
-            DisplayTextUpdater(out string message);
+            int newTarget = GetPrevValidTarget(GameStuff.TerminalMapRenderer.radarTargets, GameStuff.TerminalMapRenderer.targetTransformIndex);
+            TargetSwitchCheck(newTarget);
+            DisplayTextUpdater(out string message, newTarget);
 
             return message;
+        }
+
+        internal static void TargetSwitchCheck(int target)
+        {
+            GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(target);
+
+            if (Plugin.instance.TwoRadarMapsMod && ConfigSettings.ModNetworking.Value && ConfigSettings.NetworkedNodes.Value)
+            {
+                Plugin.Spam("Second radar requires syncing!");
+                NetHandler.Instance.SyncRadarMapServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, target);
+            }
+        }
+
+        internal static string SwitchCommandHandler()
+        {
+            if (!AnyActiveMonitoring())
+                return "There is no active monitoring to switch!\r\n\r\n";
+
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.SwitchKeywords.Value));
+            string displayText;
+            if (val.Length > 1)
+            {
+                Plugin.MoreLogs("switch to specific player command detected");
+
+                int playernum = TerminalEvents.PlayerNameToTarget(val, GameStuff.TerminalMapRenderer.radarTargets);
+                Plugin.Spam($"PlayerNameToTarget determined playernum - {playernum}");
+                if (playernum != -1)
+                {
+                    TargetSwitchCheck(playernum);
+                    DisplayTextUpdater(out displayText, playernum);
+                    return displayText;
+                }
+
+                Plugin.MoreLogs("PlayerName returned invalid number");
+                displayText = $"Unable to switch to Unknown Player - [ {val} ]";
+                return displayText;
+            }
+            else
+            {
+                Plugin.MoreLogs("switch command detected");
+                int newTarget = GetNextValidTarget(GameStuff.TerminalMapRenderer.radarTargets, GameStuff.TerminalMapRenderer.targetTransformIndex);
+                TargetSwitchCheck(newTarget);
+
+                DisplayTextUpdater(out displayText, newTarget);
+                return displayText;
+            }
         }
 
         internal static string MirrorEvent()
@@ -174,6 +218,9 @@ namespace TerminalStuff
         {
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.RadarZoomKWs.Value));
 
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
             if (!AnyActiveMonitoring() && Plugin.instance.splitViewCreated)
             {
                 return $"No active monitoring detected, unable to change zoom.\r\n\r\n";
@@ -186,20 +233,15 @@ namespace TerminalStuff
             {
                 if (val.Length < 1)
                 {
-                    if (Plugin.instance.TwoRadarMapsMod)
-                    {
-                        TwoRadarMapsCompatibility.ChangeMapZoom(GetNewZoom(ref radarZoom));
-                        Plugin.MoreLogs($"Radar Zoom for TwoRadarMaps set to {radarZoom}");
-                    }
-                    else
-                    {
-                        StartOfRound.Instance.mapScreen.cam.orthographicSize = GetNewZoom(ref radarZoom);
-                        Plugin.MoreLogs($"Radar Zoom set to {radarZoom}");
-                    }
+
+                    GameStuff.TerminalMapRenderer.cam.orthographicSize = GetNewZoom(ref radarZoom);
+                    Plugin.MoreLogs($"Radar Zoom set to {radarZoom}");
 
                     if (ConfigSettings.NetworkedNodes.Value)
                         NetHandler.Instance.SyncRadarZoomServerRpc(radarZoom);
 
+                    if (!Plugin.instance.splitViewCreated)
+                        return $"Radar Zoom level adjusted.\r\n";
 
                     return $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRadar Zoom level adjusted.\r\n";
                 }
@@ -210,19 +252,15 @@ namespace TerminalStuff
                         if (newZoomVal >= 5 && newZoomVal <= 50)
                         {
                             radarZoom = newZoomVal;
-                            if (Plugin.instance.TwoRadarMapsMod)
-                            {
-                                TwoRadarMapsCompatibility.ChangeMapZoom(radarZoom);
-                                Plugin.MoreLogs($"Radar Zoom for TwoRadarMaps set to {radarZoom}");
-                            }
-                            else
-                            {
-                                StartOfRound.Instance.mapScreen.cam.orthographicSize = radarZoom;
-                                Plugin.MoreLogs($"Radar Zoom set to {radarZoom}");
-                            }
+
+                            GameStuff.TerminalMapRenderer.cam.orthographicSize = radarZoom;
+                            Plugin.MoreLogs($"Radar Zoom set to {radarZoom}");
 
                             if (ConfigSettings.NetworkedNodes.Value)
                                 NetHandler.Instance.SyncRadarZoomServerRpc(radarZoom);
+
+                            if (!Plugin.instance.splitViewCreated)
+                                return $"Radar Zoom level adjusted to new value: {val}\r\n";
 
                             return $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRadar Zoom level adjusted to new value: {val}\r\n";
                         }
@@ -230,7 +268,7 @@ namespace TerminalStuff
                             return $"Cannot change zoom to value: {val}.\nValue is too high or too low.\r\n\r\n";
                     }
                     else
-                        return $"Cannot change zoom to invalid value: {val}.";
+                        return $"Cannot change zoom to invalid value: {val}.\r\n";
                 }
             }
         }
@@ -351,18 +389,22 @@ namespace TerminalStuff
             return message.ToString();
         }
 
-        internal static void DisplayTextUpdater(out string displayText)
+        internal static void DisplayTextUpdater(out string displayText, int givenIndex = -1)
         {
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
             Plugin.MoreLogs("updating displaytext!!!");
             GetCurrentMode(out string mode);
-            string playerName;
-            if (!Plugin.instance.TwoRadarMapsMod)
-                playerName = StartOfRound.Instance.mapScreen.radarTargets[StartOfRound.Instance.mapScreen.targetTransformIndex].name;
-            else
-                playerName = TwoRadarMapsCompatibility.TargetedPlayerOnSecondRadar();
+
+            string playerName = (givenIndex == -1) 
+                ? GameStuff.TerminalMapRenderer.radarTargets[GameStuff.TerminalMapRenderer.targetTransformIndex].name
+                : GameStuff.TerminalMapRenderer.radarTargets[givenIndex].name;
 
             if (mode == "Mirror")
                 displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMirror Enabled.\r\n\n";
+            else if(!Plugin.instance.splitViewCreated)
+                displayText = $"Monitoring: {playerName} [{mode}]\r\n\n";
             else
                 displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {playerName} [{mode}]\r\n\n";
             return;
@@ -406,6 +448,12 @@ namespace TerminalStuff
                 Plugin.MoreLogs("Mirror mode detected");
                 return;
             }
+            else if(!Plugin.instance.splitViewCreated && (bool)Plugin.instance.Terminal.displayingPersistentImage)
+            {
+                mode = "View Monitor";
+                Plugin.MoreLogs("Vanilla \"view monitor\" detected!");
+                return;
+            }
             else
             {
                 Plugin.Log.LogError("Error with mode return, setting to default value");
@@ -418,8 +466,11 @@ namespace TerminalStuff
         {
             if (Plugin.instance.isOnMap || Plugin.instance.isOnCamera || Plugin.instance.isOnMiniMap || Plugin.instance.isOnMiniCams || Plugin.instance.isOnOverlay || Plugin.instance.activeCam)
                 return true;
-            else
-                return false;
+
+            if (!Plugin.instance.splitViewCreated && (bool)Plugin.instance.Terminal.displayingPersistentImage)
+                return true;
+
+            return false;
         }
 
     }

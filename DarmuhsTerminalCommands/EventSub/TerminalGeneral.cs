@@ -33,9 +33,10 @@ namespace TerminalStuff.EventSub
 
 
             Plugin.MoreLogs($"LoadNewNode patch, nNS: {NetHandler.netNodeSet}");
-            Plugin.Spam(Plugin.instance.Terminal.screenText.textComponent.textInfo.lineCount.ToString());
+            Plugin.Spam("Line count: " + Plugin.instance.Terminal.screenText.textComponent.textInfo.lineCount.ToString());
 
-            if(ConfigSettings.TerminalInputMaxChars.Value >= 20 && node.maxCharactersToType >= 20)
+
+            if (ConfigSettings.TerminalInputMaxChars.Value >= 20 && node.maxCharactersToType >= 20)
                 node.maxCharactersToType = ConfigSettings.TerminalInputMaxChars.Value;
 
             if (ConfigSettings.TerminalFillEmptyText.Value == "nochange")
@@ -122,7 +123,7 @@ namespace TerminalStuff.EventSub
 
             if (AlwaysOnStuff.screenSettings.inUse && InUseCheck(StartOfRound.Instance.localPlayerController))
             {
-                Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(Plugin.instance.Terminal.placeableObject.inUse);
+                AlwaysOnStuff.SetScreenPlus(Plugin.instance.Terminal.placeableObject.inUse);
                 Plugin.Spam($"OnSetTerminalInUse {Plugin.instance.Terminal.placeableObject.inUse}");
             }
 
@@ -143,6 +144,22 @@ namespace TerminalStuff.EventSub
                 return player.spectatedPlayerScript.isInHangarShipRoom;
             else 
                 return player.isInHangarShipRoom;
+        }
+
+        internal static void OnTerminalKeyPress()
+        {
+            if (!Plugin.instance.Terminal.terminalInUse)
+                return;
+
+            if (BoolStuff.AnyKeyIsPressed() && BoolStuff.ListenForShortCuts())
+            {
+                ShortcutBindings.HandleKeyPress(ShortcutBindings.keyBeingPressed);
+            }
+
+            if(ConfigSettings.WalkieTerm.Value)
+            {
+                WalkieTerm.WalkieTerminal();
+            }
         }
     }
 }

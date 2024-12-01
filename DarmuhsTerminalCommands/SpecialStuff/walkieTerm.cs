@@ -19,7 +19,7 @@ namespace TerminalStuff
             UseWalkieKey = useWalkieKey;
         }
 
-        public static GrabbableObject GetWalkie(out GrabbableObject walkie)
+        public static WalkieTalkie GetWalkie(out WalkieTalkie walkie)
         {
             walkie = null;
 
@@ -27,7 +27,7 @@ namespace TerminalStuff
             {
                 if (GameNetworkManager.Instance.localPlayerController.ItemSlots[i] is WalkieTalkie)
                 {
-                    walkie = GameNetworkManager.Instance.localPlayerController.ItemSlots[i];
+                    walkie = GameNetworkManager.Instance.localPlayerController.ItemSlots[i] as WalkieTalkie;
                     break;
                 }
             }
@@ -76,47 +76,40 @@ namespace TerminalStuff
                 return false;
         }
 
-        public static IEnumerator TalkinTerm()
+        internal static void WalkieTerminal()
+        {
+            GetWalkie(out WalkieTalkie getmywalkie);
+
+            if (getmywalkie == null)
+                return;
+
+            if (!getmywalkie.isBeingUsed)
+                return;
+
+            if (ActivateWalkie())
+            {
+                getmywalkie.UseItemOnClient(true);
+                Plugin.MoreLogs("Start Using Walkie Talkie");
+                Plugin.instance.Terminal.StartCoroutine(WalkieBeingUsed(getmywalkie));
+            }
+        }
+
+        internal static IEnumerator WalkieBeingUsed(WalkieTalkie getmywalkie)
         {
             if (walkieEnum)
                 yield break;
 
+            WaitForSeconds wait = new(0.15f);
+
             walkieEnum = true;
 
-            GetWalkie(out GrabbableObject getmywalkie);
-            bool usingWalkFromTerm = false;
-
-            if (getmywalkie != null)
+            while (ActivateWalkie())
             {
-                while (Plugin.instance.Terminal.terminalInUse && ConfigSettings.WalkieTerm.Value)
-                {
-                    if (ActivateWalkie() && !usingWalkFromTerm)
-                    {
-                        getmywalkie.UseItemOnClient(true);
-                        usingWalkFromTerm = true;
-                        Plugin.MoreLogs("push to use walkie key was pressed");
-                        yield return new WaitForSeconds(0.15f);
-                    }
-                    else if (!ActivateWalkie() && usingWalkFromTerm)
-                    {
-
-                        Plugin.MoreLogs("ending walkie use");
-                        usingWalkFromTerm = false;
-                        getmywalkie.UseItemOnClient(false);
-                        yield return new WaitForSeconds(0.15f);
-                    }
-                    else
-                        yield return new WaitForSeconds(0.1f);
-
-                }
+                yield return wait;
             }
-            else
-                Plugin.MoreLogs("no comms item found in inventory");
 
-
-            if (!Plugin.instance.Terminal.terminalInUse)
-                Plugin.MoreLogs("leaving terminal, ending comms monitoring");
-
+            getmywalkie.UseItemOnClient(false);
+            Plugin.MoreLogs("ending walkie use");
             walkieEnum = false;
         }
     }

@@ -5,6 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.0]
+ - Reworked TwoRadarMaps compatibility and removed lots of redundant code
+	- In order to use switch/previous with this mod and have it synced with other players, you will need to enable networking in *this* mod.
+	- I've not found a way to get TwoRadarMaps' terminal radar to sync with other players on it's own (and to be honest I dont think it was every intended to)
+ - Cached the mapscreen radar, whether it's tworadarmaps' terminal radar or the vanilla one to remove redundant code/logic
+ - Added MeetsCameraEnabledConditions patch per request from Zaggy to enable the terminal radar when it is in use.
+	- Once Zaggy's mods are updated along-side this, it's supposed to help with performance.
+ - Updated updateMapTarget patch to invoke a subscribe-able event
+ - Added/Fixed networked nodes for vanilla ``view monitor`` command
+	- it should now sync between players when enabled/disabled.
+	- this feature is very new and intertwined with a lot of conditional logic so if you experience issues please provide a detailed bug report with steps to reproduce
+  - Fixed issue with vanilla ``view monitor`` command where it would hide after door code commands
+	- Thanks pkpenguin, glacialstage, and Lunxara for the reports.
+	- This was due to the terminal node for door code commands being null, causing the current node to be reloaded (which would hide the map)
+	- Fix is in Openlib specifically as part of the ParsePlayerSentence patch, to not invoke the event for null terminalnodes
+ - Fixed issue where TerminalStartPage config item was ignored due to an early return in codebase.
+	- Thanks kaplumbava for the report!
+ - Fixed issue with bind/unbind commands not being added regardless of config setup due to an unnecessary early return in codebase.
+	- Thanks 6rag0n for the report!
+ - Reworked key detection for shortcuts, autocomplete, history, and walkie terminal use while at the terminal
+	- Now uses the update patch from OpenLib as opposed to a coroutine constantly running in the background while in the terminal.
+		- Openlib has a new keydetection event that is subscribed to in this mod
+	- May see some performance benefits, however, this has not been profiled in any way.
+	- Holding a key down will not cause the function to repeat now. Key presses will also feel much more responsive than before.
+ - Removed TerminalClock coroutine in favor of event-based system.
+	- TerminalClock will now update at the same rate as the hud clock
+	- Should be a performance gain now that this feature is not a continuous coroutine.
+	- Clock is hidden at the start of a new day (after ship returns to orbit)
+	- While in orbit if you try to run the associated clock command, it will let you know the clock cannot determine time zones from orbit
+	- If for whatever reason the clock was not created, the command will let you know the component couldnt be found.
+	- Tested with CruiserTerminal, unsure if this feature had worked via the prior implementation with cruiserterminal...
+ - Fixed issue where upgrades (like furniture) were being added to the item count that would be sent to the dropship.
+	- Thanks Lunxara for the report!
+ - Delayed client networked methods to get things like the current node on join to deal with rare error (likely latency related)
+	- Thanks Lunxara for the report!
+ - Added handling for rare error occuring with flashlight color change logic where the player's client id was out of range
+	- if your flashlight doesnt change color sometimes this is likely the reason why
+ - Updated client sync methods to grab the current radar target and zoom from the host after joining.
+ - Updated screen disable/enable logic to include enabling/disabling other components of the screen that may be added by this mod (clock/bodycams/custom map radar/etc.)
+ - Updated some portions of the networked nodes syncing logic
+ - Updated some portions of the screen settings logic
+ - Fixed rare issue with previous command not going to the correct previous target
+ - Updated restart command logic to reset persistant game save data
+	- This should fix the issue of day counts persisting after running the command
+ - Added ``FauxMoreMenu`` config item to allow for the use of faux keywords (only work when entered from a specific page) for the MoreMenu sections
+	- With this addition the menu creation logic has been updated slightly to handle faux keywords as an option.
+	- Thanks paradox75831004 for the reported keyword conflict issues, hope this setting helps!
+ - Added ``SwitchKeywords`` config item for the switch command. If ``switch`` does not exist in this config item it will be auto-added.
+ - Added compatibility for Auto-Complete and History features with commands added via LateGameUpgrades and InteractiveTerminalAPI
+	- Thanks Whitespike for the help!
+	- If there are other mods that are adding commands in an odd way that do not use InteractiveTerminalAPI that you would like supported by this feature please comment the mod's name and a link in Issue #37 on this mod's github.
+ - Updated compatibility for CruiserTerminal for future version 1.1.0
+	- If you do not have this version installed the compatibility features this mod adds will be disabled.
+ - Removed failed commands from Terminal History listing.
+
 ## [3.6.8]
  - Fixed issue with vitals and bioscan upgrades persisting to different game saves. They are now added to a key in the game save.
  - Fixed issue with credits not being reduced for upgrades (bioscan/vitals) purchased.

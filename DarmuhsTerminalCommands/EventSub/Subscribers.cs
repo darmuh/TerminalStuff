@@ -21,8 +21,10 @@ namespace TerminalStuff.EventSub
             EventManager.TerminalLoadIfAffordable.AddListener(TerminalGeneral.OnLoadAffordable);
             EventManager.TerminalQuit.AddListener(TerminalQuit.OnTerminalQuit);
 
+            //TerminalUpdateStuff
             OpenLib.TerminalUpdatePatch.usePatch = true;
             EventManager.SetTerminalInUse.AddListener(TerminalGeneral.OnSetTerminalInUse);
+            EventManager.TerminalKeyPressed.AddListener(TerminalGeneral.OnTerminalKeyPress);
 
             //TeleporterStuff
             EventManager.NormalTPFound.AddListener(Teleporters.OnNormalAwake);
@@ -31,8 +33,10 @@ namespace TerminalStuff.EventSub
             //GameStuff
             EventManager.GameNetworkManagerStart.AddListener(GameStuff.OnGameStart);
             EventManager.StartOfRoundStart.AddListener(GameStuff.OnStartOfRoundStart);
-            EventManager.StartOfRoundStartGame.AddListener(GameStuff.OnStartGame);
+            //EventManager.ShipLeft.AddListener(GameStuff.OnShipLeft);
+            EventManager.NextDayEvent.AddListener(GameStuff.OnNextDay);
             EventManager.PlayerSpawn.AddListener(GameStuff.OnPlayerSpawn);
+            ClockTimePatch.OnRefreshClock.AddListener(TerminalClockStuff.ClockUpdate);
 
             //PlayerStuff
             OpenLib.PlayerUpdatePatch.usePatch = true;
@@ -45,7 +49,8 @@ namespace TerminalStuff.EventSub
 
             //CamEvents
             CamEvents.UpdateCamsEvent.AddListener(CamEvents.OnUpdateCamsEvent);
-            CamEvents.UpdateTextures.AddListener(CamEvents.GetTextures);
+            //CamEvents.UpdateTextures.AddListener(CamEvents.GetTextures);
+            CamEvents.UpdateTarget.AddListener(MoreCamStuff.OnTargetSwitch);
         }
 
         internal static void OnTerminalAwake(Terminal instance)

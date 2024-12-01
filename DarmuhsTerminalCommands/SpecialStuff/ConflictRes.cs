@@ -107,7 +107,6 @@ namespace TerminalStuff.SpecialStuff
 
         internal static bool TryGetBestMatchingKeyword(string query, out TerminalKeyword returnWord)
         {
-            //Dictionary<TerminalKeyword, int> matching = [];
             List<ConflictRes> resolutionList = [];
             List<ConflictRes> highPri = [];
 

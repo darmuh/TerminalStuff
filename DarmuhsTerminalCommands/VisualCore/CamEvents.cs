@@ -1,4 +1,5 @@
 ﻿using OpenLib.Common;
+using TerminalStuff.EventSub;
 using UnityEngine;
 using UnityEngine.UI;
 using static TerminalStuff.MoreCamStuff;
@@ -11,8 +12,9 @@ namespace TerminalStuff.VisualCore
         //public delegate void UpdateTexture(CamsClass cams, Texture texture);
         //public delegate void UpdateStyle(CamsClass cams, Texture mainTexture, Texture smallTexture = null);
         internal static CamsClass CamsThings = new();
-        public static OpenLib.Events.Events.CustomEvent UpdateTextures = new();
+        //public static OpenLib.Events.Events.CustomEvent UpdateTextures = new();
         public static OpenLib.Events.Events.CustomEvent<string> UpdateCamsEvent = new();
+        public static OpenLib.Events.Events.CustomEvent<int> UpdateTarget = new();
 
         internal static void SetTextures(Texture texture, Texture mini = null)
         {
@@ -20,15 +22,6 @@ namespace TerminalStuff.VisualCore
 
             if (mini != null)
                 SplitViewChecks.miniScreenImage.texture = mini;
-        }
-
-        internal static void GetTextures()
-        {
-            Plugin.Spam("GetTextures Event!");
-
-            CamsThings.camsTexture = UpdateCamsTexture();
-            CamsThings.radarTexture = UpdateRadarTexture();
-            UpdateCamsEvent.Invoke(CamsThings.Mode);
         }
 
         internal static void UpdateStyle(Texture main, float mainOpacity, Texture mini = null, float miniOpacity = 0f, bool isOverlay = false)
@@ -116,24 +109,22 @@ namespace TerminalStuff.VisualCore
 
         private static Texture UpdateRadarTexture()
         {
-            Texture texture;
-            if (!Plugin.instance.TwoRadarMapsMod)
-                texture = StartOfRound.Instance.mapScreen.cam.targetTexture;
-            else
-                texture = TwoRadarMapsCompatibility.RadarCamTexture();
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
 
-            return texture;
+            return GameStuff.TerminalMapRenderer.cam.targetTexture;
         }
 
         private static Texture UpdateCamsTexture()
         {
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
             Plugin.Spam("Updating Cams");
             if (IsExternalCamsPresent())
-                return GetPlayerCamsFromExternalMod();
-            else if (Plugin.instance.TwoRadarMapsMod)
-                return TwoRadarMapsCompatibility.UpdateCamsTarget();
+                return GetPlayerCamsFromExternalMod(GameStuff.TerminalMapRenderer.targetTransformIndex);
             else
-                return UpdateCamsTarget(StartOfRound.Instance.mapScreen.targetTransformIndex);
+                return UpdateCamsTarget(GameStuff.TerminalMapRenderer.targetTransformIndex);
 
             //radarTexture = GetTexture("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001", 1);
             //camsTexture = GetTexture("Environment/HangarShip/ShipModels2b/MonitorWall/Cube.001", 2);

@@ -5,7 +5,6 @@ namespace TerminalStuff
 {
     internal class AlwaysOnStuff
     {
-        internal static bool dynamicStatus = false;
         internal static bool delayOff = false;
         internal static ScreenSettings screenSettings;
 
@@ -28,13 +27,30 @@ namespace TerminalStuff
             if (screenSettings.inUse && !Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
             {
                 if(!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf && StartOfRound.Instance.localPlayerController.spectatedPlayerScript.isInHangarShipRoom && Plugin.instance.Terminal.placeableObject.inUse)
-                    Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(true);
+                    SetScreenPlus(true);
+                
             }
 
             if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf && StartOfRound.Instance.localPlayerController.spectatedPlayerScript.isInHangarShipRoom)
-                Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(true);
+                SetScreenPlus(true);
             else if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf && !StartOfRound.Instance.localPlayerController.spectatedPlayerScript.isInHangarShipRoom)
-                Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(false);
+                SetScreenPlus(false);
+        }
+
+        internal static void SetScreenPlus(bool visible)
+        {
+            Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(visible);
+
+            if (!StartOfRound.Instance.inShipPhase && !TerminalEvents.clockDisabledByCommand)
+                TerminalClockStuff.SetClockVisible(visible); //if clock isn't added it will early return
+            else
+                TerminalClockStuff.SetClockVisible(false);
+
+            if ((ViewCommands.AnyActiveMonitoring() && Plugin.instance.splitViewCreated) || Plugin.instance.isOnMirror)
+            {
+                Plugin.MoreLogs("Adjusting camera views to screen status");
+                SplitViewChecks.ShowCameraView(visible);
+            }
         }
 
         internal static void PlayerShipChanged()
@@ -47,7 +63,7 @@ namespace TerminalStuff
             if (StartOfRound.Instance.localPlayerController.isPlayerDead && DisableScreenOnDeath())
             {
                 if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
-                    Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(false);
+                    SetScreenPlus(false);
             }
 
             if(StartOfRound.Instance.localPlayerController.isInHangarShipRoom)
@@ -55,12 +71,12 @@ namespace TerminalStuff
                 if(screenSettings.Dynamic && !screenSettings.inUse)
                 {
                     if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
-                        Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(true);
+                        SetScreenPlus(true);
                 }
                 else if (screenSettings.inUse && OpenLib.TerminalUpdatePatch.inUse)
                 {
                     if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
-                        Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(true);
+                        SetScreenPlus(true);
                 }
             }
             else
@@ -71,7 +87,7 @@ namespace TerminalStuff
                     if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
                     {
                         if (ConfigSettings.ScreenOffDelay.Value < 1)
-                            Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(false);
+                            SetScreenPlus(false);
                         else
                             Plugin.instance.StartCoroutine(DelayScreenOff(ConfigSettings.ScreenOffDelay.Value));
                     }
@@ -88,7 +104,7 @@ namespace TerminalStuff
             delayOff = true;
             yield return new WaitForSeconds(delay);
             if(!StartOfRound.Instance.localPlayerController.isInHangarShipRoom)
-                Plugin.instance.Terminal.terminalUIScreen.gameObject.SetActive(false);
+                SetScreenPlus(false);
             delayOff = false;
         }
 

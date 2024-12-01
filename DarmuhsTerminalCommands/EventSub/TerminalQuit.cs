@@ -7,7 +7,6 @@ namespace TerminalStuff.EventSub
 {
     internal class TerminalQuit
     {
-        internal static bool videoQuitEnum = false;
         internal static void OnTerminalQuit()
         {
             if (ConfigSettings.SaveLastInput.Value && Plugin.instance.Terminal.currentNode != null && Plugin.instance.Terminal.currentNode.name != "TerminalQuit")
@@ -20,7 +19,7 @@ namespace TerminalStuff.EventSub
                 ShouldLockPlayerCamera(true, StartOfRound.Instance.localPlayerController);
 
             //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}");
-            if (!alwaysOnDisplay)
+            if (!alwaysOnDisplay || screenSettings.inUse)
             {
                 HandleRegularQuit();
             }

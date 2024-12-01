@@ -1,14 +1,9 @@
-﻿using OpenLib.Common;
-using OpenLib.CoreMethods;
+﻿using OpenLib.CoreMethods;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
-using UnityEngine.InputSystem;
 using static OpenLib.ConfigManager.ConfigSetup;
-using static TerminalStuff.BoolStuff;
 using Key = UnityEngine.InputSystem.Key;
 
 namespace TerminalStuff
@@ -20,7 +15,6 @@ namespace TerminalStuff
         internal static List<Key> invalidKeys;
         internal static Key keyBeingPressed;
         public static bool stopForAnyReason = false;
-        internal static bool shortcutListenEnum = false;
 
         internal static void InitSavedShortcuts()
         {
@@ -263,7 +257,7 @@ namespace TerminalStuff
 
         internal static void MatchToBind(string input)
         {
-            List<string> skipAllKeywords = ["switch"];
+            List<string> skipAllKeywords = [];
 
             if (BannedWords(input))
             {
@@ -284,8 +278,8 @@ namespace TerminalStuff
 
                     if (LogicHandling.TryGetFuncFromNode(fullListings, ref keyword.specialKeywordResult, out Func<string> displayTextSupplier))
                     {
-                        string displayText = displayTextSupplier();
                         Plugin.MoreLogs("running function related to displaytext supplier");
+                        string displayText = displayTextSupplier();
                         keyword.specialKeywordResult.displayText = displayText;
                     }
 
@@ -296,17 +290,7 @@ namespace TerminalStuff
                 }
             }
 
-            string[] words = [input];
-            StartofHandling.HandleShortcut(Plugin.instance.Terminal, Plugin.instance.Terminal.currentNode, words, out TerminalNode resultNode);
-
-            if (resultNode != null)
-            {
-                Plugin.MoreLogs($"handling parsed node for shortcut");
-                MoreCamStuff.CamPersistance(resultNode.name, resultNode);
-                MoreCamStuff.VideoPersist(resultNode.name);
-                Plugin.instance.Terminal.LoadNewNode(resultNode);
-                return;
-            }
+            StartofHandling.HandleShortcutFinal(input);
 
             //"kick", fColor, "fov", Gamble, Lever, "vitalspatch", "bioscanpatch", sColor, Link, Link2, Restart }; // keyword catcher
             //banned words - (word == Gamble || word == "fov" || word == "kick" || word == sColor || word == fColor)
@@ -316,11 +300,6 @@ namespace TerminalStuff
         private static bool BannedWords(string word)
         {
             List<string> bannedWords = ["bind", "unbind"];
-            bannedWords.AddRange(CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.GambleKeywords.Value));
-            bannedWords.AddRange(CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.FovKeywords.Value));
-            bannedWords.AddRange(CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.KickKeywords.Value));
-            bannedWords.AddRange(CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.ScolorKeywords.Value));
-            bannedWords.AddRange(CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.FcolorKeywords.Value));
 
             if (bannedWords.Contains(word))
                 return true;
@@ -328,23 +307,8 @@ namespace TerminalStuff
                 return false;
         }
 
-        // Method to check if any key in the dictionary is pressed
-        internal static bool AnyKeyIsPressed()
-        {
-            foreach (var keyAction in keyActions)
-            {
-                if (Keyboard.current[keyAction.Key].isPressed)
-                {
-                    keyBeingPressed = keyAction.Key;
-                    Plugin.MoreLogs($"Key detected in use: {keyAction.Key}");
-                    return true;
-                }
-            }
-            return false;
-        }
-
         // Method to handle key presses
-        private static void HandleKeyPress(Key key)
+        internal static void HandleKeyPress(Key key)
         {
             // Check if the key exists in the dictionary
             if (keyActions.ContainsKey(key))
@@ -405,33 +369,6 @@ namespace TerminalStuff
             }
             else
                 Plugin.Log.LogError("Shortcut KeyActions list not updating properly");
-        }
-
-
-        internal static IEnumerator TerminalShortCuts()
-        {
-            if (shortcutListenEnum)
-                yield break;
-
-            shortcutListenEnum = true;
-
-            //Plugin.MoreLogs("Listening for shortcuts");
-            while (Plugin.instance.Terminal.terminalInUse && ConfigSettings.TerminalShortcuts.Value && !stopForAnyReason)
-            {
-                if (AnyKeyIsPressed() && ListenForShortCuts())
-                {
-                    HandleKeyPress(keyBeingPressed);
-                    yield return new WaitForSeconds(0.15f);
-                }
-                else
-                    yield return new WaitForSeconds(0.1f);
-            }
-
-            if (!Plugin.instance.Terminal.terminalInUse)
-                Plugin.MoreLogs("No longer monitoring for shortcuts");
-
-            shortcutListenEnum = false;
-            yield break;
         }
     }
 }

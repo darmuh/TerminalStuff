@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using OpenLib.Common;
 using System.Collections.Generic;
+using TerminalStuff.EventSub;
 using UnityEngine;
 using static TerminalStuff.AllMyTerminalPatches;
 using static TerminalStuff.ViewCommands;
@@ -9,7 +10,6 @@ namespace TerminalStuff
 {
     internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes that dont specify nodeName!!!
     {
-
         internal static void ResetPluginInstanceBools()
         {
             Plugin.instance.isOnMiniMap = false;
@@ -58,10 +58,10 @@ namespace TerminalStuff
 
         internal static void VideoPersist(string nodeName)
         {
-            if (ViewCommands.isVideoPlaying && nodeName != "darmuh's videoPlayer")
+            if (isVideoPlaying && nodeName != "darmuh's videoPlayer")
             {
                 FixVideoPatch.OnVideoEnd(Plugin.instance.Terminal);
-                ViewCommands.isVideoPlaying = false;
+                isVideoPlaying = false;
                 //Plugin.Log.LogInfo("isVideoPlaying set to FALSE");
                 Plugin.MoreLogs("disabling video");
             }
@@ -96,12 +96,12 @@ namespace TerminalStuff
             return false;
         }
 
-        private static bool HideCams()
+        internal static bool HideCams()
         {
             return !ConfigSettings.CamsNeverHide.Value;
         }
 
-        internal static Texture GetPlayerCamsFromExternalMod()
+        internal static Texture GetPlayerCamsFromExternalMod(int newTarget)
         {
             if (Plugin.instance.OpenBodyCamsMod)
             {
@@ -117,23 +117,8 @@ namespace TerminalStuff
             else
             {
                 Plugin.Spam("No external mods detected, defaulting to internal cams system.");
-                if (Plugin.instance.TwoRadarMapsMod)
-                    return TwoRadarMapsCompatibility.UpdateCamsTarget();
-                else
-                    return UpdateCamsTarget(StartOfRound.Instance.mapScreen.targetTransformIndex);
+                    return UpdateCamsTarget(newTarget);
             }
-        }
-
-        internal static void DetermineCamsTargets()
-        {
-            if (IsExternalCamsPresent())
-            {
-                externalcamsmod = true;
-                Plugin.Log.LogInfo("External PlayerCams Mod Detected and will be used for all Cams Commands.");
-            }
-
-            else
-                externalcamsmod = false;
         }
 
         internal static bool IsExternalCamsPresent()
@@ -147,10 +132,13 @@ namespace TerminalStuff
 
         internal static Texture UpdateCamsTarget(int targetNum)
         {
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
             if (ConfigSettings.CamsUseDetectedMods.Value && (Plugin.instance.HelmetCamsMod || Plugin.instance.OpenBodyCamsMod || Plugin.instance.SolosBodyCamsMod))
                 return PlayerCamsCompatibility.PlayerCamTexture();
 
-            if (!Plugin.instance.radarNonPlayer)
+            if (!GameStuff.TerminalMapRenderer.radarTargets[targetNum].isNonPlayer)
             {
                 Plugin.Spam($"Using internal mod camera on valid player - {targetNum}");
                 return PlayerCamTexture(targetNum);
@@ -164,6 +152,9 @@ namespace TerminalStuff
 
         private static Texture PlayerCamTexture(int targetPlayer)
         {
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
             if (playerCam == null)
             {
                 Plugin.MoreLogs("Creating home-brew PlayerCam");
@@ -175,7 +166,7 @@ namespace TerminalStuff
             playerCam.cameraType = CameraType.Game;
 
             Transform camTransform;
-            PlayerControllerB targetedPlayer = StartOfRound.Instance.mapScreen.radarTargets[targetPlayer].transform.gameObject.GetComponent<PlayerControllerB>();
+            PlayerControllerB targetedPlayer = GameStuff.TerminalMapRenderer.radarTargets[targetPlayer].transform.gameObject.GetComponent<PlayerControllerB>();
             if (targetedPlayer != null)
             {
                 camTransform = targetedPlayer.gameplayCamera.transform;
@@ -183,7 +174,7 @@ namespace TerminalStuff
             }
             else
             {
-                camTransform = StartOfRound.Instance.mapScreen.radarTargets[targetPlayer].transform;
+                camTransform = GameStuff.TerminalMapRenderer.radarTargets[targetPlayer].transform;
                 Plugin.MoreLogs($"Invalid player{targetPlayer} for cams update, sending to backup trasnsform");
             }
 
@@ -200,6 +191,9 @@ namespace TerminalStuff
 
         private static Texture RadarCamTexture(int targetNum)
         {
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
             if (playerCam == null)
             {
                 Plugin.MoreLogs("Creating home-brew PlayerCam");
@@ -209,7 +203,7 @@ namespace TerminalStuff
             playerCam.orthographic = false;
             playerCam.enabled = true;
             playerCam.cameraType = CameraType.SceneView;
-            Transform camTransform = StartOfRound.Instance.mapScreen.radarTargets[targetNum].transform;
+            Transform camTransform = GameStuff.TerminalMapRenderer.radarTargets[targetNum].transform;
             playerCam.transform.rotation = camTransform.rotation;
             playerCam.transform.position = camTransform.transform.position;
 
@@ -239,24 +233,24 @@ namespace TerminalStuff
         internal static int GetPrevValidTarget(List<TransformAndName> targets, int initialIndex)
         {
             int count = targets.Count;
-            Plugin.Spam($"Count:{targets.Count}");
+            int nextTarget = initialIndex;
+            Plugin.Spam($"Count: {targets.Count}");
             Plugin.Spam($"initialIndex: {initialIndex}");
 
             // Handle the case when initialIndex is zero
             if (initialIndex == 0)
             {
-                // Set initialIndex to the last index
-                initialIndex = count;
-                Plugin.Spam($"initialIndex is 0, setting it to {initialIndex}");
+                nextTarget = count;
+                Plugin.Spam($"initialIndex is 0, setting nextTarget to {nextTarget}");
             }
 
             // Iterate through the list of targets
             for (int i = 1; i < count; i++)
             {
                 // Calculate the index of the previous target
-                int num = (initialIndex - i) % count;
+                int num = (nextTarget - i) % count;
 
-                Plugin.Spam($"{num} = {initialIndex} - {i} % {count}");
+                Plugin.Spam($"{num} = {nextTarget} - {i} % {count}");
                 Plugin.Spam($"{num} + {count} % {count}");
                 // Ensure num is non-negative
                 num = (num + count) % count;
@@ -294,6 +288,34 @@ namespace TerminalStuff
 
             Plugin.MoreLogs("TargetIsValid, no specific conditions met");
             return true;
+        }
+
+        internal static void OnTargetSwitch(int newTarget)
+        {
+            Plugin.Spam("Target Switch Event!");
+
+            if (!AnyActiveMonitoring())
+                return;
+
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
+            if (newTarget > GameStuff.TerminalMapRenderer.radarTargets.Count)
+                return;
+
+            if (!IsExternalCamsPresent())
+            {
+                Plugin.MoreLogs("Updating homebrew target");
+                UpdateCamsTarget(newTarget);
+                return;
+            }
+            else
+            {
+                if (Plugin.instance.OpenBodyCamsMod && !OpenLib.Compat.OpenBodyCamFuncs.ShowingBodyCam)
+                    Plugin.MoreLogs("OBC Terminal Body Cam is NOT active");
+                else
+                    GetPlayerCamsFromExternalMod(newTarget);
+            }
         }
     }
 }

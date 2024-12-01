@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TerminalStuff.Compatibility;
 using TerminalStuff.PluginCore;
 using UnityEngine;
 using static OpenLib.ConfigManager.ConfigSetup;
@@ -14,6 +15,7 @@ namespace TerminalStuff.EventSub
         internal static TerminalNode startNode = null;
         internal static TerminalNode helpNode = null;
         internal static List<TerminalNode> vanillaNodes = [];
+        internal static TerminalNode viewMonitorVanilla = null;
         internal static bool delayStartEnum = false;
 
         internal static void OnTerminalStart()
@@ -22,24 +24,24 @@ namespace TerminalStuff.EventSub
             TerminalStartGroupDelay();
         }
 
-        internal static void OnTerminalStartDelayed()
-        {
-            //not using this yet
-        }
-
         internal static void TerminalStartGroup()
         {
             Plugin.MoreLogs("Upgrading terminal with my stuff, smile.");
             Plugin.Allnodes = GetAllNodes();
-
+            OtherModWords();
             OverWriteTextNodes();
             VanillaNodesCache();
             TerminalClockStuff.MakeClock();
-            MoreCamStuff.DetermineCamsTargets();
             ShortcutBindings.InitSavedShortcuts();
             TerminalCustomizer.TerminalCustomization();
             MenuBuild.CategoryList();
             SaveManager.InitUnlocks(); // sync upgrades status for this save
+        }
+
+        private static void OtherModWords()
+        {
+            if(Plugin.instance.ITAPI)
+                InteractiveAPI.GetITAPIWords();
         }
 
 
@@ -89,6 +91,16 @@ namespace TerminalStuff.EventSub
                 Plugin.Spam("bestiaryNode cached");
             }
 
+            if (!Plugin.instance.splitViewCreated)
+            {
+                Plugin.Spam("Trying to cache vanilla view monitor");
+                if(TryGetFromAllNodes("ViewInsideShipCam 1", out viewMonitorVanilla))
+                {
+                    vanillaNodes.Add((viewMonitorVanilla));
+                    Plugin.Spam("cached vanilla view monitor!");
+                }
+            }
+
         }
 
         internal static void TerminalStartGroupDelay()
@@ -108,7 +120,7 @@ namespace TerminalStuff.EventSub
             SplitViewChecks.CheckForSplitView("neither");
             Plugin.MoreLogs("disabling cams views");
             ViewCommands.isVideoPlaying = false;
-            TerminalClockStuff.StartClockCoroutine();
+            //TerminalClockStuff.StartClockCoroutine();
             AlwaysOnStart(Plugin.instance.Terminal, startNode);
             yield return new WaitForSeconds(0.1f);
             Plugin.instance.Terminal.topRightText.text = $"${Plugin.instance.Terminal.groupCredits}"; //fix creds display for alwayson
@@ -166,25 +178,30 @@ namespace TerminalStuff.EventSub
                 return;
             }
 
-            NetHandler.Instance.SyncRadarZoomServerRpc(ConfigSettings.TerminalRadarDefaultZoom.Value); //sync config at load-in
-
             if (GameNetworkManager.Instance.localPlayerController.IsHost)
             {
-                StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(0); //fix vanilla bug where you need to switch map target at start
+                GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(0); //fix vanilla bug where you need to switch map target at start
+                NetHandler.Instance.SyncRadarZoomServerRpc(ConfigSettings.TerminalRadarDefaultZoom.Value); //host only at load-in
                 thisterm.LoadNewNode(startNode);
                 StartofHandling.CheckNetNode(startNode);
                 return;
             }
             else
             {
-                Plugin.Spam("------------ CLIENT JUST LOADED --------------");
-                Plugin.Spam("grabbing node from host");
-                Plugin.Spam("------------ CLIENT JUST LOADED --------------");
-
-                int hostClient = Misc.HostClientID();
-                NetHandler.Instance.GetCurrentNodeServerRpc(((int)StartOfRound.Instance.localPlayerController.playerClientId), hostClient);
+                Plugin.instance.Terminal.StartCoroutine(ClientStuffDelayed());
                 return;
             }
+        }
+
+        private static IEnumerator ClientStuffDelayed()
+        {
+            yield return new WaitForSeconds(1);
+            Plugin.Spam("------------ CLIENT JUST LOADED --------------");
+            Plugin.Spam("grabbing node from host");
+            Plugin.Spam("------------ CLIENT JUST LOADED --------------");
+
+            int hostClient = Misc.HostClientID();
+            NetHandler.Instance.SyncTerminalServerRpc(((int)StartOfRound.Instance.localPlayerController.playerClientId), hostClient);
         }
 
         private static void DebugShowInfo()

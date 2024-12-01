@@ -18,6 +18,7 @@ namespace TerminalStuff
         public static ConfigEntry<string> WalkieTermMB { get; internal set; }
         public static ConfigEntry<string> KeyActionsConfig { get; internal set; }
         public static ConfigEntry<bool> CreateMoreMenus { get; internal set; }
+        public static ConfigEntry<bool> FauxMoreMenu { get; internal set; }
 
         //cams special
         public static ConfigEntry<bool> CamsUseDetectedMods { get; internal set; }
@@ -155,6 +156,7 @@ namespace TerminalStuff
         public static ConfigEntry<string> ModsKeywords { get; internal set; }
         public static ConfigEntry<string> TpKeywords { get; internal set; }
         public static ConfigEntry<string> ItpKeywords { get; internal set; }
+        public static ConfigEntry<string> SwitchKeywords { get; internal set; }
         public static ConfigEntry<string> QuitKeywords { get; internal set; }
         public static ConfigEntry<string> VideoKeywords { get; internal set; }
         public static ConfigEntry<string> ClearKeywords { get; internal set; }
@@ -246,6 +248,7 @@ namespace TerminalStuff
             DeveloperLogging = MakeBool(Plugin.instance.Config, "Debug", "DeveloperLogging", false, "Enable or Disable developer logging for this mod. (this will fill your log file FAST)");
             KeyActionsConfig = MakeString(Plugin.instance.Config, "Quality of Life", "KeyActionsConfig", "", "Stored keybinds, don't modify this unless you know what you're doing!");
             CreateMoreMenus = MakeBool(Plugin.instance.Config, "Quality of Life", "CreateMoreMenus", true, "Set this to false to remove the More commands menu.\nIf disabled, any command added by this mod will be added to the 'Other' command listing");
+            FauxMoreMenu = MakeBool(Plugin.instance.Config, "Quality of Life", "FauxMoreMenu", false, "Set this to true to use Faux Keywords for more menu category & next commands.\nCan be used in the case of certain category commands not being created due to existing keywords (ie. fun moon filter from LLL)");
             PurchasePackCommands = MakeString(Plugin.instance.Config, "Comfort Configuration", "PurchasePackCommands", "Essentials:pro,shov,walkie;PortalPack:teleporter,inverse", "List of purchase pack commands to create. Format is command:item1,item2,etc.;next command:item1,item2");
 
             Plugin.Spam("network configs section done");
@@ -278,6 +281,7 @@ namespace TerminalStuff
             ModsKeywords = MakeString(Plugin.instance.Config, "Custom Keywords", "ModsKeywords", "modlist; show mods", "This semi-colon separated list is all keywords that can be used in terminal to return <mods> command");
             TpKeywords = MakeString(Plugin.instance.Config, "Custom Keywords", "TpKeywords", "tp; use teleporter; teleport", "This semi-colon separated list is all keywords that can be used in terminal to return <tp> command");
             ItpKeywords = MakeString(Plugin.instance.Config, "Custom Keywords", "ItpKeywords", "itp; use inverse; inverse", "This semi-colon separated list is all keywords that can be used in terminal to return <itp> command");
+            SwitchKeywords = MakeString(Plugin.instance.Config, "Custom Keywords", "SwitchKeywords", "switch; view next", "This semi-colon separated list is all keywords that can be used in terminal to return <switch> command");
             QuitKeywords = MakeString(Plugin.instance.Config, "Custom Keywords", "QuitKeywords", "quit;exit;leave", "This semi-colon separated list is all keywords that can be used in terminal to return <quit> command");
             VideoKeywords = MakeString(Plugin.instance.Config, "Custom Keywords", "VideoKeywords", "lol; play video", "This semi-colon separated list is all keywords that can be used in terminal to return <video> command");
             ClearKeywords = MakeString(Plugin.instance.Config, "Custom Keywords", "ClearKeywords", "clear;wipe", "This semi-colon separated list is all keywords that can be used in terminal to return <clear> command");
@@ -591,7 +595,7 @@ namespace TerminalStuff
             CustomFontSizeClock = MakeClampedInt(Plugin.instance.Config, "Terminal Customization", "CustomFontSizeClock", -1, "Set a custom size for your font (TerminalClock), leave at -1 if you wish not to change it", -1, 72);
             CruiserTerminalConfigs();
 
-            PluginCore.StuffForLibrary.ManualCommands(); //add more managedbools that dont come from a specific config item
+            PluginCore.StuffForLibrary.ManualManagedBools(); //add more managedbools that dont come from a specific config item
 
             Plugin.MoreLogs("end of config setup");
 

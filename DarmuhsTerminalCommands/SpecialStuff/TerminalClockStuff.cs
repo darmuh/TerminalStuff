@@ -7,20 +7,46 @@ namespace TerminalStuff
     internal class TerminalClockStuff
     {
         internal static TextMeshProUGUI textComponent;
-        public static bool showTime = false;
-        internal static bool terminalClockEnum = false;
 
-        public static void StartClockCoroutine()
+        public static void ClockUpdate()
         {
-            if (!ConfigSettings.TerminalClock.Value)
+            if (textComponent == null || !ConfigSettings.TerminalClock.Value || StartOfRound.Instance.inShipPhase || TerminalEvents.clockDisabledByCommand || !StartOfRound.Instance.shipDoorsEnabled)
+                return;
+
+            if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf && !textComponent.gameObject.activeSelf)
+                textComponent.gameObject.SetActive(true);
+
+            string clockTime = HUDManager.Instance?.clockNumber?.text;
+            if (string.IsNullOrEmpty(clockTime))
+                return;
+
+           textComponent.text = clockTime.Replace("\n", "").Replace("\r", "");
+            //Plugin.Spam($"Time {textComponent.text}");
+        }
+
+        public static bool IsClockVisible()
+        {
+            if (textComponent == null)
+                return false;
+
+            Plugin.Spam($"IsClockVisible - {textComponent.gameObject.activeSelf}");
+
+            return textComponent.gameObject.activeSelf;
+        }
+
+        public static void SetClockVisible(bool visible)
+        {
+            if (textComponent == null)
+                return;
+
+            if(!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
             {
-                Plugin.MoreLogs("clock is not enabled.");
+                textComponent.gameObject.SetActive(false); //always set textcomponent to false if screen is off
                 return;
             }
 
-            Plugin.MoreLogs("StartClockCoroutine called");
-
-            Plugin.instance.Terminal.StartCoroutine(TerminalClockCoroutine(Plugin.instance.Terminal));
+            if (textComponent.gameObject.activeSelf != visible)
+                textComponent.gameObject.SetActive(visible);
         }
 
         public static void MakeClock()
@@ -28,49 +54,15 @@ namespace TerminalStuff
             if (!ConfigSettings.TerminalClock.Value)
                 return;
 
+            Plugin.Spam("MakeClock!");
+
             textComponent = MakeTimeText();
             if (textComponent == null)
             {
                 Plugin.Log.LogError("CLOCK: Text component creation failed.");
                 return;
             }
-            Plugin.MoreLogs("textcomponent is not null");
-        }
-
-        internal static IEnumerator TerminalClockCoroutine(Terminal terminal)
-        {
-            if (terminalClockEnum)
-                yield break;
-
-            terminalClockEnum = true;
-
-            Plugin.MoreLogs("Start of TerminalClock enumerator");
-            while (StartOfRound.Instance?.localPlayerController?.isPlayerDead == false &&
-                   StartOfRound.Instance.localClientHasControl)
-            {
-                if (terminal.terminalUIScreen.gameObject.activeSelf && showTime)
-                {
-                    if (!textComponent.gameObject.activeSelf)
-                        textComponent.gameObject.SetActive(true);
-
-                    string clockTime = HUDManager.Instance?.clockNumber?.text;
-                    if (!string.IsNullOrEmpty(clockTime))
-                    {
-                        string timeText = clockTime.Replace("\n", "").Replace("\r", "");
-                        textComponent.text = timeText;
-                    }
-                }
-                else if (textComponent.gameObject.activeSelf)
-                {
-                    textComponent.gameObject.SetActive(false);
-                }
-
-                yield return new WaitForSecondsRealtime(0.2f);
-            }
-
-            terminalClockEnum = false;
-            Plugin.MoreLogs("while loop ended for clock");
-
+            Plugin.MoreLogs("CLOCK: textcomponent is not null");
         }
 
         internal static TextMeshProUGUI MakeTimeText()

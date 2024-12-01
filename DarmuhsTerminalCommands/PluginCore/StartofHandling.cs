@@ -1,53 +1,27 @@
 ﻿using OpenLib.Common;
-using OpenLib.CoreMethods;
-using Steamworks.Ugc;
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using TerminalStuff.Compatibility;
-using TerminalStuff.VisualCore;
-using UnityEngine;
-using static OpenLib.ConfigManager.ConfigSetup;
+using TerminalStuff.EventSub;
 using static OpenLib.CoreMethods.LogicHandling;
 using static TerminalStuff.MoreCamStuff;
-using static TerminalStuff.TerminalEvents;
 
 namespace TerminalStuff
 {
     internal class StartofHandling
     {
-        internal static Coroutine delayedUpdater;
-        //internal static TerminalNode dummyNode = CreateDummyNode("handling_node", true, "");
 
-        internal static bool textUpdater = false;
-
-        internal static TerminalNode HandleShortcut(Terminal terminal, TerminalNode currentNode, string[] words, out TerminalNode resultNode)
+        internal static void HandleShortcutFinal(string cleanedText)
         {
-            string firstWord = words[0].ToLower();
-            HandleAnyNode(terminal, currentNode, words, firstWord, out resultNode);
-
-            List<MainListing> fullListings =
-            [
-                defaultListing, ConfigSettings.TerminalStuffMain
-            ];
-
-            if (GetNewDisplayText(fullListings, ref resultNode))
-                Plugin.MoreLogs("command found in one of the listings for shortcut...");
-            return resultNode;
+            SetTerminalInput(cleanedText);
+            Plugin.Log.LogDebug($"Terminal Input set to:{cleanedText}");
+            Plugin.instance.Terminal.OnSubmit();
         }
 
-        internal static TerminalNode HandleParsed(Terminal terminal, TerminalNode currentNode, string[] words, out TerminalNode resultNode)
+        internal static TerminalNode HandleParsed(TerminalNode currentNode, ref TerminalNode resultNode)
         {
-            string firstWord = words[0].ToLower();
-            HandleAnyNode(terminal, currentNode, words, firstWord, out resultNode);
-
-            if (resultNode == null)
-                Plugin.WARNING("resultNode is null in HandleParsed");
-
-            if (GetNewDisplayText(ConfigSettings.TerminalStuffMain, ref resultNode))
-                Plugin.Spam("command found in special terminalStuff listing");
-            else
-                Plugin.Spam($"terminalstuffmain listing count: {ConfigSettings.TerminalStuffMain.Listing.Count} - listing count did not find node");
-
+            HandleAnyNode(currentNode, ref resultNode);
             return resultNode;
         }
 
@@ -67,26 +41,17 @@ namespace TerminalStuff
 
         internal static int FindViewIntByString()
         {
-            string currentMode = GetViewMode();
-
-            if (currentMode == "none")
+            if (!ViewCommands.AnyActiveMonitoring())
                 return -1;
-            else
-            {
-                foreach (KeyValuePair<int, string> pairValue in ConfigSettings.TerminalStuffMain.ListNumToString)
-                {
-                    if (pairValue.Value == currentMode)
-                    {
-                        int nodeNum = pairValue.Key;
-                        return nodeNum;
-                    }
-                }
 
-                return -1;
-            }
+            string currentMode = GetViewMode(out int specialNum);
+
+            Plugin.Spam($"Current Mode: {currentMode}");
+
+            return specialNum;
         }
 
-        private static string GetViewMode()
+        private static string GetViewMode(out int specialNum)
         {
             string mode;
 
@@ -94,42 +59,49 @@ namespace TerminalStuff
             {
                 mode = "cams";
                 Plugin.MoreLogs("cams mode detected");
+                specialNum = 1;
                 return mode;
             }
             else if (Plugin.instance.isOnMap)
             {
                 mode = "map";
                 Plugin.MoreLogs("map mode detected");
+                specialNum = 5;
                 return mode;
             }
             else if (Plugin.instance.isOnOverlay)
             {
                 mode = "overlay";
                 Plugin.MoreLogs("overlay mode detected");
+                specialNum = 2;
                 return mode;
             }
             else if (Plugin.instance.isOnMiniMap)
             {
                 mode = "minimap";
                 Plugin.MoreLogs("minimap mode detected");
+                specialNum = 3;
                 return mode;
             }
             else if (Plugin.instance.isOnMiniCams)
             {
                 mode = "minicams";
                 Plugin.MoreLogs("minicams mode detected");
+                specialNum = 4;
                 return mode;
             }
             else if (Plugin.instance.isOnMirror)
             {
                 mode = "mirror";
                 Plugin.MoreLogs("Mirror mode detected");
+                specialNum = 6;
                 return mode;
             }
             else
             {
                 Plugin.Log.LogError("Error with mode return, setting to default value");
                 mode = "none";
+                specialNum = -1;
                 return mode;
             }
         }
@@ -147,6 +119,14 @@ namespace TerminalStuff
                 }
             }
             return null;
+        }
+
+        internal static void SyncTerminal(TerminalNode resultNode)
+        {
+            CheckNetNode(resultNode);
+            NetHandler.Instance.SyncRadarZoomServerRpc(GameStuff.TerminalMapRenderer.cam.orthographicSize);
+            if (Plugin.instance.TwoRadarMapsMod)
+                NetHandler.Instance.SyncRadarMapServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, GameStuff.TerminalMapRenderer.targetTransformIndex);    
         }
 
         internal static void CheckNetNode(TerminalNode resultNode)
@@ -167,9 +147,10 @@ namespace TerminalStuff
                 }
                 else
                 {
+                    int nodeNum = FindViewIntByString();
                     NetHandler.NetNodeReset(true);
-                    Plugin.MoreLogs("Valid node detected, nNS true");
-                    NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, resultNode.name, resultNode.displayText);
+                    NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, resultNode.name, resultNode.displayText, nodeNum);
+                    Plugin.MoreLogs($"Valid node detected, nNS true & nodeNum is detected as: {nodeNum}");
                     return;
                 }
             }
@@ -181,110 +162,23 @@ namespace TerminalStuff
 
         }
 
-        internal static TerminalNode HandleAnyNode(Terminal terminal, TerminalNode currentNode, string[] words, string firstWord, out TerminalNode resultNode)
+        internal static TerminalNode HandleAnyNode(TerminalNode currentNode, ref TerminalNode resultNode)
         {
+            if (GetNewDisplayText(ConfigSettings.TerminalStuffMain, ref resultNode))
+                Plugin.MoreLogs("command found in TerminalStuffMain listing!");
+
             if (Plugin.instance.CruiserTerm)
             {
-                ParseCruiserTerm(ref currentNode);
-                resultNode = currentNode;
-                return currentNode;
-            }
+                if (CruiserTerm.Status())
+                {
+                    ParseCruiserTerm(ref currentNode);
+                    resultNode = currentNode;
+                    return currentNode;
+                }
                 
-
-            if (firstWord == "switch")
-            {
-                if (words.Length == 1)
-                {
-                    Plugin.MoreLogs("switch command detected");
-                    resultNode = switchNode;
-
-                    if (Plugin.instance.TwoRadarMapsMod)
-                        TwoRadarMapsCompatibility.UpdateTerminalRadarTarget(terminal);
-                    else
-                        StartOfRound.Instance.mapScreen.SwitchRadarTargetForward(callRPC: true);
-
-                    UpdateCamsTarget(StartOfRound.Instance.mapScreen.targetTransformIndex);
-                    ViewCommands.DisplayTextUpdater(out string displayText);
-
-                    resultNode.displayText = displayText;
-                    Plugin.Spam(displayText);
-                    return resultNode;
-                }
-                else
-                {
-                    Plugin.MoreLogs("switch to specific player command detected");
-                    resultNode = terminal.terminalNodes.specialNodes[20];
-
-                    if (Plugin.instance.TwoRadarMapsMod)
-                    {
-                        int playernum = TwoRadarMapsCompatibility.CheckForPlayerNameCommand(words[1].ToLower());
-                        Plugin.Spam($"PlayerNameToTarget determined playernum - {playernum}");
-                        if (playernum != -1)
-                        {
-                            TwoRadarMapsCompatibility.UpdateTerminalRadarTarget(terminal, playernum);
-                            CamEvents.UpdateTextures.Invoke();
-                            ViewCommands.DisplayTextUpdater(out string displayText);
-                            resultNode.displayText = displayText;
-                            return resultNode;
-                        }
-                        Plugin.MoreLogs("PlayerName returned invalid number");
-                        resultNode = terminal.terminalNodes.specialNodes[12];
-                        return resultNode;
-                    }
-                    else
-                    {
-                        int playernum = PlayerNameToTarget(words[1].ToLower(), StartOfRound.Instance.mapScreen.radarTargets);
-                        Plugin.Spam($"PlayerNameToTarget determined playernum - {playernum}");
-                        if (playernum != -1)
-                        {
-                            StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(playernum);
-                            UpdateCamsTarget(playernum);
-                            CamEvents.UpdateTextures.Invoke();
-                            ViewCommands.DisplayTextUpdater(out string displayText);
-                            resultNode.displayText = displayText;
-                            DelayedUpdateText(terminal);
-                            return resultNode;
-                        }
-
-                        Plugin.MoreLogs("PlayerName returned invalid number");
-                        resultNode = terminal.terminalNodes.specialNodes[12];
-                        return resultNode;
-                    }
-                }
-            }
-            else
-            {
-                Plugin.Spam("returning current node");
-                resultNode = currentNode;
-                return currentNode;
-            }
-        }
-
-        internal static void DelayedUpdateText(Terminal terminal)
-        {
-            if (delayedUpdater != null)
-            {
-                terminal.StopCoroutine(delayedUpdater);
             }
 
-            delayedUpdater = terminal.StartCoroutine(DelayedUpdateTextRoutine(terminal));
-        }
-
-        internal static IEnumerator DelayedUpdateTextRoutine(Terminal terminal)
-        {
-            if (textUpdater)
-                yield break;
-
-            textUpdater = true;
-
-            yield return new WaitForSeconds(0.045f);
-            ViewCommands.DisplayTextUpdater(out string displayText);
-            CamEvents.UpdateTextures.Invoke();
-            switchNode.displayText = displayText;
-            terminal.LoadNewNode(switchNode);
-
-            textUpdater = false;
-
+            return resultNode;
         }
 
         internal static void ParseCruiserTerm(ref TerminalNode result)
@@ -305,12 +199,14 @@ namespace TerminalStuff
         internal static void FirstCheck(TerminalNode initialResult)
         {
             string query = CommonStringStuff.GetCleanedScreenText(Plugin.instance.Terminal);
-            if (ConfigSettings.TerminalHistory.Value)                
-                TerminalHistory.AddToCommandHistory(CommonStringStuff.RemovePunctuation(query));
+            if (ConfigSettings.TerminalHistory.Value && GameStuff.otherModWords.Any(w => w.ToLower() == query.ToLower()))
+                TerminalHistory.AddToCommandHistory(query);
 
-            
             if (initialResult == null)
                 return;
+
+            if (ConfigSettings.TerminalHistory.Value && !initialResult.name.Contains("ParserError") && !initialResult.name.Contains("GeneralError"))
+                TerminalHistory.AddToCommandHistory(query);
 
             VideoPersist(initialResult.name);
             CamPersistance(initialResult.name, initialResult);

@@ -38,7 +38,7 @@ namespace TerminalStuff.EventSub
                 return;
 
             if (!ViewCommands.isVideoPlaying)
-                StartofHandling.CheckNetNode(Plugin.instance.Terminal.currentNode);
+                TerminalParse.NetSync(Plugin.instance.Terminal.currentNode);
         }
 
         internal static void StartUsingTerminalCheck(Terminal instance)
@@ -62,19 +62,6 @@ namespace TerminalStuff.EventSub
             {
                 Plugin.Spam("Syncing items between players for refund command");
                 NetHandler.Instance.SyncDropShipServerRpc();
-            }
-
-            //walkie functions
-            if (ConfigSettings.WalkieTerm.Value)
-            {
-                Plugin.Spam("Starting TalkinTerm Coroutine");
-                instance.StartCoroutine(WalkieTerm.TalkinTerm());
-            }
-
-            if (ConfigSettings.TerminalShortcuts.Value && ShortcutBindings.keyActions.Count > 0)
-            {
-                Plugin.Spam("Listening for shortcuts");
-                instance.StartCoroutine(ShortcutBindings.TerminalShortCuts());
             }
 
             //AlwaysOn Functions
@@ -116,8 +103,7 @@ namespace TerminalStuff.EventSub
                     return;
                 }
                 Plugin.Spam("sending current node to other users");
-                NetHandler.NetNodeReset(true);
-                NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, nextNode.name, nextNode.displayText);
+                TerminalParse.NetSync(nextNode);
             }
         }
         //end of void

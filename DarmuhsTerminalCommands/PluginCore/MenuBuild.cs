@@ -43,6 +43,7 @@ namespace TerminalStuff
         internal static void CreateDarmuhsTerminalStuffMenus()
         {
             Plugin.Spam("START CreateDarmuhsTerminalStuffMenus");
+            EventSub.TerminalStart.InitiateTerminalStuff();
             if (!ConfigSettings.CreateMoreMenus.Value)
             {
                 if (!DynamicBools.TryGetKeyword("other", out TerminalKeyword otherWord))
@@ -74,10 +75,13 @@ namespace TerminalStuff
 
             Plugin.Spam($"myMenu info:\nMenuName: {myMenu.MenuName}\nmyMenu.Categories.Count: {myMenu.Categories.Count}\n");
 
-            CreateCategoryCommands(myMenu, ConfigSettings.TerminalStuffMain);
+
+            if (ConfigSettings.FauxMoreMenu.Value)
+                CreateCategoryFauxCommands(myMenu, defaultListing);
+            else
+                CreateCategoryCommands(myMenu, ConfigSettings.TerminalStuffMain);
 
             Plugin.Spam("END CreateDarmuhsTerminalStuffMenus");
-            EventSub.TerminalStart.InitiateTerminalStuff();
 
         }
 

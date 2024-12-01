@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TerminalStuff.EventSub;
 
 namespace TerminalStuff
 {
@@ -17,6 +18,18 @@ namespace TerminalStuff
                 {
                     matching.Add(word.word);
                     Plugin.Spam($"adding matching word: {word.word} to autocomplete list");
+                }
+            }
+
+            if(GameStuff.otherModWords.Count > 0)
+            {
+                foreach(string modword in GameStuff.otherModWords)
+                {
+                    if (modword.ToLower().Contains(input))
+                    {
+                        matching.Add(modword);
+                        Plugin.Spam($"adding otherModWord: {modword} to autocomplete list");
+                    }
                 }
             }
 

@@ -16,7 +16,7 @@ using static OpenLib.ConfigManager.ConfigSetup;
 namespace TerminalStuff
 {
     [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", (PluginInfo.PLUGIN_VERSION))]
-    [BepInDependency("darmuh.OpenLib", "0.2.6")] //hard dependency for my library
+    [BepInDependency("darmuh.OpenLib", "0.2.10")] //hard dependency for my library
 
 
     public class Plugin : BaseUnityPlugin
@@ -26,7 +26,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.TerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "3.6.8";
+            public const string PLUGIN_VERSION = "3.7.0";
         }
 
         internal static ManualLogSource Log;
@@ -44,9 +44,9 @@ namespace TerminalStuff
         public bool Constellations = false;
         public bool ShipInventory = false;
         public bool CruiserTerm = false;
+        public bool ITAPI = false;
 
         //public stuff for instance
-        public bool radarNonPlayer = false;
         public bool isOnMirror = false;
         public bool isOnCamera = false;
         public bool isOnMap = false;
@@ -98,7 +98,7 @@ namespace TerminalStuff
         internal void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)
         {
             Spam("CONFIG SETTING CHANGE EVENT");
-            StuffForLibrary.ManualCommands();
+            StuffForLibrary.ManualManagedBools();
             TerminalStart.InitiateTerminalStuff();
 
             if (settingChangedArg.ChangedSetting == null)

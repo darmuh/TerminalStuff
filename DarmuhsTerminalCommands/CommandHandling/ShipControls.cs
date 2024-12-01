@@ -1,11 +1,13 @@
 ﻿using GameNetcodeStuff;
 using System.Collections;
+using TerminalStuff.EventSub;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 using static OpenLib.Common.Teleporter;
 using static TerminalStuff.Misc;
 using static TerminalStuff.StringStuff;
+using static TerminalStuff.TerminalEvents;
 using static UnityEngine.Object;
 
 namespace TerminalStuff
@@ -110,6 +112,9 @@ namespace TerminalStuff
 
         internal static string RegularTeleporterCommand()
         {
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.TpKeywords.Value));
             string displayText;
             ShipTeleporter tp = NormalTP;
@@ -121,7 +126,7 @@ namespace TerminalStuff
                     if (val.Length > 1)
                     {
                         Plugin.MoreLogs("attempting to tp specific player");
-                        string playerName = TerminalEvents.QueryToPlayerName(val, StartOfRound.Instance.mapScreen.radarTargets);
+                        string playerName = QueryToPlayerName(val, GameStuff.TerminalMapRenderer.radarTargets);
                         PlayerControllerB player = GetPlayerFromName(playerName);
                         if (player != null && player.isPlayerControlled)
                         {
@@ -155,16 +160,16 @@ namespace TerminalStuff
             if (player == null)
                 yield break;
 
-            int current = StartOfRound.Instance.mapScreen.targetTransformIndex;
-            int playerIndex = StartOfRound.Instance.mapScreen.radarTargets.FindIndex(t => t.name == player.playerUsername);
+            int current = GameStuff.TerminalMapRenderer.targetTransformIndex;
+            int playerIndex = GameStuff.TerminalMapRenderer.radarTargets.FindIndex(t => t.name == player.playerUsername);
 
-            StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(playerIndex);
+            GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(playerIndex);
             Plugin.Spam($"Set radartarget to {player.playerUsername} @ [ {playerIndex} ]");
             yield return new WaitForSeconds(0.1f);
             tp.PressTeleportButtonOnLocalClient();
             Plugin.Spam($"teleporting {player.playerUsername}");
             yield return new WaitForSeconds(0.1f);
-            StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(current);
+            GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(current);
             Plugin.Spam($"Set radartarget back to {current}");
 
         }
@@ -180,7 +185,7 @@ namespace TerminalStuff
             else
             {
                 tp.PressTeleportButtonOnLocalClient();
-                displayText = $"{ConfigSettings.TpMessageString.Value}\n";
+                displayText = $"{ConfigSettings.TpMessageString.Value} (Targeted Player: {GameStuff.TerminalMapRenderer.radarTargets[GameStuff.TerminalMapRenderer.targetTransformIndex].name})\n";
                 return displayText;
             }
         }

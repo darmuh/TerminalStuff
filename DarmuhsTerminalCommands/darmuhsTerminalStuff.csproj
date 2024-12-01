@@ -26,7 +26,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>portable</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>_Package\</OutputPath>
     <DefineConstants>
     </DefineConstants>
@@ -41,9 +41,9 @@
     <DebugType>embedded</DebugType>
     <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
   </PropertyGroup>
-<Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
-    <Exec Command="netcode-patch -nv 1.5.2 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')"/>
-</Target>
+  <Target Name="NetcodePatch" AfterTargets="PostBuildEvent">
+    <Exec Command="netcode-patch -nv 1.5.2 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
+  </Target>
   <ItemGroup>
     <None Remove="darmuhngo" />
     <None Include="_Package\CHANGELOG.md" />
@@ -74,9 +74,10 @@
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\LobbyCompatibility\BMX.LobbyCompatibility.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="CruiserTerminal">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\mborsh-CruiserTerminal\CruiserTerminal.dll</HintPath>
+    <Reference Include="C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\mborsh-CruiserTerminal\CruiserTerminal.dll">
+      <Name>CruiserTerminal</Name>
       <Private>False</Private>
+      <Aliases>global</Aliases>
     </Reference>
     <Reference Include="Facepunch.Steamworks.Win64, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -85,6 +86,10 @@
     </Reference>
     <Reference Include="FovAdjust">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\Rozebud-FOV_Adjust\FovAdjust.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="InteractiveTerminalAPI" Publicize="true">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\WhiteSpike-Interactive_Terminal_API\InteractiveTerminalAPI\InteractiveTerminalAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="LethalConstellations">
@@ -102,6 +107,7 @@
     <Reference Include="ShipInventory">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\WarperSan-ShipInventory\ShipInventory.dll</HintPath>
       <Private>False</Private>
+      <Aliases>global</Aliases>
     </Reference>
     <Reference Include="suitsTerminal">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\suitsTerminal.dll</HintPath>
@@ -200,9 +206,11 @@
     <Compile Include="CommandHandling\DynamicCommands.cs" />
     <Compile Include="Compatibility\BMX-LobbyCompat.cs" />
     <Compile Include="Compatibility\CruiserTerm.cs" />
+    <Compile Include="Compatibility\CruiserTermOld.cs" />
     <Compile Include="Compatibility\FovAdjustStuff.cs" />
     <Compile Include="CommandHandling\GambaCommands.cs" />
     <Compile Include="Compatibility\ConstellationsCompat.cs" />
+    <Compile Include="Compatibility\InteractiveAPI.cs" />
     <Compile Include="Compatibility\ShipInventoryCompat.cs" />
     <Compile Include="EventSub\GameStuff.cs" />
     <Compile Include="EventSub\Subscribers.cs" />

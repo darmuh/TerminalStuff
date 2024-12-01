@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection.Emit;
-using TerminalStuff.Compatibility;
 using TerminalStuff.SpecialStuff;
 using UnityEngine;
 using UnityEngine.Video;
@@ -95,7 +94,6 @@ namespace TerminalStuff
                     {
                         yield return instruction;
                     }
-
                 }
 
                 if (replacements > 0)
@@ -138,7 +136,6 @@ namespace TerminalStuff
                         MoreCamStuff.ResetPluginInstanceBools();
                         Plugin.Spam("Vanilla view monitor detected, resetting plugin bools");
                     }
-
 
                     if (Plugin.instance.Terminal.terminalImage.enabled = shouldEnable)
                         return;

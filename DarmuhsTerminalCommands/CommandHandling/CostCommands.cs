@@ -158,7 +158,7 @@ namespace TerminalStuff
         internal static string VitalsCommand()
         {
             string displayText;
-            PlayerControllerB getPlayerInfo = StartOfRound.Instance.mapScreen.targetedPlayer;
+            PlayerControllerB getPlayerInfo = GameStuff.TerminalMapRenderer.targetedPlayer;
 
             if (getPlayerInfo == null)
             {
@@ -332,7 +332,7 @@ namespace TerminalStuff
                 int upgradesCost = GetUpgradesTotalCost(upgradeItems, out int upgradeCount);
                 Plugin.Spam($"Adding {upgradesCost} to {totalCost}");
                 totalCost += upgradesCost;
-                itemCount += upgradeCount;
+                //itemCount += upgradeCount;
             }
 
             if (totalCost <= Plugin.instance.Terminal.groupCredits)
@@ -493,7 +493,7 @@ namespace TerminalStuff
                 int upgradesCost = GetUpgradesTotalCost(upgradeItems, out int upgradeCount);
                 Plugin.Spam($"Adding {upgradesCost} to {totalCost}");
                 totalCost += upgradesCost;
-                itemCount += upgradeCount;
+                //itemCount += upgradeCount;
             }
 
             if (totalCost > Plugin.instance.Terminal.groupCredits)

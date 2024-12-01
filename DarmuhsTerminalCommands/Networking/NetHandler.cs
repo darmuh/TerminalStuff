@@ -2,6 +2,7 @@
 using OpenLib.Events;
 using System.Collections;
 using System.Collections.Generic;
+using TerminalStuff.EventSub;
 using TerminalStuff.PluginCore;
 using Unity.Netcode;
 using UnityEngine;
@@ -102,27 +103,22 @@ namespace TerminalStuff
             else if (nodeNumber == 1) // cams
             {
                 node.displayText = ViewCommands.TermCamsEvent();
-                return;
             }
             else if (nodeNumber == 2) //overlay
             {
                 node.displayText = ViewCommands.OverlayTermEvent();
-                return;
             }
             else if (nodeNumber == 3) //minimap
             {
                 node.displayText = ViewCommands.MiniMapTermEvent();
-                return;
             }
             else if (nodeNumber == 4) //minicams
             {
                 node.displayText = ViewCommands.MiniCamsTermEvent();
-                return;
             }
             else if (nodeNumber == 5) //map
             {
                 node.displayText = ViewCommands.TermMapEvent();
-                return;
             }
             else if (nodeNumber == 6) //mirror
             {
@@ -130,6 +126,9 @@ namespace TerminalStuff
             }
             else
                 Plugin.MoreLogs("No matching views detected");
+
+            if(node.displayText != nodeText)
+                node.displayText = nodeText;
         }
 
         private void SyncNodes(string topRightText, string nodeName, string nodeText, int nodeNumber = -1)
@@ -156,6 +155,14 @@ namespace TerminalStuff
                     Plugin.instance.Terminal.LoadNewNode(viewNode);
                     //Plugin.instance.Terminal.currentNode.displayText = viewNode.displayText;
                     Plugin.MoreLogs($"Non terminal user: Attempting to load {nodeName}, ViewNode: {nodeNumber}\n {viewNode.displayText}");
+                }
+                else if(nodeNumber == 100 && nodeName == "ViewInsideShipCam 1")
+                {
+                    if (viewMonitorVanilla == null)
+                        return;
+
+                    Plugin.instance.Terminal.LoadNewNode(viewMonitorVanilla);
+                    Plugin.MoreLogs($"Non terminal user: Attempting to load vanilla viewMonitor: {nodeName}");
                 }
                 else
                 {
@@ -225,29 +232,6 @@ namespace TerminalStuff
 
             Plugin.MoreLogs($"Sending {videoPlaying} as videoPlaying to other clients with active screens");
             Instance.SyncVideoChoiceServerRpc(((int)StartOfRound.Instance.localPlayerController.playerClientId), videoPlaying);
-        }
-
-        [ServerRpc(RequireOwnership = false)]
-        internal void SyncTwoRadarMapsServerRpc(int fromClient, int playerNum)
-        {
-            Plugin.Spam($"Server: Client ({fromClient}) attempting to sync tworadarmaps target to {playerNum}");
-            SyncTwoRadarMapsClientRpc(fromClient, playerNum);
-        }
-
-        [ClientRpc]
-        internal void SyncTwoRadarMapsClientRpc(int fromClient, int playerNum)
-        {
-            if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
-            {
-                Plugin.Spam($"This is the client updating target to {playerNum}");
-                return;
-            }
-            else
-            {
-                Plugin.Spam("SyncTwoRadarMapsClientRpc called from another client");
-                TwoRadarMapsCompatibility.SyncTarget(playerNum);
-            }
-
         }
 
         [ServerRpc(RequireOwnership = false)]
@@ -331,21 +315,26 @@ namespace TerminalStuff
         }
 
         [ServerRpc(RequireOwnership = false)]
-        internal void GetCurrentNodeServerRpc(int fromClient, int otherClient)
+        internal void SyncTerminalServerRpc(int fromClient, int otherClient)
         {
             if (fromClient == -1 || otherClient == -1)
             {
-                Plugin.ERROR($"GetCurrentNodeServerRpc FATAL ERROR: Invalid client ID detected.\nfromClient: {fromClient}\notherClient: {otherClient}");
+                Plugin.ERROR($"SyncTerminalServerRpc FATAL ERROR: Invalid client ID detected.\nfromClient: {fromClient}\notherClient: {otherClient}");
                 return;
             }
 
             Plugin.MoreLogs($"Server: Client [{fromClient}] requesting terminalNode from: [{otherClient}]");
-            GetCurrentNodeClientRpc(fromClient, otherClient);
+            SyncTerminalClientRpc(fromClient, otherClient);
         }
 
         [ClientRpc]
-        internal void GetCurrentNodeClientRpc(int fromClient, int otherClient)
+        internal void SyncTerminalClientRpc(int fromClient, int otherClient)
         {
+            if (StartOfRound.Instance == null)
+                return;
+            if (StartOfRound.Instance.localPlayerController == null)
+                return;
+
             if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
             {
                 Plugin.MoreLogs($"This is the client requesting the node");
@@ -355,7 +344,7 @@ namespace TerminalStuff
             {
                 Plugin.MoreLogs($"This is the client the node is being requested from");
                 //NetHandler.Instance.SyncActiveCamsBoolServerRpc(otherClient, netCamStatus);
-                StartofHandling.CheckNetNode(Plugin.instance.Terminal.currentNode);
+                StartofHandling.SyncTerminal(Plugin.instance.Terminal.currentNode);
                 return;
             }
             else
@@ -450,16 +439,37 @@ namespace TerminalStuff
 
             ViewCommands.radarZoom = zoom;
 
-            if (Plugin.instance.TwoRadarMapsMod)
+            if (GameStuff.TerminalMapRenderer == null)
+                GameStuff.GetMapRenderer();
+
+            GameStuff.TerminalMapRenderer.cam.orthographicSize = ViewCommands.radarZoom;
+            Plugin.MoreLogs($"Radar Zoom set to {ViewCommands.radarZoom}");
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        internal void SyncRadarMapServerRpc(int fromClient, int newTarget)
+        {
+            Plugin.Spam($"Server: Client ({fromClient}) attempting to sync radarmap target to {newTarget}");
+            SyncRadarMapClientRpc(fromClient, newTarget);
+        }
+
+        [ClientRpc]
+        internal void SyncRadarMapClientRpc(int fromClient, int newTarget)
+        {
+            if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
             {
-                TwoRadarMapsCompatibility.ChangeMapZoom(ViewCommands.radarZoom);
-                Plugin.MoreLogs($"Radar Zoom for TwoRadarMaps set to {ViewCommands.radarZoom}");
+                Plugin.Spam($"This is the client updating target to {newTarget}");
+                return;
             }
             else
             {
-                StartOfRound.Instance.mapScreen.cam.orthographicSize = ViewCommands.radarZoom;
-                Plugin.MoreLogs($"Radar Zoom set to {ViewCommands.radarZoom}");
+                if (GameStuff.TerminalMapRenderer == null)
+                    GameStuff.GetMapRenderer();
+
+                Plugin.Spam("SyncRadarMapClientRpc called from another client");
+                GameStuff.TerminalMapRenderer.StartCoroutine(GameStuff.TerminalMapRenderer.updateMapTarget(newTarget, true));
             }
+
         }
 
         [ServerRpc(RequireOwnership = false)]
@@ -556,7 +566,7 @@ namespace TerminalStuff
         [ClientRpc]
         internal void FlashColorClientRpc(Color newColor, ulong playerID, string playerName)
         {
-            if (StartOfRound.Instance.localPlayerController.actualClientId == playerID)
+            if (StartOfRound.Instance.localPlayerController.playerClientId == playerID)
                 return;
 
             //Plugin.MoreLogs("Fcolor clientRpc called");
@@ -580,7 +590,7 @@ namespace TerminalStuff
         [ClientRpc]
         internal void HelmetLightColorClientRpc(Color newColor, ulong playerID)
         {
-            if (StartOfRound.Instance.localPlayerController.actualClientId == playerID)
+            if (StartOfRound.Instance.localPlayerController.playerClientId == playerID)
                 return;
 
             SetHelmetLight(newColor, playerID);
@@ -629,9 +639,12 @@ namespace TerminalStuff
 
         internal static void SetHelmetLight(Color newColor, ulong playerID)
         {
-            if (StartOfRound.Instance.allPlayerScripts[playerID].helmetLight)
+            if (StartOfRound.Instance.allPlayerScripts.Length <= (int)playerID)
+                return;
+
+            if (StartOfRound.Instance.allPlayerScripts[(int)playerID].helmetLight)
             {
-                StartOfRound.Instance.allPlayerScripts[playerID].helmetLight.color = newColor;
+                StartOfRound.Instance.allPlayerScripts[(int)playerID].helmetLight.color = newColor;
             }
         }
 
@@ -702,6 +715,9 @@ namespace TerminalStuff
         internal void QuickRestartClientRpc()
         {
             GameNetworkManager.Instance.localPlayerController.DropAllHeldItemsAndSync();
+            if(GameNetworkManager.Instance.localPlayerController.currentTriggerInAnimationWith == Plugin.instance.Terminal.terminalTrigger)
+                Plugin.instance.Terminal.QuitTerminal(); //quit terminal for terminal user
+
             //DeleteInventory();
             Plugin.instance.Terminal.ClearBoughtItems();
 
@@ -710,9 +726,14 @@ namespace TerminalStuff
                 GameNetworkManager.Instance.ResetSavedGameValues();
             }
 
+            StartOfRound.Instance.gameStats.daysSpent = 0;
+            StartOfRound.Instance.gameStats.scrapValueCollected = 0;
+            StartOfRound.Instance.gameStats.deaths = 0;
+            StartOfRound.Instance.gameStats.allStepsTaken = 0;
+
             StartOfRound.Instance.ResetShip();
             StartOfRound.Instance.currentPlanetPrefab.transform.position = StartOfRound.Instance.planetContainer.transform.position;
-            ShipReset.Invoke(); //public event for other mods to listen to and do things on ship reset
+            ShipReset.Invoke(); //public event for other mods to listen to and do things on ship reset, This has been added to openlib now
 
         }
 
@@ -737,9 +758,6 @@ namespace TerminalStuff
             Instance = this;
             base.OnNetworkSpawn();
             Plugin.Log.LogInfo("Nethandler Spawned!");
-
-            if (GameNetworkManager.Instance.isHostingGame)
-                return;
 
         }
 

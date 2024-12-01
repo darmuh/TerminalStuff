@@ -22,19 +22,7 @@ namespace TerminalStuff.EventSub
                     Plugin.Spam("got node from menus");
             }
 
-
-            string[] words = CommonStringStuff.GetWords();
-            if (words.Length > 0)
-            {
-                StartofHandling.HandleParsed(Plugin.instance.Terminal, node, words, out TerminalNode resultNode);
-
-                if (resultNode != null)
-                {
-                    node = resultNode;
-                    NetSync(node);
-                    return node;
-                }
-            }
+            StartofHandling.HandleParsed(node, ref node);
 
             NetSync(node);
             return node;
@@ -43,11 +31,36 @@ namespace TerminalStuff.EventSub
 
         internal static void NetSync(TerminalNode node)
         {
-            if (!ConfigSettings.NetworkedNodes.Value)
+            if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
                 return;
 
-            NetHandler.NetNodeReset(false);
-            StartofHandling.CheckNetNode(node);
+            Plugin.MoreLogs("Networked nodes enabled, sending result to server.");
+            if (node != null)
+            {
+                if (ConfigSettings.TerminalStuffMain.specialListNum.ContainsKey(node)) //should be the listing that contains the viewnodes
+                {
+                    int nodeNum = StartofHandling.FindViewInt(node);
+                    NetHandler.NetNodeReset(true);
+                    NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText, nodeNum);
+                    Plugin.MoreLogs($"Valid node detected, nNS true & nodeNum: {nodeNum}");
+                    return;
+                }
+                else if(!Plugin.instance.splitViewCreated && (bool)node.persistentImage && node.name == "ViewInsideShipCam 1")
+                {
+                    NetHandler.NetNodeReset(true);
+                    NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText, 100);
+                    Plugin.MoreLogs($"Valid node detected, nNS true & nodeNum: 100 (vanilla view monitor)");
+                    return;
+                }
+                else
+                {
+                    NetHandler.NetNodeReset(true);
+                    NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText);
+                    Plugin.MoreLogs($"Valid node detected, nNS true, no nodeNum set");
+                    return;
+                }
+            }
+
             Plugin.Spam("attempting to sync node with other clients over the network");
         }
 

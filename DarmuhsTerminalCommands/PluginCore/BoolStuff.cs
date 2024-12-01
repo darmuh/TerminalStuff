@@ -1,13 +1,10 @@
-﻿using static TerminalStuff.AdminCommands;
-using static TerminalStuff.AlwaysOnStuff;
+﻿using UnityEngine.InputSystem;
+using static TerminalStuff.AdminCommands;
 using static TerminalStuff.DynamicCommands;
-using static TerminalStuff.EventSub.TerminalQuit;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.NetHandler;
 using static TerminalStuff.ShipControls;
 using static TerminalStuff.ShortcutBindings;
-using static TerminalStuff.StartofHandling;
-using static TerminalStuff.TerminalClockStuff;
 using static TerminalStuff.TerminalEvents;
 using static TerminalStuff.WalkieTerm;
 
@@ -17,6 +14,8 @@ namespace TerminalStuff
     {
         internal static bool ListenForShortCuts()
         {
+            if (!ConfigSettings.TerminalShortcuts.Value || keyActions.Count < 1)
+                return false;
 
             if (Plugin.instance.suitsTerminal && SuitsTerminalCompatibility.CheckForSuitsMenu())
                 return false;
@@ -24,23 +23,36 @@ namespace TerminalStuff
             if (!Plugin.instance.Terminal.terminalInUse)
                 return false;
 
+            if (!ConfigSettings.TerminalShortcuts.Value || stopForAnyReason)
+                return false;
+
             return true;
+        }
+
+        //check if any key that is bound by this mod is pressed
+        internal static bool AnyKeyIsPressed()
+        {
+            foreach (var keyAction in keyActions)
+            {
+                if (Keyboard.current[keyAction.Key].isPressed)
+                {
+                    keyBeingPressed = keyAction.Key;
+                    Plugin.MoreLogs($"Key detected in use: {keyAction.Key}");
+                    return true;
+                }
+            }
+            return false;
         }
 
         internal static void ResetEnumBools()
         {
             delayStartEnum = false;
-            dynamicStatus = false;
-            videoQuitEnum = false;
             quitTerminalEnum = false;
             leverEnum = false;
             fovEnum = false;
-            shortcutListenEnum = false;
-            terminalClockEnum = false;
             rainbowFlashEnum = false;
             kickEnum = false;
             walkieEnum = false;
-            textUpdater = false;
         }
 
         internal static bool ShouldAddCamsLogic()
@@ -58,6 +70,17 @@ namespace TerminalStuff
             return false;
         }
 
+        internal static bool MapCameraUsed()
+        {
+            if (!StartOfRound.Instance.localPlayerController.isInHangarShipRoom) //not in ship
+                return false;
+
+            if (Plugin.instance.isOnMap || Plugin.instance.isOnMiniCams || Plugin.instance.isOnMiniMap || Plugin.instance.isOnOverlay || (bool)Plugin.instance.Terminal.displayingPersistentImage)
+                return true;
+
+            return false;
+        }
+
         internal static bool ShouldEnableImage()
         {
             if (Plugin.instance.suitsTerminal)
@@ -72,9 +95,17 @@ namespace TerminalStuff
 
             if (ViewCommands.AnyActiveMonitoring())
                 return true;
+            
             if (Plugin.instance.isOnMirror)
                 return true;
+
             if (!Plugin.instance.splitViewCreated && (bool)Plugin.instance.Terminal.displayingPersistentImage)
+                return true;
+
+            if (Plugin.instance.Terminal.currentNode == null)
+                return false;
+
+            if (MoreCamStuff.excludedNames.Contains(Plugin.instance.Terminal.currentNode.name) && !MoreCamStuff.HideCams())
                 return true;
 
             return false;

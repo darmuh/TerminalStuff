@@ -22,14 +22,15 @@
 	- Using the [Fastenshtein string comparison algorithm](https://github.com/DanHarltey/Fastenshtein)
  - Change the terminal font and font size!
 	- Added support for custom font packs, see [Minecraft TerminalFont](https://thunderstore.io/c/lethal-company/p/darmuh/Minecraft_TerminalFont/) as an example
- - [NEW IN 3.5.0] Your last terminal session will save the page you were on and any text you had typed in.
- - [NEW IN 3.5.5] Adjust starting credits to any value from 0 to 20000! (Host Only)
+ - Your last terminal session will save the page you were on and any text you had typed in.
+ - Adjust starting credits to any value from 0 to 20000! (Host Only)
  - Cams commands can now show player povs even without a separate bodycam mod present.
 	- Still compatibile with every major bodycam mod; OpenBodyCams, Helmet Cameras, and Solos Bodycams are all compatible!
  - Expanded compatibility with LethalLevelLoader, OpenBodyCams, and TwoRadarMaps!
-	- [NEW IN 3.5.7] Will now check if BodyCam upgrade has been purchased when using OpenBodyCams cameras!
- - [NEW IN 3.6.0] Loot commands have added compatiblility with ShipInventory
- - [NEW IN 3.6.6] Special config items for CruiserTerminal compatibility!
+	- Will now check if BodyCam upgrade has been purchased when using OpenBodyCams cameras!
+ - Loot commands have added compatiblility with ShipInventory
+ - Special config items for CruiserTerminal compatibility!
+	- Choose which commands you'd like to work with the CruiserTerminal!
 
 ### Comfort Commands:
  - Lobby: Display the current lobby name.

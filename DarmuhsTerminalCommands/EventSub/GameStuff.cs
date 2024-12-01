@@ -1,4 +1,6 @@
-﻿using TerminalStuff.PluginCore;
+﻿using System;
+using System.Collections.Generic;
+using TerminalStuff.PluginCore;
 using static OpenLib.Common.StartGame;
 using static TerminalStuff.AlwaysOnStuff;
 
@@ -6,6 +8,10 @@ namespace TerminalStuff.EventSub
 {
     internal class GameStuff
     {
+        //cachedstuff
+        internal static ManualCameraRenderer TerminalMapRenderer;
+        internal static List<string> otherModWords = [];
+
         internal static bool oneTimeOnly = false;
         internal static void OnGameStart()
         {
@@ -13,18 +19,40 @@ namespace TerminalStuff.EventSub
             oneTimeOnly = false;
         }
 
+        internal static void GetMapRenderer()
+        {
+            if (Plugin.instance.TwoRadarMapsMod)
+                TerminalMapRenderer = TwoRadarMapsCompatibility.GetTerminalMap();
+            else
+                TerminalMapRenderer = StartOfRound.Instance.mapScreen;
+        }
+
+        internal static void ResetClockStatus()
+        {
+            if (!ConfigSettings.TerminalClock.Value)
+                return;
+
+            TerminalClockStuff.SetClockVisible(false);
+        }
+
+        internal static void OnNextDay()
+        {
+            ResetClockStatus();
+        }
+
         internal static void OnStartOfRoundStart()
         {
             Plugin.instance.splitViewCreated = false;
             SplitViewChecks.InitSplitViewObjects(); //addSplitViewObjects
             BoolStuff.ResetEnumBools(); // resets all enum bools
-            TerminalClockStuff.showTime = false; // disable clock on game restart
+            TerminalClockStuff.SetClockVisible(false); // disable clock on game restart
             MoreCamStuff.ResetPluginInstanceBools(); //reset view command bools
-
         }
 
         internal static void OnPlayerSpawn()
         {
+            GetMapRenderer();
+
             if (screenSettings == null)
                 return;
 
@@ -38,20 +66,6 @@ namespace TerminalStuff.EventSub
             else
                 Plugin.Spam($"Screen setting set to inUse - {screenSettings.inUse} ");
 
-        }
-
-        internal static void OnStartGame()
-        {
-            if (!StartOfRound.Instance.inShipPhase)
-            {
-                if (!TerminalEvents.clockDisabledByCommand && ConfigSettings.TerminalClock.Value)
-                    TerminalClockStuff.showTime = true;
-
-            }
-            else
-            {
-                TerminalClockStuff.showTime = false;
-            }
         }
 
         private static void CompatibilityCheck()
@@ -78,7 +92,12 @@ namespace TerminalStuff.EventSub
                 Plugin.Spam("TwoRadarMaps by Zaggy1024 detected!");
             
             if (SoftCompatibility("com.malco.lethalcompany.moreshipupgrades", ref Plugin.instance.LateGameUpgrades))
-                Plugin.Spam("Lategame Upgrades by malco detected!");
+            {
+                Plugin.Spam("Lategame Upgrades detected!");
+                //manual list of commands added by LGU that do not show up in ITAPI registered commands dictionary
+                otherModWords.AddRange(["demon", "lookup", "bruteforce", "initattack", "atk", "cd", "cooldown", "lategame", "lgc", "forcecredits", "load", "quantum", "intern", "interns"]);
+            }
+                
             
             if (SoftCompatibility("darmuh.suitsTerminal", ref Plugin.instance.suitsTerminal))
                 Plugin.Spam("suitsTerminal detected!");
@@ -93,7 +112,19 @@ namespace TerminalStuff.EventSub
                 Plugin.Spam("ShipInventory compatibility enabled!");
             
             if (SoftCompatibility("mborsh.CruiserTerminal", ref Plugin.instance.CruiserTerm))
+            {
                 Plugin.Spam("CruiserTerminal by mborsh detected!");
+                Version minVersion = new("1.1.0");
+                if(OpenLib.Common.Misc.GetPluginVersion("mborsh.CruiserTerminal") < minVersion)
+                {
+                    Plugin.instance.CruiserTerm = false;
+                    Plugin.WARNING("Older CruiserTerminal Mod detected! Compatibility functions are disabled!");
+                }
+            }
+                
+
+            if (SoftCompatibility("WhiteSpike.InteractiveTerminalAPI", ref Plugin.instance.ITAPI))
+                Plugin.Spam("InteractiveTerminalAPI detected!");
 
             if (OpenLib.Plugin.instance.LethalConfig)
                 OpenLib.Compat.LethalConfigSoft.AddButton("Terminal Customization", "Refresh Customizations", "Press this button to refresh all terminal customizations", "Refresh", TerminalCustomizer.TerminalCustomization);

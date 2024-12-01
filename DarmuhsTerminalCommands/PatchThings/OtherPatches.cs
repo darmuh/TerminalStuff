@@ -1,74 +1,38 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using TerminalStuff.EventSub;
+using TerminalStuff.VisualCore;
 using UnityEngine;
-using static TerminalStuff.MoreCamStuff;
 
 
 namespace TerminalStuff
 {
-
     [HarmonyPatch(typeof(ManualCameraRenderer), "updateMapTarget")]
     public class SwitchRadarPatch
     {
-
-        public static void Postfix(int setRadarTargetIndex)
+        public static void Postfix(ManualCameraRenderer __instance, int setRadarTargetIndex)
         {
-            if (StartOfRound.Instance.mapScreen == null || StartOfRound.Instance.mapScreen.radarTargets == null || StartOfRound.Instance.mapScreen.radarTargets[setRadarTargetIndex] == null)
-            {
-                Plugin.ERROR("ERROR: Postfix failed, StartOfRound.Instance.mapScreen has null variables");
-                return;
-            }
-
-            if (Plugin.instance.TwoRadarMapsMod || Plugin.instance.isOnMirror)
+            if (__instance != GameStuff.TerminalMapRenderer)
                 return;
 
-            Plugin.instance.radarNonPlayer = StartOfRound.Instance.mapScreen.radarTargets[setRadarTargetIndex].isNonPlayer;
+            Plugin.Spam($"updateMapTarget: {setRadarTargetIndex}");
+            CamEvents.UpdateTarget.Invoke(setRadarTargetIndex);
+        }
+    }
 
-            if (!IsExternalCamsPresent() && ViewCommands.AnyActiveMonitoring())
+    //MeetsCameraEnabledConditions
+    [HarmonyPatch(typeof(ManualCameraRenderer), "MeetsCameraEnabledConditions")]
+    public class CameraEnabledPatch
+    {
+        public static void Postfix(ManualCameraRenderer __instance, ref bool __result)
+        {
+            if(__instance == GameStuff.TerminalMapRenderer)
             {
-                ViewCommands.targetInt = setRadarTargetIndex;
-                Plugin.MoreLogs("Updating homebrew target");
-                SwitchedRadarEvent();
-            }
-            else if (IsExternalCamsPresent() && ViewCommands.AnyActiveMonitoring())
-            {
-                if (Plugin.instance.OpenBodyCamsMod && !OpenLib.Compat.OpenBodyCamFuncs.ShowingBodyCam)
-                    Plugin.MoreLogs("OBC Terminal Body Cam is NOT active");
+                if (BoolStuff.MapCameraUsed())
+                    __result = true;
                 else
-                    GetPlayerCamsFromExternalMod();
+                    return;
             }
-
-            UpdateDisplayText();
-        }
-
-        internal static void UpdateDisplayText()
-        {
-            Terminal getTerm = Plugin.instance.Terminal;
-
-            if (!Plugin.instance.radarNonPlayer && StartOfRound.Instance.mapScreen.targetedPlayer == null)
-                return;
-            if (!Plugin.instance.activeCam || !ViewCommands.AnyActiveMonitoring())
-                return;
-            if (Plugin.instance.isOnMirror)
-                return;
-
-            if (getTerm != null && getTerm.currentNode != null)
-            {
-                ViewCommands.DisplayTextUpdater(out string displayText);
-                getTerm.currentNode.displayText = displayText;
-            }
-        }
-
-        private static void SwitchedRadarEvent()
-        {
-            //Plugin.MoreLogs($"startround: {StartOfRound.Instance.mapScreen.targetTransformIndex}\n--------------\nviewcommands {ViewCommands.targetInt}\n-------------");
-            if (ViewCommands.AnyActiveMonitoring() && !ViewCommands.externalcamsmod)
-            {
-                Plugin.MoreLogs($"targetNum = {ViewCommands.targetInt}");
-                UpdateCamsTarget(ViewCommands.targetInt);
-                return;
-            }
-
         }
     }
 
@@ -91,7 +55,18 @@ namespace TerminalStuff
         }
     }
 
-    [HarmonyPatch(typeof(FlashlightItem), "Start")]
+    //RefreshClockUI
+    [HarmonyPatch(typeof(HUDManager), "SetClock")]
+    public class ClockTimePatch
+    {
+        public static OpenLib.Events.Events.CustomEvent OnRefreshClock = new();
+        public static void Postfix()
+        {
+            OnRefreshClock.Invoke();
+        }
+    }
+
+            [HarmonyPatch(typeof(FlashlightItem), "Start")]
     public class Flashlights_Start_Patch
     {
         internal static Color? DefaultRegColor { get; private set; }
@@ -152,15 +127,15 @@ namespace TerminalStuff
                 if (!ColorCommands.CustomFlashColor.HasValue)
                 {
                     if (StartOfRound.Instance.localPlayerController.helmetLight.color != def)
-                        NetHandler.Instance.HelmetLightColorServerRpc(def, StartOfRound.Instance.localPlayerController.actualClientId);
+                        NetHandler.Instance.HelmetLightColorServerRpc(def, StartOfRound.Instance.localPlayerController.playerClientId);
                     return;
                 }
                     
 
                 Plugin.Spam("Updating from default flashlight color!");
                 NetHandler.SetFlash(ref __instance, ColorCommands.CustomFlashColor.Value);
-                NetHandler.SetHelmetLight(ColorCommands.CustomFlashColor.Value, StartOfRound.Instance.localPlayerController.actualClientId);
-                NetHandler.Instance.FlashColorServerRpc(ColorCommands.CustomFlashColor.Value, StartOfRound.Instance.localPlayerController.actualClientId, StartOfRound.Instance.localPlayerController.playerUsername);
+                NetHandler.SetHelmetLight(ColorCommands.CustomFlashColor.Value, StartOfRound.Instance.localPlayerController.playerClientId);
+                NetHandler.Instance.FlashColorServerRpc(ColorCommands.CustomFlashColor.Value, StartOfRound.Instance.localPlayerController.playerClientId, StartOfRound.Instance.localPlayerController.playerUsername);
             }
             else
             {
@@ -168,7 +143,7 @@ namespace TerminalStuff
                     return;
 
                 Plugin.Spam("Updating to new flashlight color!");
-                NetHandler.Instance.HelmetLightColorServerRpc(__instance.bulbLight.color, StartOfRound.Instance.localPlayerController.actualClientId);
+                NetHandler.Instance.HelmetLightColorServerRpc(__instance.bulbLight.color, StartOfRound.Instance.localPlayerController.playerClientId);
             }
         }
     }

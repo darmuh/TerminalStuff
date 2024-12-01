@@ -76,13 +76,7 @@ namespace TerminalStuff
 
         public static void CheckForSplitView(string whatIsIt)
         {
-            if (!Plugin.instance.splitViewCreated && whatIsIt == "neither")
-            {
-                DisableVanillaViewMonitor();
-                ResetPluginInstanceBools();
-                return;
-            }
-            else if (!Plugin.instance.splitViewCreated && whatIsIt == "mirror")
+            if (!Plugin.instance.splitViewCreated && whatIsIt == "mirror")
             {
                 DisableVanillaViewMonitor(false);
                 UpdatePluginInstanceBools(whatIsIt);
@@ -157,13 +151,7 @@ namespace TerminalStuff
 
         internal static void DisableSplitView(string whatIsIt)
         {
-            if (!Plugin.instance.splitViewCreated && whatIsIt == "neither")
-            {
-                DisableVanillaViewMonitor();
-                ResetPluginInstanceBools();
-                return;
-            }
-            else if (!Plugin.instance.splitViewCreated)
+            if (!Plugin.instance.splitViewCreated)
             {
                 DisableVanillaViewMonitor();
                 ResetPluginInstanceBools();
@@ -208,6 +196,9 @@ namespace TerminalStuff
                     break;
                 case "map":
                     Plugin.instance.isOnMap = true;
+                    break;
+                case "neither":
+                    Plugin.MoreLogs("whatIsIt - neither, all instance bools reset for views");
                     break;
                 default:
                     Plugin.MoreLogs($"Unexpected value for whatIsIt: {whatIsIt}");

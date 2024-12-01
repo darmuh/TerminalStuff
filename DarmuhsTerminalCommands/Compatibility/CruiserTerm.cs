@@ -5,26 +5,15 @@ namespace TerminalStuff.Compatibility
 {
     internal class CruiserTerm
     {
-        internal static CruiserTerminal.CruiserTerminal cruiserTerminal;
+        internal static CruiserTerminal.CTerminal.CruiserTerminalScript cruiserTerminal;
         internal static List<string> WordList = [];
         internal static bool isDeny = false;
         internal static TerminalNode NoAccess;
 
-        internal static bool GetInstance()
-        {
-            if (cruiserTerminal == null)
-            {
-                //Plugin.Spam("Attempting to find cruiserTerminal instance");
-                cruiserTerminal = UnityEngine.Object.FindObjectOfType<CruiserTerminal.CruiserTerminal>();
-                //Plugin.Spam($"Instance found [ {cruiserTerminal != null} ]");
-            }
-
-            return cruiserTerminal != null;
-        }
-
         internal static void Quit()
         {
-            if (!GetInstance())
+            cruiserTerminal = CruiserTerminal.Patches.CTPatches.cterminal;
+            if (cruiserTerminal = null)
                 return;
             
             cruiserTerminal.QuitCruiserTerminal();
@@ -43,7 +32,8 @@ namespace TerminalStuff.Compatibility
 
         internal static bool Status()
         {
-            if (GetInstance())
+            cruiserTerminal = CruiserTerminal.Patches.CTPatches.cterminal;
+            if (cruiserTerminal != null)
             {
                 if (cruiserTerminal.cruiserTerminalInUse)
                     return true;

@@ -15,10 +15,9 @@ namespace TerminalStuff
         internal static string KickPlayersAsk()
         {
             playerToKick = null;
-            string displayText;
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.KickKeywords.Value));
 
-            if (!AmIHost(out displayText))
+            if (!AmIHost(out string displayText))
                 return displayText;
 
             if (val.Length < 1)
@@ -63,7 +62,7 @@ namespace TerminalStuff
 
         private static string PlayerNameAndIDList()
         {
-            StringBuilder message = new StringBuilder();
+            StringBuilder message = new();
             foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
             {
                 if (StartOfRound.Instance.localPlayerController != player && player.isPlayerControlled)
