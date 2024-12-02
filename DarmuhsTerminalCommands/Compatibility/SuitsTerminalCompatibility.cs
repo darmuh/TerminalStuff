@@ -1,4 +1,5 @@
-﻿using static suitsTerminal.AdvancedMenu;
+﻿using UnityEngine;
+using static suitsTerminal.AdvancedMenu;
 
 namespace TerminalStuff
 {
@@ -18,6 +19,11 @@ namespace TerminalStuff
             {
                 return false;
             }
+        }
+
+        internal static void SetCaretColor(Color color)
+        {
+            CaretOriginal = color;
         }
     }
 }

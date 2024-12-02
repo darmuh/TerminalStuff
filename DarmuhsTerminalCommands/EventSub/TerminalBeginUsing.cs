@@ -20,6 +20,7 @@ namespace TerminalStuff.EventSub
                 return;
             }
 
+            Plugin.instance.Terminal.screenText.ActivateInputField();
             Plugin.instance.Terminal.screenText.interactable = true; //force terminal accept input
 
             StartUsingTerminalCheck(Plugin.instance.Terminal);

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.1]
+ - Added better handling for error that would occur in a specific user's profile when trying to reset customization for the MoneyBackground.
+	- This object's color cannot be updated with the refresh customizations button in LethalConfig when this issue is encountered.
+ - With LLL's recent update, you can now modify the main font size and see it update when playing with LLL!
+	- Thanks IAmBatby for publicizing the cached font size variable in LLL!
+ - Added support for suitsTerminal's recent terminal caret color variable.
+	- Whenever this mod changes the color for the caret it will update suitsTerminal's reference to it.
+ - Simplified LethalConstellations compat
+ - Added a line to try and fix the vanilla issue of the terminal not being interactable (accepting input) when you start using it
+
 ## [3.7.0]
  - Reworked TwoRadarMaps compatibility and removed lots of redundant code
 	- In order to use switch/previous with this mod and have it synced with other players, you will need to enable networking in *this* mod.

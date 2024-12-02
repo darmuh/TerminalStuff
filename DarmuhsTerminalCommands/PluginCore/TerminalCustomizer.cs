@@ -122,13 +122,23 @@ namespace TerminalStuff.PluginCore
 
             Color moneyBGColor = SetColorFor(ConfigSettings.TerminalMoneyBGColor.Value, CustomTerminalStuff.MoneyBG, ConfigSettings.TerminalMoneyBGAlpha.Value);
 
-            if (Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>() != null)
-                Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>().color = moneyBGColor;
+            if (Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).childCount >= 6)
+            {
+                if (Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>() != null)
+                    Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>().color = moneyBGColor;
+            }
+            else
+                Plugin.WARNING("Unable to set TerminalMoneyBG customizations!!");
+            
 
             Plugin.instance.Terminal.screenText.textComponent.color = SetColorFor(ConfigSettings.TerminalTextColor.Value, CustomTerminalStuff.TerminalText);
             Plugin.instance.Terminal.topRightText.color = SetColorFor(ConfigSettings.TerminalMoneyColor.Value, CustomTerminalStuff.MoneyText);
 
             Plugin.instance.Terminal.screenText.caretColor = SetColorFor(ConfigSettings.TerminalCaretColor.Value, CustomTerminalStuff.TextCaret);
+            
+            if(Plugin.instance.suitsTerminal)
+                SuitsTerminalCompatibility.SetCaretColor(Plugin.instance.Terminal.screenText.caretColor);
+
             Plugin.instance.Terminal.scrollBarVertical.image.color = SetColorFor(ConfigSettings.TerminalScrollbarColor.Value, CustomTerminalStuff.Scrollbar);
             Plugin.instance.Terminal.scrollBarVertical.gameObject.GetComponent<Image>().color = SetColorFor(ConfigSettings.TerminalScrollBGColor.Value, CustomTerminalStuff.ScrollbarBackground);
             Plugin.instance.Terminal.terminalLight.color = SetColorFor(ConfigSettings.TerminalLightColor.Value, CustomTerminalStuff.TerminalLight);

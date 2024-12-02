@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using System;
 using System.IO;
+using TerminalStuff.Compatibility;
 using TMPro;
 using UnityEngine;
 
@@ -172,8 +173,13 @@ namespace TerminalStuff.SpecialStuff
                 TerminalClockStuff.textComponent.font = newFont;
 
             if (ConfigSettings.CustomFontSizeMain.Value > -1)
-                Plugin.instance.Terminal.screenText.textComponent.fontSize = ConfigSettings.CustomFontSizeMain.Value;
-
+            {
+                if (Plugin.instance.LethalLevelLoader)
+                    LLLCompat.UpdateLLLFontSize((float)ConfigSettings.CustomFontSizeMain.Value);
+                else
+                    Plugin.instance.Terminal.screenText.textComponent.fontSize = ConfigSettings.CustomFontSizeMain.Value;
+            }
+               
             if (ConfigSettings.CustomFontSizeMoney.Value > -1)
                 Plugin.instance.Terminal.topRightText.fontSize = ConfigSettings.CustomFontSizeMoney.Value;
 

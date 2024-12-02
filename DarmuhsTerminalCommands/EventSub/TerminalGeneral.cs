@@ -22,7 +22,7 @@ namespace TerminalStuff.EventSub
         internal static void OnLoadNode(TerminalNode node)
         {
             Plugin.Spam($"CancelConfirmation: {CancelConfirmation}");
-
+             
             if (CancelConfirmation)
             {
                 CancelConfirmation = false;

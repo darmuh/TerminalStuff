@@ -120,11 +120,13 @@ namespace TerminalStuff.EventSub
                     Plugin.instance.CruiserTerm = false;
                     Plugin.WARNING("Older CruiserTerminal Mod detected! Compatibility functions are disabled!");
                 }
-            }
-                
+            }     
 
             if (SoftCompatibility("WhiteSpike.InteractiveTerminalAPI", ref Plugin.instance.ITAPI))
                 Plugin.Spam("InteractiveTerminalAPI detected!");
+
+            if (SoftCompatibility("imabatby.lethallevelloader", ref Plugin.instance.LethalLevelLoader))
+                Plugin.Spam("LethalLevelLoader by IAmBatby detected!");
 
             if (OpenLib.Plugin.instance.LethalConfig)
                 OpenLib.Compat.LethalConfigSoft.AddButton("Terminal Customization", "Refresh Customizations", "Press this button to refresh all terminal customizations", "Refresh", TerminalCustomizer.TerminalCustomization);

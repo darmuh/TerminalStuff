@@ -96,6 +96,10 @@
       <HintPath>C:\Users\user\source\repos\LethalConstellations\Template\LethalConstellations\_Release Files\LethalConstellations.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="LethalLevelLoader">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\IAmBatby-LethalLevelLoader\LethalLevelLoader.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="OpenBodyCams">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\Zaggy1024-OpenBodyCams\OpenBodyCams.dll</HintPath>
       <Private>False</Private>
@@ -110,7 +114,7 @@
       <Aliases>global</Aliases>
     </Reference>
     <Reference Include="suitsTerminal">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\suitsTerminal.dll</HintPath>
+      <HintPath>..\..\..\suitsTerminal\suitsTerminal\_Release Files\Release\netstandard2.1\suitsTerminal.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -205,12 +209,13 @@
     <Compile Include="CommandHandling\CostCommands.cs" />
     <Compile Include="CommandHandling\DynamicCommands.cs" />
     <Compile Include="Compatibility\BMX-LobbyCompat.cs" />
+    <Compile Include="Compatibility\ConstellationsCompat.cs" />
     <Compile Include="Compatibility\CruiserTerm.cs" />
     <Compile Include="Compatibility\CruiserTermOld.cs" />
     <Compile Include="Compatibility\FovAdjustStuff.cs" />
     <Compile Include="CommandHandling\GambaCommands.cs" />
-    <Compile Include="Compatibility\ConstellationsCompat.cs" />
     <Compile Include="Compatibility\InteractiveAPI.cs" />
+    <Compile Include="Compatibility\LLLCompat.cs" />
     <Compile Include="Compatibility\ShipInventoryCompat.cs" />
     <Compile Include="EventSub\GameStuff.cs" />
     <Compile Include="EventSub\Subscribers.cs" />

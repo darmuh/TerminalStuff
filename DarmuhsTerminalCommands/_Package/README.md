@@ -97,9 +97,9 @@
 
 ### NOTES:
  - Please feel free to request changes or new features at my github [here](https://github.com/darmuh/TerminalStuff)
- - Also please report any bugs you find there (or on the modding discord) as well.
- - If you're not a fan of GitHub, I'm also fairly active on the LethalCompany Modding Discord managed by Thunderstore. I post updates on WIP features there whenever i'm messing with something new.
- - Please report compatibility issues when you find them, it's not difficult for me to resolve these issues but I have to know about them.
+ - Also please report any bugs you find there as well.
+ - If you're not a fan of GitHub, I'm also fairly active on the [LethalCompany Modding Discord](https://discord.gg/XeyYqRdRGC) managed by Thunderstore.
+ - Please report compatibility issues when you find them, it's not difficult for me to resolve these issues but I do have to know about them.
  - This is the first of many of my mods to start using my Open-Source libary: OpenLib. This will be a dependency for version 3.3.0 and forward.
 
 ### Work for future updates & Requested Features from Community
