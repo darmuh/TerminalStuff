@@ -109,16 +109,12 @@ namespace TerminalStuff.VisualCore
 
         private static Texture UpdateRadarTexture()
         {
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             return GameStuff.TerminalMapRenderer.cam.targetTexture;
         }
 
         private static Texture UpdateCamsTexture()
         {
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             Plugin.Spam("Updating Cams");
             if (IsExternalCamsPresent())

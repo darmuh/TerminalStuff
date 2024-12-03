@@ -9,7 +9,18 @@ namespace TerminalStuff.EventSub
     internal class GameStuff
     {
         //cachedstuff
-        internal static ManualCameraRenderer TerminalMapRenderer;
+        internal static ManualCameraRenderer TerminalMapRenderer
+        {
+            get
+            {
+                return GetMapRenderer();
+            }
+            set
+            {
+                TerminalMapRenderer = value;
+            }
+        }
+
         internal static List<string> otherModWords = [];
 
         internal static bool oneTimeOnly = false;
@@ -19,12 +30,12 @@ namespace TerminalStuff.EventSub
             oneTimeOnly = false;
         }
 
-        internal static void GetMapRenderer()
+        internal static ManualCameraRenderer GetMapRenderer()
         {
             if (Plugin.instance.TwoRadarMapsMod)
-                TerminalMapRenderer = TwoRadarMapsCompatibility.GetTerminalMap();
+                return TwoRadarMapsCompatibility.GetTerminalMap();
             else
-                TerminalMapRenderer = StartOfRound.Instance.mapScreen;
+                return StartOfRound.Instance.mapScreen;
         }
 
         internal static void ResetClockStatus()
@@ -51,7 +62,6 @@ namespace TerminalStuff.EventSub
 
         internal static void OnPlayerSpawn()
         {
-            GetMapRenderer();
 
             if (screenSettings == null)
                 return;

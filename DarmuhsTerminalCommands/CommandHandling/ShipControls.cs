@@ -112,8 +112,6 @@ namespace TerminalStuff
 
         internal static string RegularTeleporterCommand()
         {
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.TpKeywords.Value));
             string displayText;

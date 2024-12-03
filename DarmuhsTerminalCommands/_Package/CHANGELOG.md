@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.2]
+ - Switched mapscreen radar cache logic to use a getter/setter to avoid rare NREs where the cached radar has not been updated with the current game state.
+	- I unforuntately was unable to replicate the error that was provided to me so but this should fix it in theory.
+
 ## [3.7.1]
  - Added better handling for error that would occur in a specific user's profile when trying to reset customization for the MoneyBackground.
 	- This object's color cannot be updated with the refresh customizations button in LethalConfig when this issue is encountered.

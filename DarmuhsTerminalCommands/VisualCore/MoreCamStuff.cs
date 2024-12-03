@@ -132,8 +132,6 @@ namespace TerminalStuff
 
         internal static Texture UpdateCamsTarget(int targetNum)
         {
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             if (ConfigSettings.CamsUseDetectedMods.Value && (Plugin.instance.HelmetCamsMod || Plugin.instance.OpenBodyCamsMod || Plugin.instance.SolosBodyCamsMod))
                 return PlayerCamsCompatibility.PlayerCamTexture();
@@ -152,8 +150,6 @@ namespace TerminalStuff
 
         private static Texture PlayerCamTexture(int targetPlayer)
         {
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             if (playerCam == null)
             {
@@ -191,8 +187,6 @@ namespace TerminalStuff
 
         private static Texture RadarCamTexture(int targetNum)
         {
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             if (playerCam == null)
             {
@@ -296,9 +290,6 @@ namespace TerminalStuff
 
             if (!AnyActiveMonitoring())
                 return;
-
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             if (newTarget > GameStuff.TerminalMapRenderer.radarTargets.Count)
                 return;

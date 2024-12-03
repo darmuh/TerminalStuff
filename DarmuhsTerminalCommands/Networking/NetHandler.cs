@@ -439,9 +439,6 @@ namespace TerminalStuff
 
             ViewCommands.radarZoom = zoom;
 
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
-
             GameStuff.TerminalMapRenderer.cam.orthographicSize = ViewCommands.radarZoom;
             Plugin.MoreLogs($"Radar Zoom set to {ViewCommands.radarZoom}");
         }
@@ -463,8 +460,6 @@ namespace TerminalStuff
             }
             else
             {
-                if (GameStuff.TerminalMapRenderer == null)
-                    GameStuff.GetMapRenderer();
 
                 Plugin.Spam("SyncRadarMapClientRpc called from another client");
                 GameStuff.TerminalMapRenderer.StartCoroutine(GameStuff.TerminalMapRenderer.updateMapTarget(newTarget, true));

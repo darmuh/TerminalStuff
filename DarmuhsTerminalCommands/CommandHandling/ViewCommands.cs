@@ -72,9 +72,6 @@ namespace TerminalStuff
             if (!AnyActiveMonitoring())
                 return "There is no active monitoring to switch!\r\n\r\n";
 
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
-
             int newTarget = GetPrevValidTarget(GameStuff.TerminalMapRenderer.radarTargets, GameStuff.TerminalMapRenderer.targetTransformIndex);
             TargetSwitchCheck(newTarget);
             DisplayTextUpdater(out string message, newTarget);
@@ -97,9 +94,6 @@ namespace TerminalStuff
         {
             if (!AnyActiveMonitoring())
                 return "There is no active monitoring to switch!\r\n\r\n";
-
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.SwitchKeywords.Value));
             string displayText;
@@ -217,9 +211,6 @@ namespace TerminalStuff
         internal static string RadarZoomEvent()
         {
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.RadarZoomKWs.Value));
-
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             if (!AnyActiveMonitoring() && Plugin.instance.splitViewCreated)
             {
@@ -391,8 +382,6 @@ namespace TerminalStuff
 
         internal static void DisplayTextUpdater(out string displayText, int givenIndex = -1)
         {
-            if (GameStuff.TerminalMapRenderer == null)
-                GameStuff.GetMapRenderer();
 
             Plugin.MoreLogs("updating displaytext!!!");
             GetCurrentMode(out string mode);
