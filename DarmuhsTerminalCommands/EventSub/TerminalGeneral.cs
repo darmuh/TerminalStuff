@@ -12,6 +12,7 @@ namespace TerminalStuff.EventSub
         internal static void OnTerminalDisable()
         {
             //Plugin.instance.Config.Reload();
+            Plugin.instance.Terminal.terminalNodes.specialNodes[20] = TerminalStart.switchNodeVanilla;
             MenuBuild.ClearMyMenustuff();
             ConfigSettings.TerminalStuffMain.DeleteAll();
             lastText = "";

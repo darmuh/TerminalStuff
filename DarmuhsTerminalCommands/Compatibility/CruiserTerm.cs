@@ -12,11 +12,8 @@ namespace TerminalStuff.Compatibility
 
         internal static void Quit()
         {
-            cruiserTerminal = CruiserTerminal.Patches.CTPatches.cterminal;
-            if (cruiserTerminal = null)
-                return;
-            
-            cruiserTerminal.QuitCruiserTerminal();
+            if (Status())
+                cruiserTerminal.QuitCruiserTerminal();
         }
 
         internal static void CreateDenyKeyword()

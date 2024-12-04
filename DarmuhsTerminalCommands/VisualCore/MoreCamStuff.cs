@@ -98,7 +98,7 @@ namespace TerminalStuff
 
         internal static bool HideCams()
         {
-            return !ConfigSettings.CamsNeverHide.Value;
+            return !ConfigSettings.MonitoringNeverHide.Value;
         }
 
         internal static Texture GetPlayerCamsFromExternalMod(int newTarget)

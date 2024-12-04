@@ -5,9 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.3]
+ - Fixed CruiserTerminal ``Quit`` command compatibility
+ - Fixed issue with kick command getting stuck due to confirmation logic when not actively trying to kick anyone.
+ - Renamed ``CamsNeverHide`` to ``MonitoringNeverHide`` to make more sense as to what it does.
+ - Added ``MonitoringDefaultView`` to set a default monitoring view to enable when the switch or previous command is used and no active monitoring is detected.
+	- Set to ``None`` to display the "No Active Monitoring" message.
+	- If using the vanilla "view monitor" command, setting this to anything except ``None`` will enable the view monitor radar map.
+	- If set to a monitoring mode that is not currently enabled, will use the next available mode.
+ - Fixed issue caused by recent updates to switch command that was intermittently causing other mods to throw NRE on lobby reload.
+	- Thank you @zhenrong on discord for assisting me with troubleshooting this issue as I was unable to reproduce it myself.
+	- Issue was due to the fact that I am replacing terminalNodes.specialNodes[20] with my own node that is deleted each lobby reload. Which would result in a null node in the listing at Terminal Awake.
+	- To resolve the issue I am setting terminalNodes.specialNodes[20] to it's vanilla TerminalNode on terminaldisable, until it is replaced again at Terminal Start with my node.
+ - Added automated formatting where, if a node's displaytext is detected without new line entries at the end, new lines will be appended so that you are typing on a new line.
+
 ## [3.7.2]
  - Switched mapscreen radar cache logic to use a getter/setter to avoid rare NREs where the cached radar has not been updated with the current game state.
-	- I unforuntately was unable to replicate the error that was provided to me so but this should fix it in theory.
+	- I unforuntately was unable to replicate the error that was provided to me but this should fix it in theory.
 
 ## [3.7.1]
  - Added better handling for error that would occur in a specific user's profile when trying to reset customization for the MoneyBackground.

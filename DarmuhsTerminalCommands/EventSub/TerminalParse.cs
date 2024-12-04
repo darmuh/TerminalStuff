@@ -1,5 +1,4 @@
-﻿using OpenLib.Common;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using static OpenLib.Menus.MenuBuild;
 
 namespace TerminalStuff.EventSub
@@ -23,6 +22,9 @@ namespace TerminalStuff.EventSub
             }
 
             StartofHandling.HandleParsed(node, ref node);
+
+            if (!node.displayText.EndsWith("\r\n"))
+                node.displayText += "\r\n\r\n";
 
             NetSync(node);
             return node;

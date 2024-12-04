@@ -68,9 +68,13 @@ namespace TerminalStuff
         internal static string HandlePreviousSwitchEvent()
         {
             Plugin.MoreLogs("switching to previous player event detected");
-
+            string displayText = "Ope, this shouldn't show up.... (SwitchCommandHandler)";
+            bool earlyReturn = false;
             if (!AnyActiveMonitoring())
-                return "There is no active monitoring to switch!\r\n\r\n";
+                displayText = AutoMonitor(out earlyReturn);
+
+            if (earlyReturn)
+                return displayText;
 
             int newTarget = GetPrevValidTarget(GameStuff.TerminalMapRenderer.radarTargets, GameStuff.TerminalMapRenderer.targetTransformIndex);
             TargetSwitchCheck(newTarget);
@@ -92,11 +96,16 @@ namespace TerminalStuff
 
         internal static string SwitchCommandHandler()
         {
+            string displayText = "Ope, this shouldn't show up.... (SwitchCommandHandler)";
+            bool earlyReturn = false;
             if (!AnyActiveMonitoring())
-                return "There is no active monitoring to switch!\r\n\r\n";
+                 displayText = AutoMonitor(out earlyReturn);
+
+            if (earlyReturn)
+                return displayText;
 
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.SwitchKeywords.Value));
-            string displayText;
+
             if (val.Length > 1)
             {
                 Plugin.MoreLogs("switch to specific player command detected");
@@ -123,6 +132,145 @@ namespace TerminalStuff
                 DisplayTextUpdater(out displayText, newTarget);
                 return displayText;
             }
+        }
+
+        internal static string AutoMonitor(out bool earlyReturn)
+        {
+            earlyReturn = true;
+
+            if (!Plugin.instance.splitViewCreated)
+            {
+                if (StartOfRound.Instance.inShipPhase)
+                    return "There is no active monitoring and you are currently in orbit!";
+
+                if (ConfigSettings.MonitoringDefaultView.Value.ToLower() != "none")
+                {
+                    if(TerminalStart.viewMonitorVanilla != null)
+                    {
+                        Plugin.instance.Terminal.LoadNewNode(TerminalStart.viewMonitorVanilla);
+                        earlyReturn = false;
+                        return TerminalStart.viewMonitorVanilla.displayText;
+                    }
+                    else
+                        return "There is no active monitoring to switch!\r\n\r\n";
+                }
+                else
+                    return "There is no active monitoring to switch!\r\n\r\n";
+            }
+
+            if(GetDefaultNodeNum(out int modeNum))
+            {
+                earlyReturn = false;
+                return SyncViewNodeWithNum(modeNum, "");
+            }
+            else
+                return "There is no active monitoring to switch!\r\n\r\n";
+        }
+
+        internal static bool GetDefaultNodeNum(out int modeNum)
+        {
+            string config = ConfigSettings.MonitoringDefaultView.Value.ToLower();
+
+            if(config == "map" && ConfigSettings.TerminalMap.Value)
+            {
+                modeNum = 5;
+                return true;
+            }
+            else if (config == "cams" && ConfigSettings.TerminalCams.Value)
+            {
+                modeNum = 1;
+                return true;
+            }
+            else if(config == "overlay" && ConfigSettings.TerminalOverlay.Value)
+            {
+                modeNum = 2;
+                return true;
+            }
+            else if (config == "minimap" && ConfigSettings.TerminalMinimap.Value)
+            {
+                modeNum = 3;
+                return true;
+            }
+            else if (config == "minicams" && ConfigSettings.TerminalMinicams.Value)
+            {
+                modeNum = 4;
+                return true;
+            }
+            else if (config != "none" && BoolStuff.AnyMonitoringModesEnabled())
+            {
+                if (ConfigSettings.TerminalMap.Value)
+                {
+                    modeNum = 5;
+                    return true;
+                }
+                else if (ConfigSettings.TerminalCams.Value)
+                {
+                    modeNum = 1;
+                    return true;
+                }
+                else if (ConfigSettings.TerminalOverlay.Value)
+                {
+                    modeNum = 2;
+                    return true;
+                }
+                else if (ConfigSettings.TerminalMinimap.Value)
+                {
+                    modeNum = 3;
+                    return true;
+                }
+                else if (ConfigSettings.TerminalMinicams.Value)
+                {
+                    modeNum = 4;
+                    return true;
+                }
+            }
+
+            modeNum = -1;
+            return false;
+        }
+
+        internal static string SyncViewNodeWithNum(int nodeNumber, string nodeText)
+        {
+            Plugin.MoreLogs("---------------- Loading view node triggered by another player ----------------");
+
+            if (nodeNumber == 0) //VideoPlayer
+            {
+                if (ConfigSettings.VideoSync.Value)
+                {
+                    VideoManager.PlaySyncedVideo();
+                    return nodeText;
+                }
+                else
+                    return LolVideoPlayerEvent();
+            }
+            else if (nodeNumber == 1) // cams
+            {
+                return TermCamsEvent();
+            }
+            else if (nodeNumber == 2) //overlay
+            {
+                return OverlayTermEvent();
+            }
+            else if (nodeNumber == 3) //minimap
+            {
+                return MiniMapTermEvent();
+            }
+            else if (nodeNumber == 4) //minicams
+            {
+                return MiniCamsTermEvent();
+            }
+            else if (nodeNumber == 5) //map
+            {
+                return TermMapEvent();
+            }
+            else if (nodeNumber == 6) //mirror
+            {
+                return MirrorEvent();
+            }
+            else
+                Plugin.MoreLogs("No matching views detected");
+
+            return nodeText;
         }
 
         internal static string MirrorEvent()

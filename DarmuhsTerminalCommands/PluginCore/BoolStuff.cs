@@ -111,7 +111,10 @@ namespace TerminalStuff
             return false;
         }
 
-        //internal static bool 
+        internal static bool AnyMonitoringModesEnabled()
+        {
+            return (ConfigSettings.TerminalMap.Value || ConfigSettings.TerminalCams.Value || ConfigSettings.TerminalOverlay.Value || ConfigSettings.TerminalMinimap.Value || ConfigSettings.TerminalMinicams.Value);
+        }
 
     }
 }

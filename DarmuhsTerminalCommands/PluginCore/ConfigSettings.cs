@@ -125,7 +125,8 @@ namespace TerminalStuff
         public static ConfigEntry<bool> AlwaysUniqueVideo { get; internal set; }
         public static ConfigEntry<bool> LeverConfirmOverride { get; internal set; } //disable confirmation check for lever
         public static ConfigEntry<bool> RestartConfirmOverride { get; internal set; } //disable confirmation check for lever
-        public static ConfigEntry<bool> CamsNeverHide { get; internal set; }
+        public static ConfigEntry<bool> MonitoringNeverHide { get; internal set; }
+        public static ConfigEntry<string> MonitoringDefaultView { get; internal set; }
         public static ConfigEntry<int> OverlayOpacity { get; internal set; } //Opacity Percentage for Overlay Cams View
         public static ConfigEntry<string> CustomLink { get; internal set; }
         public static ConfigEntry<string> CustomLink2 { get; internal set; }
@@ -534,7 +535,8 @@ namespace TerminalStuff
             ObcResolutionBodyCam = MakeString(Plugin.instance.Config, "Extras Configuration", "ObcResolutionBodyCam", "1000; 700", "Set the resolution of the Body Camera created with OpenBodyCams for darmuhsTerminalStuff");
             MirrorZoom = MakeClampedFloat(Plugin.instance.Config, "Extras Configuration", "MirrorZoom", 3.4f, "Set the mirror zoom level, the higher the value the more zoomed out the mirror will be.\nThis requires [Mirror2DStyle] to be enabled", 0.2f, 9f);
             Mirror2DStyle = MakeBool(Plugin.instance.Config, "Extras Configuration", "Mirror2DStyle", false, "Change whether the mirror will use Orthographic (2D) Styling.\n Old versions of this mod had this enabled by default.");
-            CamsNeverHide = MakeBool(Plugin.instance.Config, "Extras Configuration", "CamsNeverHide", false, "Setting this to true will make it so no command will ever auto-hide any cams-type view.");
+            MonitoringNeverHide = MakeBool(Plugin.instance.Config, "Extras Configuration", "MonitoringNeverHide", false, "Setting this to true will make it so no command will ever auto-hide any monitoring view.");
+            MonitoringDefaultView = MakeClampedString(Plugin.instance.Config, "Extras Configuration", "MonitoringDefaultView", "Map", "Set the default monitoring view to use when using the switch/previous commands and there is no active monitoring view.\nSet to \"None\" to not automatically enable any views when switch/previous commands are used.", new AcceptableValueList<string>("None", "Map", "Cams", "Minicams", "Minimap", "Overlay"));
             OverlayOpacity = Plugin.instance.Config.Bind("Extras Configuration", "OverlayOpacity", 10, new ConfigDescription("Opacity percentage for Overlay View.", new AcceptableValueRange<int>(0, 100)));
             ScreenOnWhileDead = MakeBool(Plugin.instance.Config, "Quality of Life", "ScreenOnWhileDead", false, "Set this to true if you wish to keep the screen on after death when TerminalScreen is set to any mode that keeps the screen on.");
             ScreenOffDelay = MakeClampedInt(Plugin.instance.Config, "Quality of Life", "ScreenOffDelay", -1, "Set this to delay turning the terminal screen off by this many seconds after leaving the ship.", -1, 30);

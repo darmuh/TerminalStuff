@@ -84,53 +84,6 @@ namespace TerminalStuff
             return netNodeSet;
         }
 
-        private static void SyncViewNodeWithNum(ref TerminalNode node, int nodeNumber, string nodeText)
-        {
-            Plugin.MoreLogs("---------------- Loading view node triggered by another player ----------------");
-
-            if (nodeNumber == 0) //VideoPlayer
-            {
-                if (ConfigSettings.VideoSync.Value)
-                {
-                    node.displayText = nodeText;
-                    VideoManager.PlaySyncedVideo();
-                }
-                else
-                    node.displayText = ViewCommands.LolVideoPlayerEvent();
-
-                return;
-            }
-            else if (nodeNumber == 1) // cams
-            {
-                node.displayText = ViewCommands.TermCamsEvent();
-            }
-            else if (nodeNumber == 2) //overlay
-            {
-                node.displayText = ViewCommands.OverlayTermEvent();
-            }
-            else if (nodeNumber == 3) //minimap
-            {
-                node.displayText = ViewCommands.MiniMapTermEvent();
-            }
-            else if (nodeNumber == 4) //minicams
-            {
-                node.displayText = ViewCommands.MiniCamsTermEvent();
-            }
-            else if (nodeNumber == 5) //map
-            {
-                node.displayText = ViewCommands.TermMapEvent();
-            }
-            else if (nodeNumber == 6) //mirror
-            {
-                node.displayText = ViewCommands.MirrorEvent();
-            }
-            else
-                Plugin.MoreLogs("No matching views detected");
-
-            if(node.displayText != nodeText)
-                node.displayText = nodeText;
-        }
-
         private void SyncNodes(string topRightText, string nodeName, string nodeText, int nodeNumber = -1)
         {
 
@@ -151,7 +104,11 @@ namespace TerminalStuff
                     if (viewNode == null)
                         return;
 
-                    SyncViewNodeWithNum(ref viewNode, nodeNumber, nodeText);
+                    viewNode.displayText = ViewCommands.SyncViewNodeWithNum(nodeNumber, nodeText);
+
+                    if (viewNode.displayText != nodeText)
+                        viewNode.displayText = nodeText;
+
                     Plugin.instance.Terminal.LoadNewNode(viewNode);
                     //Plugin.instance.Terminal.currentNode.displayText = viewNode.displayText;
                     Plugin.MoreLogs($"Non terminal user: Attempting to load {nodeName}, ViewNode: {nodeNumber}\n {viewNode.displayText}");

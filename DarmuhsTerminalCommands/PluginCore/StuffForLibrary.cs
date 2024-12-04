@@ -2,6 +2,7 @@
 using static OpenLib.Common.CommonStringStuff;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.CoreMethods.CommandRegistry;
+using static TerminalStuff.EventSub.TerminalStart;
 using System.Collections.Generic;
 
 namespace TerminalStuff.PluginCore
@@ -43,6 +44,7 @@ namespace TerminalStuff.PluginCore
 
             TerminalNode switchNode = AddNodeManual("SwitchedCam", ConfigSettings.SwitchKeywords, ViewCommands.SwitchCommandHandler, true, 0, ConfigSettings.TerminalStuffMain, defaultManaged, "EXTRAS", "Switch Camera/Radar Views. Type a crewmate's name after the command to target them");
             switchKeyword.specialKeywordResult = switchNode;
+            switchNodeVanilla = Plugin.instance.Terminal.terminalNodes.specialNodes[20];
             Plugin.instance.Terminal.terminalNodes.specialNodes[20] = switchNode;
 
 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq;
 using System.Text;
+using TerminalStuff.EventSub;
 using UnityEngine;
 using static TerminalStuff.StringStuff;
 
@@ -14,6 +15,7 @@ namespace TerminalStuff
 
         internal static string KickPlayersAsk()
         {
+            TerminalGeneral.CancelConfirmation = true;
             playerToKick = null;
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.KickKeywords.Value));
 
@@ -34,6 +36,7 @@ namespace TerminalStuff
                     //Plugin.MoreLogs($"Checking {player.playerUsername} - ID {player.playerClientId}");
                     if (player.playerClientId == tryPlayerID && StartOfRound.Instance.localPlayerController != player && player.isPlayerControlled)
                     {
+                        TerminalGeneral.CancelConfirmation = false;
                         playerToKick = player;
                         displayText = $"Kick {player.playerUsername} from the lobby?\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\r\n\r\n";
                         Plugin.MoreLogs("valid player to kick from id");
@@ -49,6 +52,7 @@ namespace TerminalStuff
                 {
                     if (player.playerUsername.ToLower() == targetPlayerName)
                     {
+                        TerminalGeneral.CancelConfirmation = false;
                         playerToKick = player;
                         displayText = $"Kick {player.playerUsername} from the lobby?\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\r\n\r\n";
                         return displayText;
