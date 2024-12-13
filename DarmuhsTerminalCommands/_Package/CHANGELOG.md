@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.4]
+ - Fixed compatibility with [Route Random](https://thunderstore.io/c/lethal-company/p/stormytuna/RouteRandom/) and [RandomRouteOnly](https://thunderstore.io/c/lethal-company/p/Index154/RandomRouteOnly/)
+	- issue was due to the node containing a null displayText property. Should fix compatibility with any mod that handles their terminal nodes in this manor.
+	- Thanks zhenrong for troubleshooting this issue and helping identify the cause
+ - Fixed issue where sometimes the Terminal's image would get enabled when it shouldn't be
+	- Thanks thundershocker1 for the in-depth report
+ - Fixed issue with bestiary animation videos not playing
+	- Thanks crutled for the report!
+ - Added handling for NRE reported by jk_5857
+	- Will need to look into why this code was getting called when the miniScreen image was null, but for now it early returns if it is.
+ - Simplified TerminalBeginUsing stuff (when you start using the terminal)
+	- Should hopefully fix the issue reported by agitatio where the camera in minicams was getting disabled upon re-entering the terminal.
+
 ## [3.7.3]
  - Fixed CruiserTerminal ``Quit`` command compatibility
  - Fixed issue with kick command getting stuck due to confirmation logic when not actively trying to kick anyone.

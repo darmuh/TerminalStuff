@@ -23,6 +23,9 @@ namespace TerminalStuff.EventSub
 
             StartofHandling.HandleParsed(node, ref node);
 
+            if (node.displayText == null)
+                return node;
+
             if (!node.displayText.EndsWith("\r\n"))
                 node.displayText += "\r\n\r\n";
 

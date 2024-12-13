@@ -90,7 +90,8 @@ namespace TerminalStuff
             }
 
 
-            List<string> singleViewModes = ["cams", "map", "mirror"];
+            List<string> singleViewModes = ["cams", "map", "mirror", "single"];
+            List<string> multiViewModes = ["minicams", "minimap", "overlay", "multi"];
 
             if (enabledSplitObjects == false)
             {
@@ -103,7 +104,7 @@ namespace TerminalStuff
                 SetMiniScreen(whatIsIt, false);
                 ResetPluginInstanceBools();
             }
-            else if (enabledSplitObjects == true && (!singleViewModes.Contains(whatIsIt)))
+            else if (enabledSplitObjects == true && (multiViewModes.Contains(whatIsIt)))
             {
                 SetMiniScreen(whatIsIt, true);
                 ViewCommands.SetAnyCamsTrue();
@@ -116,12 +117,15 @@ namespace TerminalStuff
             }
             else
             {
-                Plugin.MoreLogs("No matches for split view objects");
+                Plugin.WARNING($"No matches for CheckForSplitView [ {whatIsIt} ]");
             }
         }
 
         private static void SetMiniScreen(string whatIsIt, bool state)
         {
+            if (miniScreenImage == null)
+                return;
+
             if (miniScreenImage.enabled == state)
                 return;
 

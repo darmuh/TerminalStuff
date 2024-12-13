@@ -81,8 +81,10 @@ namespace TerminalStuff
             return false;
         }
 
-        internal static bool ShouldEnableImage()
+        internal static bool ShouldEnableImage(TerminalNode node)
         {
+            Plugin.Spam($"ShouldEnableImage? - {node.name}");
+
             if (Plugin.instance.suitsTerminal)
             {
                 if (SuitsTerminalCompatibility.CheckForSuitsMenu())
@@ -93,19 +95,19 @@ namespace TerminalStuff
                 }
             }
 
-            if (ViewCommands.AnyActiveMonitoring())
-                return true;
-            
-            if (Plugin.instance.isOnMirror)
+            if (node.displayVideo != null)
                 return true;
 
-            if (!Plugin.instance.splitViewCreated && (bool)Plugin.instance.Terminal.displayingPersistentImage)
+            if (ViewCommands.AnyActiveMonitoring())
+                return true;
+
+            if (Plugin.instance.isOnMirror)
                 return true;
 
             if (Plugin.instance.Terminal.currentNode == null)
                 return false;
 
-            if (MoreCamStuff.excludedNames.Contains(Plugin.instance.Terminal.currentNode.name) && !MoreCamStuff.HideCams())
+            if (MoreCamStuff.excludedNames.Contains(node.name) && !MoreCamStuff.HideCams() && Plugin.instance.Terminal.terminalImage.enabled)
                 return true;
 
             return false;

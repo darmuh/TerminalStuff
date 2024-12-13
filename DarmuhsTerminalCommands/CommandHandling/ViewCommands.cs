@@ -167,6 +167,41 @@ namespace TerminalStuff
                 return "There is no active monitoring to switch!\r\n\r\n";
         }
 
+        internal static int GetCurrentNodeNum()
+        {
+            if (isVideoPlaying) //VideoPlayer
+            {
+                return 0;
+            }
+            else if (Plugin.instance.isOnCamera) // cams
+            {
+                return 1;
+            }
+            else if (Plugin.instance.isOnOverlay) //overlay
+            {
+                return 2;
+            }
+            else if (Plugin.instance.isOnMiniMap) //minimap
+            {
+                return 3;
+            }
+            else if (Plugin.instance.isOnMiniCams) //minicams
+            {
+                return 4;
+            }
+            else if (Plugin.instance.isOnMap) //map
+            {
+                return 5;
+            }
+            else if (Plugin.instance.isOnMirror) //mirror
+            {
+                return 6;
+            }
+
+            Plugin.MoreLogs("No matching views detected");
+            return -1;
+        }
+
         internal static bool GetDefaultNodeNum(out int modeNum)
         {
             string config = ConfigSettings.MonitoringDefaultView.Value.ToLower();

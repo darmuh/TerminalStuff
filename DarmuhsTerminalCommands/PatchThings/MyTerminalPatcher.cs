@@ -128,7 +128,7 @@ namespace TerminalStuff
                 }
                 else
                 {
-                    bool shouldEnable = BoolStuff.ShouldEnableImage();
+                    bool shouldEnable = BoolStuff.ShouldEnableImage(node);
                     Plugin.Spam($"shouldEnable: {shouldEnable}");
 
                     if ((bool)Plugin.instance.Terminal.displayingPersistentImage)

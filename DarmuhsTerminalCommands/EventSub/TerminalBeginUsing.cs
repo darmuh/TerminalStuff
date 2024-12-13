@@ -1,6 +1,7 @@
 ﻿using OpenLib.CoreMethods;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.InputSystem;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static TerminalStuff.EventSub.TerminalStart;
@@ -65,44 +66,13 @@ namespace TerminalStuff.EventSub
                 NetHandler.Instance.SyncDropShipServerRpc();
             }
 
-            //AlwaysOn Functions
-            if (!alwaysOnDisplay)
-            {
-                Plugin.Spam("disabling cams views, alwaysOnDisplay is [DISABLED]");
-
-                //Loading specific startpage or nothing at all
-                ChooseStartPage(instance, ref nextNode);
-            }
-            else
-            {
-                Plugin.MoreLogs("Terminal is Always On, checking for active monitoring or active video");
-                if (Plugin.instance.isOnMirror || Plugin.instance.isOnCamera || Plugin.instance.isOnMap || Plugin.instance.isOnMiniCams || Plugin.instance.isOnMiniMap || Plugin.instance.isOnOverlay)
-                {
-                    Plugin.Spam($"One of the following is true.\nMap: {Plugin.instance.isOnMap} \nCams: {Plugin.instance.isOnCamera} \nMiniMap: {Plugin.instance.isOnMiniMap} \nMiniCams: {Plugin.instance.isOnMiniCams} \nOverlay: {Plugin.instance.isOnOverlay}\nMirror: {Plugin.instance.isOnMirror}");
-                    if (lastText.Length > 0 && ConfigSettings.SaveLastInput.Value)
-                        LogicHandling.SetTerminalInput(lastText);
-
-                    return;
-                }
-                else if (ViewCommands.isVideoPlaying && Plugin.instance.Terminal.currentNode == VideoManager.videoPlayerNode)
-                {
-                    Plugin.Spam($"VideoPlayer: {ViewCommands.isVideoPlaying}\nCurrently Playing: {VideoManager.currentlyPlaying}");
-                    return;
-                }
-                else
-                {
-                    //Loading specific startpage or nothing at all
-                    ChooseStartPage(instance, ref nextNode);
-                }
-            }
+            ChooseStartPage(instance, ref nextNode);
 
             if (ConfigSettings.NetworkedNodes.Value)
             {
-                if (nextNode == null)
-                {
-                    Plugin.MoreLogs("Failed to grab nextNode for server sync!");
+                if (nextNode == null) //not loading any new nodes
                     return;
-                }
+
                 Plugin.Spam("sending current node to other users");
                 TerminalParse.NetSync(nextNode);
             }
@@ -143,12 +113,29 @@ namespace TerminalStuff.EventSub
                 if (ViewCommands.AnyActiveMonitoring() || Plugin.instance.isOnMirror)
                 {
                     Plugin.MoreLogs("Entering terminal and enabling any active cameras");
-                    SplitViewChecks.ShowCameraView(true);
+                    ReturnToMonitoring();
                 }
             }
 
             if (lastText.Length > 0 && ConfigSettings.SaveLastInput.Value)
                 LogicHandling.SetTerminalInput(lastText);
+        }
+
+        internal static void ReturnToMonitoring()
+        {
+            int[] singleViews = [1, 5, 6];
+            int[] multiViews = [2, 3, 4];
+            int nodeNum = ViewCommands.GetCurrentNodeNum();
+
+            if (multiViews.Contains(nodeNum))
+            {
+                SplitViewChecks.CheckForSplitView("multi");
+            }
+
+            if (singleViews.Contains(nodeNum))
+            {
+                SplitViewChecks.CheckForSplitView("single");
+            }
         }
     }
 }
