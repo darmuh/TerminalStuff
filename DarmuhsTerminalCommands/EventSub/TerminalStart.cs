@@ -17,6 +17,7 @@ namespace TerminalStuff.EventSub
         internal static List<TerminalNode> vanillaNodes = [];
         internal static TerminalNode viewMonitorVanilla = null;
         internal static TerminalNode switchNodeVanilla = null;
+        internal static TerminalNode OriginalMoonsPage = null!;
         internal static bool delayStartEnum = false;
 
         internal static void OnTerminalStart()

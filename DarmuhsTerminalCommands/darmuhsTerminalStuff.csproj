@@ -200,6 +200,10 @@
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.VideoModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="WeatherTweaks" Publicize="true">
+      <HintPath>..\..\..\refs\mrov-WeatherTweaks\WeatherTweaks.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandHandling\AdminCommands.cs" />
@@ -217,6 +221,7 @@
     <Compile Include="Compatibility\InteractiveAPI.cs" />
     <Compile Include="Compatibility\LLLCompat.cs" />
     <Compile Include="Compatibility\ShipInventoryCompat.cs" />
+    <Compile Include="Compatibility\WeatherTweaksCompat.cs" />
     <Compile Include="EventSub\GameStuff.cs" />
     <Compile Include="EventSub\Subscribers.cs" />
     <Compile Include="EventSub\Teleporters.cs" />
@@ -236,7 +241,11 @@
     <Compile Include="SpecialStuff\AutoComplete.cs" />
     <Compile Include="SpecialStuff\ConflictRes.cs" />
     <Compile Include="SpecialStuff\Fastenshtein.cs" />
+    <Compile Include="SpecialStuff\FilterView.cs" />
     <Compile Include="SpecialStuff\FontStuff.cs" />
+    <Compile Include="SpecialStuff\MoonInfo.cs" />
+    <Compile Include="SpecialStuff\MoonsPlus.cs" />
+    <Compile Include="SpecialStuff\MoonsPlusConfig.cs" />
     <Compile Include="SpecialStuff\TerminalHistory.cs" />
     <Compile Include="throwawaycode.cs" />
     <Compile Include="VisualCore\AlwaysOnStuff.cs" />

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.5]
+ - Added new experimental feature, MoonsPlus.
+	- When enabled can either completely replace the moons catalogue or be used as a separate keyword to display an interactive listing of moons available for routing.
+	- Compatibility has been added for LethalLevelLoader, LethalConstellations, and Weather Tweaks/Registry.
+	- Has many configurable features for filtering/sorting. Can also be adjusted in the menus.
+	- This feature is still very experimental and is default disabled.
+ - publicized ShortcutBindings so that other mods can assign stopForAnyReason to stop/start the shortcut listening logic
+
 ## [3.7.4]
  - Fixed compatibility with [Route Random](https://thunderstore.io/c/lethal-company/p/stormytuna/RouteRandom/) and [RandomRouteOnly](https://thunderstore.io/c/lethal-company/p/Index154/RandomRouteOnly/)
 	- issue was due to the node containing a null displayText property. Should fix compatibility with any mod that handles their terminal nodes in this manor.

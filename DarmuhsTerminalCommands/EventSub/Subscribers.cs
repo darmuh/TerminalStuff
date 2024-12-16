@@ -33,7 +33,7 @@ namespace TerminalStuff.EventSub
             //GameStuff
             EventManager.GameNetworkManagerStart.AddListener(GameStuff.OnGameStart);
             EventManager.StartOfRoundStart.AddListener(GameStuff.OnStartOfRoundStart);
-            //EventManager.ShipLeft.AddListener(GameStuff.OnShipLeft);
+            EventManager.StartOfRoundChangeLevel.AddListener(GameStuff.OnChangeLevel);
             EventManager.NextDayEvent.AddListener(GameStuff.OnNextDay);
             EventManager.PlayerSpawn.AddListener(GameStuff.OnPlayerSpawn);
             ClockTimePatch.OnRefreshClock.AddListener(TerminalClockStuff.ClockUpdate);

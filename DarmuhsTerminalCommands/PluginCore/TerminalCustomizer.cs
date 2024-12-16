@@ -166,7 +166,7 @@ namespace TerminalStuff.PluginCore
 
         }
 
-        private static Color SetColorFor(string config, Color cachedColor)
+        internal static Color SetColorFor(string config, Color cachedColor)
         {
             if ((config.Length < 1 || config.ToLower() == "default") && cachedColor != null)
             {

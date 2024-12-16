@@ -26,7 +26,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.TerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "3.7.4";
+            public const string PLUGIN_VERSION = "3.7.5";
         }
 
         internal static ManualLogSource Log;
@@ -46,6 +46,7 @@ namespace TerminalStuff
         public bool CruiserTerm = false;
         public bool ITAPI = false;
         public bool LethalLevelLoader = false;
+        public bool WeatherTweaks = false;
 
         //public stuff for instance
         public bool isOnMirror = false;

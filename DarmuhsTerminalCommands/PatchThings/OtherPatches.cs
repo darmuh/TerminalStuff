@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
 using TerminalStuff.EventSub;
+using TerminalStuff.SpecialStuff;
 using TerminalStuff.VisualCore;
 using UnityEngine;
 
@@ -33,6 +34,19 @@ namespace TerminalStuff
                 else
                     return;
             }
+        }
+    }
+
+    //SetMapScreenInfoToCurrentLevel
+    [HarmonyPatch(typeof(StartOfRound), "SetMapScreenInfoToCurrentLevel")]
+    public class SetMapScreenInfoPatch
+    {
+        public static void Postfix()
+        {
+            if (!ConfigSettings.TerminalMoonsPlus.Value)
+                return;
+
+            MoonsPlus.HideLevelFromMapScreen();
         }
     }
 

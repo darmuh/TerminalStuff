@@ -8,7 +8,7 @@ using Key = UnityEngine.InputSystem.Key;
 
 namespace TerminalStuff
 {
-    internal class ShortcutBindings
+    public class ShortcutBindings
     {
         // Define a dictionary to map keys to actions
         internal static Dictionary<Key, string> keyActions = [];

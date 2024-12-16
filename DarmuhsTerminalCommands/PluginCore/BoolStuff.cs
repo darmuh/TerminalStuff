@@ -1,4 +1,5 @@
-﻿using UnityEngine.InputSystem;
+﻿using TerminalStuff.SpecialStuff;
+using UnityEngine.InputSystem;
 using static TerminalStuff.AdminCommands;
 using static TerminalStuff.DynamicCommands;
 using static TerminalStuff.EventSub.TerminalStart;
@@ -18,6 +19,9 @@ namespace TerminalStuff
                 return false;
 
             if (Plugin.instance.suitsTerminal && SuitsTerminalCompatibility.CheckForSuitsMenu())
+                return false;
+
+            if (MoonsPlus.inMoonsMenu)
                 return false;
 
             if (!Plugin.instance.Terminal.terminalInUse)

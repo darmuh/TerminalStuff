@@ -133,7 +133,7 @@ namespace TerminalStuff.VisualCore
             rawImage.color = newColor;
         }
 
-        private static void SetRawImageDimensions(RectTransform rectTrans, bool isFullScreen)
+        internal static void SetRawImageDimensions(RectTransform rectTrans, bool isFullScreen)
         {
             if (isFullScreen)
             {

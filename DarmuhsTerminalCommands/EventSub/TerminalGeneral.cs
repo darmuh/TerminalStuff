@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using TerminalStuff.SpecialStuff;
 using static TerminalStuff.TerminalEvents;
 
 
@@ -151,6 +152,9 @@ namespace TerminalStuff.EventSub
         {
             if (!Plugin.instance.Terminal.terminalInUse)
                 return;
+
+            if (MoonsPlus.inMoonsMenu)
+                MoonsPlus.HandleInput();
 
             if (BoolStuff.AnyKeyIsPressed() && BoolStuff.ListenForShortCuts())
             {

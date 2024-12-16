@@ -2,6 +2,7 @@
 using OpenLib.ConfigManager;
 using OpenLib.CoreMethods;
 using System.Collections.Generic;
+using TerminalStuff.SpecialStuff;
 using static OpenLib.Common.CommonTerminal;
 using static OpenLib.ConfigManager.ConfigSetup;
 
@@ -78,6 +79,7 @@ namespace TerminalStuff
         public static ConfigEntry<bool> TerminalRouteRandom { get; internal set; } // route random command
         public static ConfigEntry<bool> TerminalRefreshCustomization { get; internal set; } //refresh customization command
         public static ConfigEntry<bool> TerminalRadarZoom { get; internal set; }
+        public static ConfigEntry<bool> TerminalMoonsPlus { get; internal set; } //MoonsPlus enable/disable
 
         //features
         public static ConfigEntry<bool> TerminalPurchasePacks { get; internal set; } // purchase packs feature
@@ -490,6 +492,7 @@ namespace TerminalStuff
             TerminalTP = MakeBool(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalTP", true, "Command to Activate Teleporter <TP>");
             TerminalITP = MakeBool(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalITP", true, "Command to Activate Inverse Teleporter <ITP>");
             TerminalPurchasePacks = MakeBool(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalPurchasePacks", false, "Use [PurchasePackCommands] to create purchase packs that contain multiple store items in one run of the command");
+            TerminalMoonsPlus = MakeBool(Plugin.instance.Config, "MoonsPlus", "TerminalMoonsPlus", false, "Enable/Disable the Moons Plus page for an interactive menu to select moons from.\nWARNING: This feature has limited compatibility testing with other mods that modify the vanilla moons page and mods that affect where you can route.");
             //NOT MANAGED BOOLS THAT ARE COMMANDS, DEFINE THESE COMMANDS LATER THAN TERMINAL AWAKE
 
             //String Configs
@@ -596,6 +599,7 @@ namespace TerminalStuff
             CustomFontSizeMoney = MakeClampedInt(Plugin.instance.Config, "Terminal Customization", "CustomFontSizeMoney", -1, "Set a custom size for your font (credits at the top left), leave at -1 if you wish not to change it", -1, 72);
             CustomFontSizeClock = MakeClampedInt(Plugin.instance.Config, "Terminal Customization", "CustomFontSizeClock", -1, "Set a custom size for your font (TerminalClock), leave at -1 if you wish not to change it", -1, 72);
             CruiserTerminalConfigs();
+            MoonsPlusConfig.Init();
 
             PluginCore.StuffForLibrary.ManualManagedBools(); //add more managedbools that dont come from a specific config item
 

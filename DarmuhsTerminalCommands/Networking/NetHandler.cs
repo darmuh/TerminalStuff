@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TerminalStuff.EventSub;
 using TerminalStuff.PluginCore;
+using TerminalStuff.SpecialStuff;
 using Unity.Netcode;
 using UnityEngine;
 using static OpenLib.CoreMethods.AddingThings;
@@ -327,6 +328,43 @@ namespace TerminalStuff
                 foreach (string name in SaveManager.AllUpgradesUnlocked)
                     UpgradeStatusServerRpc(name);
             }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        internal void GetTravelHistoryServerRpc()
+        {
+            Plugin.MoreLogs($"Server: Client requesting Travel History status update for all clients");
+            GetTravelHistoryClientRpc();
+        }
+
+        [ClientRpc]
+        internal void GetTravelHistoryClientRpc()
+        {
+            NetworkManager networkManager = base.NetworkManager;
+            if (networkManager.IsHost || networkManager.IsServer)
+            {
+                foreach (string name in MoonsPlus.MoonsVisited)
+                    TravelHistoryServerRpc(name);
+            }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        internal void TravelHistoryServerRpc(string moonName)
+        {
+            Plugin.MoreLogs($"Server: Adding {moonName} to travel history for all clients");
+            TravelHistoryClientRpc(moonName);
+        }
+
+        [ClientRpc]
+        internal void TravelHistoryClientRpc(string moonName)
+        {
+            if (MoonsPlus.MoonsVisited.Contains(moonName))
+                return;
+
+            MoonsPlus.MoonsVisited.Add(moonName);
+
+            Plugin.MoreLogs($"Client: Adding {moonName} to travel history for all clients");
+            MoonsPlus.UpdateMoonTravelHistory(moonName);
         }
 
         [ServerRpc(RequireOwnership = false)]

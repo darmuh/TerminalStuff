@@ -24,7 +24,6 @@ namespace TerminalStuff.PluginCore
             GetCommandsToAdd(ConfigSettings.TerminalStuffBools, ConfigSettings.TerminalStuffMain);
             TerminalEvents.StorePacks();
             SwitchCommand();
-
         }
 
         internal static void SwitchCommand()

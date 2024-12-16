@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using TerminalStuff.PluginCore;
+using TerminalStuff.SpecialStuff;
 using static OpenLib.Common.StartGame;
 using static TerminalStuff.AlwaysOnStuff;
 
@@ -60,8 +61,19 @@ namespace TerminalStuff.EventSub
             MoreCamStuff.ResetPluginInstanceBools(); //reset view command bools
         }
 
+        internal static void OnChangeLevel()
+        {
+            if (!ConfigSettings.TerminalMoonsPlus.Value)
+                return;
+
+            foreach (MoonInfo moon in MoonsPlus.MoonListing)
+                moon.UpdateInfo();
+                
+        }
+
         internal static void OnPlayerSpawn()
         {
+            MoonsPlus.GetMoons();
 
             if (screenSettings == null)
                 return;
@@ -137,6 +149,8 @@ namespace TerminalStuff.EventSub
 
             if (SoftCompatibility("imabatby.lethallevelloader", ref Plugin.instance.LethalLevelLoader))
                 Plugin.Spam("LethalLevelLoader by IAmBatby detected!");
+            if (SoftCompatibility("WeatherTweaks", ref Plugin.instance.WeatherTweaks))
+                Plugin.Spam("WeatherTweaks by mrov detected!");
 
             if (OpenLib.Plugin.instance.LethalConfig)
                 OpenLib.Compat.LethalConfigSoft.AddButton("Terminal Customization", "Refresh Customizations", "Press this button to refresh all terminal customizations", "Refresh", TerminalCustomizer.TerminalCustomization);
