@@ -68,8 +68,11 @@ namespace TerminalStuff.SpecialStuff
         internal static void GetMoons()
         {
             if (!ConfigSettings.TerminalMoonsPlus.Value)
+            {
                 SetToVanilla();
-
+                return;
+            }
+                
             if (StartOfRound.Instance.levels.Length == 0) 
                 return;
 

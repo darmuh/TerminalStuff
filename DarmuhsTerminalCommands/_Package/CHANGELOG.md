@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.6]
+ - Added a missing early return for when MoonsPlus is disabled which would still create the keyword.
+
 ## [3.7.5]
  - Added new experimental feature, MoonsPlus.
 	- When enabled can either completely replace the moons catalogue or be used as a separate keyword to display an interactive listing of moons available for routing.
