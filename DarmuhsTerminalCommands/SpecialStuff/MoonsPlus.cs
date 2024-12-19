@@ -361,6 +361,7 @@ namespace TerminalStuff.SpecialStuff
 
             yield return new WaitForEndOfFrame();
             Plugin.instance.Terminal.LoadNewNode(MoonsMenu);
+            TerminalParse.NetSync(MoonsMenu);
             yield return new WaitForEndOfFrame();
             
         }
@@ -542,6 +543,7 @@ namespace TerminalStuff.SpecialStuff
             {
                 ShowReel(true);
                 Plugin.instance.Terminal.LoadNewNode(MoonsMenu);
+                TerminalParse.NetSync(MoonsMenu);
             }
 
             yield break;
@@ -558,10 +560,12 @@ namespace TerminalStuff.SpecialStuff
             TerminalNode nextNode = null;
             TerminalBeginUsing.ChooseStartPage(Plugin.instance.Terminal, ref nextNode);
             
-            if(nextNode != null)
-                Plugin.instance.Terminal.LoadNewNode(nextNode);
-            else
-                Plugin.instance.Terminal.LoadNewNode(startNode);
+            if(nextNode == null)
+                nextNode = startNode;
+            
+
+            Plugin.instance.Terminal.LoadNewNode(nextNode);
+            TerminalParse.NetSync(nextNode);
 
             yield return new WaitForEndOfFrame();
             Plugin.instance.Terminal.screenText.caretColor = TerminalCustomizer.SetColorFor(ConfigSettings.TerminalCaretColor.Value, CustomTerminalStuff.TextCaret);

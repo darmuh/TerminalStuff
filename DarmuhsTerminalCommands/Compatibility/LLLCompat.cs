@@ -6,14 +6,32 @@ namespace TerminalStuff.Compatibility
     {
         internal static void UpdateLLLFontSize(float fontSize)
         {
+            if (!Plugin.instance.LethalLevelLoader)
+                return;
+
             TerminalManager.defaultTerminalFontSize = fontSize;
             Plugin.instance.Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
             Plugin.Spam($"TerminalManager.defaultTerminalFontSize set to {fontSize}!");
         }
 
+        internal static int GetPrice(SelectableLevel level)
+        {
+            if (!Plugin.instance.LethalLevelLoader)
+                return 0;
+
+            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+            {
+                return extendedLevel.RoutePrice;
+            }
+            return 0;
+        }
+
         internal static bool IsLocked(SelectableLevel level)
         {
-            if(LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+            if (!Plugin.instance.LethalLevelLoader)
+                return false;
+
+            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
             {
                 if (extendedLevel.IsRouteLocked)
                     return true;
@@ -25,6 +43,9 @@ namespace TerminalStuff.Compatibility
 
         internal static bool IsHidden(SelectableLevel level)
         {
+            if (!Plugin.instance.LethalLevelLoader)
+                return false;
+
             if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
             {
                 if (extendedLevel.IsRouteHidden)
@@ -37,6 +58,9 @@ namespace TerminalStuff.Compatibility
 
         internal static void UnlockUnhide(SelectableLevel level)
         {
+            if (!Plugin.instance.LethalLevelLoader)
+                return;
+
             if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
             {
                 extendedLevel.IsRouteHidden = false;
@@ -47,6 +71,9 @@ namespace TerminalStuff.Compatibility
 
         internal static void ChangeHiddenStatus(SelectableLevel level, bool shouldHide)
         {
+            if (!Plugin.instance.LethalLevelLoader)
+                return;
+
             if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
             {
                 extendedLevel.IsRouteHidden = shouldHide;

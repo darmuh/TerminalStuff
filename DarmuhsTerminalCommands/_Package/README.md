@@ -6,6 +6,7 @@
 
 ### Features:
  - **Near infinite** customizable keywords for a majority of commands
+ - MoonsPlus (experimental): Interactive moons catalogue menu within the terminal. Compatible with LethalLevelLoader & LethalConstellations
  - Networked Terminal nodes with Always On Display will let you see what your coworkers are doing on the terminal! **NOW WORKS WITH CAMS AND VIDEOS**
  - Customizable pricing, strings, upgrades, etc.
  - Customizable home (startup) page! **NOW WITH THE ABILITY TO ADD YOUR OWN ASCII ART IN UPDATE 3.0.0**

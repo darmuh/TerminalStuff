@@ -73,6 +73,9 @@ namespace TerminalStuff.SpecialStuff
 
         internal int GetPrice()
         {
+            if (Plugin.instance.LethalLevelLoader)
+                return LLLCompat.GetPrice(this.Level);
+
             TerminalNode moonNode = LogicHandling.GetAllNodes().FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
             
             if (moonNode == null)
