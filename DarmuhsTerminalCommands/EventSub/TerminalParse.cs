@@ -3,7 +3,7 @@ using static OpenLib.Menus.MenuBuild;
 
 namespace TerminalStuff.EventSub
 {
-    internal class TerminalParse
+    public class TerminalParse
     {
         internal static TerminalNode OnParseSent(ref TerminalNode node)
         {
@@ -34,7 +34,7 @@ namespace TerminalStuff.EventSub
 
         }
 
-        internal static void NetSync(TerminalNode node)
+        public static void NetSync(TerminalNode node)
         {
             if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
                 return;

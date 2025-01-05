@@ -16,7 +16,7 @@ namespace TerminalStuff.EventSub
                 Plugin.Spam("grabbed lastText");
             }
 
-            if (MoonsPlus.inMoonsMenu)
+            if (MoonsPlus.MoonsPlusMenu.inMenu)
                 MoonsPlus.ExitMenu(false);
 
             if (StartOfRound.Instance.localPlayerController != null)

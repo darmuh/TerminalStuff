@@ -9,7 +9,6 @@ using static TerminalStuff.EventSub.TerminalStart;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.CoreMethods.AddingThings;
 using OpenLib.CoreMethods;
-using UnityEngine.InputSystem;
 using System.Linq;
 using TerminalStuff.Compatibility;
 
@@ -18,6 +17,7 @@ namespace TerminalStuff.SpecialStuff
     public class MoonsPlus
     {
         public static OpenLib.Events.Events.CustomEvent<List<MoonInfo>> UpdateMoonsDisplayed = new();
+        internal static InteractiveMenu MoonsPlusMenu = new("moonsMenu", LoadPage, SelectInMenu, ExitInTerminal);
 
         internal static List<MoonInfo> MoonListing = [];
         public static List<MoonInfo> MoonsDisplayed = [];
@@ -27,18 +27,16 @@ namespace TerminalStuff.SpecialStuff
         internal static List<string> MoonsVisited = [];
 
         //menu stuff
-        internal static int activeSelection = 0;
-        internal static int currentPage = 1;
-        internal static bool inMoonsMenu = false;
         internal static bool inFilterMenu = false;
         internal static TerminalNode MoonsMenu = null!;
         internal static FilterView MoonsFilter = new();
-
 
         internal static Color transparent = new(0, 0, 0, 0);
 
         internal static void SetToVanilla()
         {
+            MoonsPlusMenu.isMenuEnabled = false;
+
             if (OriginalMoonsPage == null)
                 return;
 
@@ -65,6 +63,11 @@ namespace TerminalStuff.SpecialStuff
 
         }
 
+        internal static void ExitInTerminal()
+        {
+            ExitMenu(true);
+        }
+
         internal static void GetMoons()
         {
             if (!ConfigSettings.TerminalMoonsPlus.Value)
@@ -87,6 +90,11 @@ namespace TerminalStuff.SpecialStuff
                 MoonInfo moon = new(StartOfRound.Instance.levels[i], i, StartOfRound.Instance.levels[i].PlanetName, StartOfRound.Instance.levels[i] == StartOfRound.Instance.currentLevel);
                 MoonListing.Add(moon);
             }
+
+            MoonsPlusMenu.isMenuEnabled = true;
+            MoonsPlusMenu.activeSelection = 0;
+            MoonsPlusMenu.currentPage = 1;
+            MoonsPlusMenu.AddToOtherActions(Key.F, ToggleMenus);
 
             MoonsFilter.ChangeSort(MoonsFilter.SortType);
 
@@ -167,9 +175,9 @@ namespace TerminalStuff.SpecialStuff
             // Recalculate activeIndex based on the current page
             // Ensure activeIndex is within the range of items on the current page
             activeIndex = Mathf.Clamp(activeIndex, startIndex, endIndex - 1);
-            Plugin.Spam($"activeSelection: {activeSelection} activeIndex: {activeIndex}");
+            Plugin.Spam($"activeSelection: {MoonsPlusMenu.activeSelection} activeIndex: {activeIndex}");
             Plugin.Spam("matching values");
-            activeSelection = activeIndex;
+            MoonsPlusMenu.activeSelection = activeIndex;
 
             // Iterate through each item in the current page
             for (int i = startIndex; i < endIndex; i++)
@@ -250,7 +258,7 @@ namespace TerminalStuff.SpecialStuff
 
         internal static string GetWeatherName(SelectableLevel level)
         {
-            string levelWeather = "";
+            string levelWeather;
             if (Plugin.instance.WeatherTweaks)
                 levelWeather = WeatherTweaksCompat.GetWeather(level);
             else
@@ -277,9 +285,9 @@ namespace TerminalStuff.SpecialStuff
             // Recalculate activeIndex based on the current page
             // Ensure activeIndex is within the range of items on the current page
             activeIndex = Mathf.Clamp(activeIndex, 0, FilterMenu.Count - 1);
-            Plugin.Spam($"activeSelection: {activeSelection} activeIndex: {activeIndex}");
+            Plugin.Spam($"activeSelection: {MoonsPlusMenu.activeSelection} activeIndex: {activeIndex}");
             Plugin.Spam("matching values");
-            activeSelection = activeIndex;
+            MoonsPlusMenu.activeSelection = activeIndex;
 
             for (int i = 0; i < FilterMenu.Count; i++)
             {
@@ -315,31 +323,6 @@ namespace TerminalStuff.SpecialStuff
                 return "<color=#b22222>Disabled</color>";
         }
 
-        internal static void HandleInput()
-        {
-            if (Keyboard.current[Key.UpArrow].isPressed)
-                UpMenu();
-
-            if (Keyboard.current[Key.DownArrow].isPressed)
-                DownMenu();
-
-            if (Keyboard.current[Key.Backspace].isPressed)
-                ExitMenu(true);
-
-            if (Keyboard.current[Key.LeftArrow].isPressed)
-                PrevPage();
-
-            if (Keyboard.current[Key.RightArrow].isPressed)
-                NextPage();
-
-            if (Keyboard.current[Key.Enter].isPressed)
-                SelectInMenu();
-
-            if (Keyboard.current[Key.F].isPressed)
-                ToggleMenus();
-
-        }
-
         internal static void LoadPage()
         {
             Plugin.instance.Terminal.StartCoroutine(DelayUpdateText());
@@ -349,9 +332,9 @@ namespace TerminalStuff.SpecialStuff
         {
             yield return new WaitForEndOfFrame();
             if (!inFilterMenu)
-                MoonsMenu.displayText = GetMoonPage(activeSelection, 10, ref currentPage);
+                MoonsMenu.displayText = GetMoonPage(MoonsPlusMenu.activeSelection, 10, ref MoonsPlusMenu.currentPage);
             else
-                MoonsMenu.displayText = GetFiltersPage(activeSelection);
+                MoonsMenu.displayText = GetFiltersPage(MoonsPlusMenu.activeSelection);
 
 
             if (StartOfRound.Instance.currentLevel.videoReel != null && !inFilterMenu)
@@ -411,7 +394,7 @@ namespace TerminalStuff.SpecialStuff
 
         internal static void ToggleMenus()
         {
-            activeSelection = 0;
+            MoonsPlusMenu.activeSelection = 0;
             inFilterMenu = !inFilterMenu;
             LoadPage();
         }
@@ -422,17 +405,17 @@ namespace TerminalStuff.SpecialStuff
 
             if(inFilterMenu)
             {
-                if (activeSelection == 0)
+                if (MoonsPlusMenu.activeSelection == 0)
                     ToggleWeatherDisplay();
-                else if (activeSelection == 1)
+                else if (MoonsPlusMenu.activeSelection == 1)
                     TogglePriceDisplay();
-                else if (activeSelection == 2)
+                else if (MoonsPlusMenu.activeSelection == 2)
                     ToggleRiskDisplay();
-                else if (sortChangers.Contains(activeSelection))
-                    MoonsFilter.ChangeSort(activeSelection - 3);
-                else if (activeSelection == 8)
+                else if (sortChangers.Contains(MoonsPlusMenu.activeSelection))
+                    MoonsFilter.ChangeSort(MoonsPlusMenu.activeSelection - 3);
+                else if (MoonsPlusMenu.activeSelection == 8)
                     MoonsFilter.RemoveTooExpensive = !MoonsFilter.RemoveTooExpensive;
-                else if (activeSelection == 9)
+                else if (MoonsPlusMenu.activeSelection == 9)
                     MoonsFilter.RemoveBadWeather = !MoonsFilter.RemoveBadWeather;
                 else
                     Plugin.WARNING("ACTIVE SELECTION OUTSIDE BOUNDS OF FILTER MENU");
@@ -442,56 +425,22 @@ namespace TerminalStuff.SpecialStuff
                 return;
             }
 
-            if (MoonsDisplayed[activeSelection].Level == null)
+            if (MoonsDisplayed[MoonsPlusMenu.activeSelection].Level == null)
             {
-                Plugin.ERROR($"Active Moons Selection is NULL! - {activeSelection}");
+                Plugin.ERROR($"Active Moons Selection is NULL! - {MoonsPlusMenu.activeSelection}");
                 return;
             }
 
-            if (StartOfRound.Instance.travellingToNewLevel || !StartOfRound.Instance.inShipPhase || StartOfRound.Instance.currentLevel == MoonsDisplayed[activeSelection].Level)
+            if (StartOfRound.Instance.travellingToNewLevel || !StartOfRound.Instance.inShipPhase || StartOfRound.Instance.currentLevel == MoonsDisplayed[MoonsPlusMenu.activeSelection].Level)
                 return;
 
-            if (MoonsDisplayed[activeSelection].price > Plugin.instance.Terminal.groupCredits)
+            if (MoonsDisplayed[MoonsPlusMenu.activeSelection].price > Plugin.instance.Terminal.groupCredits)
                 return;
 
-            int newCreds = CostCommands.CalculateNewCredits(Plugin.instance.Terminal.groupCredits, MoonsDisplayed[activeSelection].price, Plugin.instance.Terminal);
+            int newCreds = CostCommands.CalculateNewCredits(Plugin.instance.Terminal.groupCredits, MoonsDisplayed[MoonsPlusMenu.activeSelection].price, Plugin.instance.Terminal);
 
-            StartOfRound.Instance.ChangeLevelServerRpc(MoonsDisplayed[activeSelection].Level.levelID, newCreds);
+            StartOfRound.Instance.ChangeLevelServerRpc(MoonsDisplayed[MoonsPlusMenu.activeSelection].Level.levelID, newCreds);
             StartOfRound.Instance.SetMapScreenInfoToCurrentLevel();
-
-            LoadPage();
-        }
-
-        internal static void UpMenu()
-        {
-            if (activeSelection > 0)
-                activeSelection--;
-
-            LoadPage();
-        }
-
-        internal static void DownMenu()
-        {
-            activeSelection++;
-            LoadPage();
-        }
-
-        internal static void NextPage()
-        {
-            if (inFilterMenu)
-                return;
-
-            currentPage++;
-            LoadPage();
-        }
-
-        internal static void PrevPage()
-        {
-            if (inFilterMenu)
-                return;
-
-            if(currentPage > 1)
-                currentPage--;
 
             LoadPage();
         }
@@ -521,19 +470,19 @@ namespace TerminalStuff.SpecialStuff
             if (!StartOfRound.Instance.inShipPhase)
                 return "Return to orbit to see the moons listing!\r\n\r\n";
 
-            currentPage = 1;
+            MoonsPlusMenu.currentPage = 1;
             Plugin.instance.Terminal.StartCoroutine(MenuStart());
-            return GetMoonPage(0, 10, ref currentPage);
+            return GetMoonPage(0, 10, ref MoonsPlusMenu.currentPage);
         }
 
         internal static IEnumerator MenuStart()
         {
-            if (inMoonsMenu)
+            if (MoonsPlusMenu.inMenu)
                 yield break;
 
             yield return new WaitForEndOfFrame();
             Plugin.instance.Terminal.screenText.caretColor = transparent;
-            inMoonsMenu = true;
+            MoonsPlusMenu.inMenu = true;
             yield return new WaitForEndOfFrame();
             Plugin.instance.Terminal.screenText.DeactivateInputField();
             Plugin.instance.Terminal.screenText.interactable = false;
@@ -552,7 +501,7 @@ namespace TerminalStuff.SpecialStuff
         internal static IEnumerator MenuClose(bool enableInput)
         {
             yield return new WaitForEndOfFrame();
-            inMoonsMenu = false;
+            MoonsPlusMenu.inMenu = false;
             yield return new WaitForEndOfFrame();
 
             ShowReel(false);
@@ -618,7 +567,6 @@ namespace TerminalStuff.SpecialStuff
         }
 
         //public stuff
-
         public static bool TryGetMoon(string levelName, out MoonInfo moon)
         {
             moon = null!;

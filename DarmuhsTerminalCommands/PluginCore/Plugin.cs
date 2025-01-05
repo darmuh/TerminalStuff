@@ -16,7 +16,7 @@ using static OpenLib.ConfigManager.ConfigSetup;
 namespace TerminalStuff
 {
     [BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", (PluginInfo.PLUGIN_VERSION))]
-    [BepInDependency("darmuh.OpenLib", "0.2.11")] //hard dependency for my library
+    [BepInDependency("darmuh.OpenLib", "0.2.12")] //hard dependency for my library
 
 
     public class Plugin : BaseUnityPlugin

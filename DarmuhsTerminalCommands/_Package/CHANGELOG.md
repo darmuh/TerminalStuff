@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.7.8]
+ - Switching some common moonsplus menu stuff to openlib
+
 ## [3.7.7]
  - Fixed rare issue where a moon's (dine) price was inaccurate in a specific profile.
 	- This profile had LLL so I am leveraging getting the route price from LLL when it is present.
