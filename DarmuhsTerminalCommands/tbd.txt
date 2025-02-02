@@ -21,3 +21,15 @@ stop shortcuts when interactive terminal api menu in-use
 add terminalaccessibleobjects for lights/door etc.?
 - will add this in a later version, need to figure out how I will standardize this so I'm not adding a method for each command
 test with larger profiles
+
+[10:24:51.9887402] [Info   :darmuhsTerminalStuff] end of config setup
+[10:24:51.9901763] [Info   :   OpenLib] Checking if networking is disabled...
+[10:24:51.9992948] [Warning:darmuhsTerminalStuff] Unable to load video files from path configuration: darmuh-darmuhsTerminalVideos
+[10:24:52.0008032] [Error  : Unity Log] ReflectionTypeLoadException: Exception of type 'System.Reflection.ReflectionTypeLoadException' was thrown.
+Could not load type of field 'TerminalStuff.Compatibility.CruiserTerm:cruiserTerminal' (0) due to: Could not load file or assembly 'CruiserTerminal, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' or one of its dependencies.
+Stack trace:
+System.Reflection.Assembly.GetTypes () (at <787acc3c9a4c471ba7d971300105af24>:IL_0000)
+TerminalStuff.Plugin.Awake () (at ./PluginCore/Plugin.cs:103)
+UnityEngine.GameObject:DMD<UnityEngine.GameObject::AddComponent>(GameObject, Type)
+BepInEx.Bootstrap.Chainloader:DMD<BepInEx.Bootstrap.Chainloader::Start>()
+UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset:OnEnable()

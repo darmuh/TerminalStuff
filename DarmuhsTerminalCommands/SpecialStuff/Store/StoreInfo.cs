@@ -43,6 +43,10 @@ namespace TerminalStuff.SpecialStuff
                 terminalNode = storeNode;
 
             price = storeNode.itemCost;
+
+            if (terminalNode.itemCost != storeNode.itemCost) //fix cases where one terminal node has the price and one doesnt
+                price = Math.Max(terminalNode.itemCost, storeNode.itemCost);
+
             GetStoreInfo(storeNode);
         }
 

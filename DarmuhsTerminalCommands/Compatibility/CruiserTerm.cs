@@ -1,19 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using CruiserTerminal.Patches;
 
 namespace TerminalStuff.Compatibility
 {
     internal class CruiserTerm
     {
-        internal static CruiserTerminal.CTerminal.CruiserTerminalScript cruiserTerminal;
+        //private static CruiserTerminalScript cruiserTerminal;
         internal static List<string> WordList = [];
         internal static bool isDeny = false;
         internal static TerminalNode NoAccess;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void Quit()
         {
             if (Status())
-                cruiserTerminal.QuitCruiserTerminal();
+                CTPatches.cterminal.QuitCruiserTerminal();
         }
 
         internal static void CreateDenyKeyword()
@@ -27,12 +30,12 @@ namespace TerminalStuff.Compatibility
             WordList = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.CruiserKeywordList.Value, ',');
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static bool Status()
         {
-            cruiserTerminal = CruiserTerminal.Patches.CTPatches.cterminal;
-            if (cruiserTerminal != null)
+            if (CTPatches.cterminal != null)
             {
-                if (cruiserTerminal.cruiserTerminalInUse)
+                if (CTPatches.cterminal.cruiserTerminalInUse)
                     return true;
                 else
                     return false;

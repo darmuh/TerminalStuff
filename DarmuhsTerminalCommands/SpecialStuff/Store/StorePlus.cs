@@ -546,7 +546,7 @@ namespace TerminalStuff.SpecialStuff
             List<TerminalNode> nodes = LogicHandling.GetAllNodes();
             List<TerminalNode> unlockables = nodes.FindAll(x => x.shipUnlockableID > -1);
             List<TerminalNode> buyables = nodes.FindAll(n => n.buyItemIndex > -1);
-            List<TerminalNode> terminalVehicles = nodes.FindAll(n => n.buyVehicleIndex > -1);
+            List<TerminalNode> terminalVehicles = nodes.FindAll(n => n.buyVehicleIndex > -1 && n.creatureFileID == -1 && n.buyItemIndex == -1 && n.buyRerouteToMoon == -1);
 
             foreach (TerminalNode node in unlockables)
             {

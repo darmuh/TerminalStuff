@@ -26,7 +26,7 @@ namespace TerminalStuff
         {
             public const string PLUGIN_GUID = "darmuh.TerminalStuff";
             public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-            public const string PLUGIN_VERSION = "3.8.0";
+            public const string PLUGIN_VERSION = "3.8.1";
         }
 
         internal static ManualLogSource Log;
@@ -97,18 +97,18 @@ namespace TerminalStuff
             Config.ConfigReloaded += OnConfigReloaded;
             Config.SettingChanged += OnSettingChanged;
             //FontStuff.TestingFonts();
-            
+
             //start of networking stuff
 
-            List<Type> types = [.. Assembly.GetExecutingAssembly().GetTypes()];
-            List<MethodInfo> methods = [.. types.SelectMany(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))];
+            var types = AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly());
+            var methods = types.SelectMany(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static));
             foreach(MethodInfo method in methods)
             {
-                object[] atts = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
+                var atts = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
                 if (atts.Length > 0)
                     method.Invoke(null, null);
             }
-
+            
             //end of networking stuff
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());

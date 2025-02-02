@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.8.1]
+ - Fixed error being thrown in certain profiles when CruiserTerminal was not present.
+ - Fixed Cruiser price getting overridden by enemy terminalnodes (football lol) and being set to 0
+
 ## [3.8.0]
  - Switched some common moonsplus menu stuff to openlib
  - Added TerminalMaxOrderedItems config item and related transpiler patches.
