@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TerminalStuff.Configs;
 
 
 namespace TerminalStuff.SpecialStuff
@@ -39,7 +40,7 @@ namespace TerminalStuff.SpecialStuff
 
         internal static void InitRes(string playerWord, ref TerminalKeyword word)
         {
-            if (word == null || !ConfigSettings.TerminalConflictResolution.Value)
+            if (word == null || !QoLConfig.TerminalConflictResolution.Value)
                 return;
 
             if (playerWord.Length < 0)

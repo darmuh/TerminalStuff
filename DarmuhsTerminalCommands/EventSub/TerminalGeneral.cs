@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using static TerminalStuff.TerminalEvents;
 
@@ -14,6 +15,7 @@ namespace TerminalStuff.EventSub
         {
             //Plugin.instance.Config.Reload();
             Plugin.instance.Terminal.terminalNodes.specialNodes[20] = TerminalStart.switchNodeVanilla;
+            MoonsPlus.LobbyClose();
             MenuBuild.ClearMyMenustuff();
             ConfigSettings.TerminalStuffMain.DeleteAll();
             lastText = "";
@@ -31,17 +33,21 @@ namespace TerminalStuff.EventSub
                 GeneralDummy.displayText = node.displayText;
                 Plugin.instance.Terminal.LoadNewNode(GeneralDummy);
                 Plugin.Spam("Saving terminal user from unnecessary confirmation");
+                if (ConfigSettings.TerminalStuffMain.storePacks.Count > 0)
+                    StorePacksInfo.CancelConfirmation();
             }
 
 
             Plugin.MoreLogs($"LoadNewNode patch, nNS: {NetHandler.netNodeSet}");
             Plugin.Spam("Line count: " + Plugin.instance.Terminal.screenText.textComponent.textInfo.lineCount.ToString());
 
+            if (Commands.TerminalMoonsPlus.Value && MoonsPlusConfig.OneTimePurchase.Value)
+                MoonsPlus.CheckNodePurchase(node);
 
-            if (ConfigSettings.TerminalInputMaxChars.Value >= 20 && node.maxCharactersToType >= 20)
-                node.maxCharactersToType = ConfigSettings.TerminalInputMaxChars.Value;
+            if (QoLConfig.TerminalInputMaxChars.Value >= 20 && node.maxCharactersToType >= 20)
+                node.maxCharactersToType = QoLConfig.TerminalInputMaxChars.Value;
 
-            if (ConfigSettings.TerminalFillEmptyText.Value == "nochange")
+            if (QoLConfig.TerminalFillEmptyText.Value == "nochange")
                 return;
 
             if (Plugin.instance.Terminal.currentNode == Plugin.instance.Terminal.terminalNodes.specialNodes[1])
@@ -52,7 +58,7 @@ namespace TerminalStuff.EventSub
                 int spaceToFill = 24 - Plugin.instance.Terminal.screenText.textComponent.textInfo.lineCount;
                 lastNodeFormatted = Plugin.instance.Terminal.currentNode;
                 //if configitem >= 0 < 2, filltext with configitem choice
-                FillText(ConfigSettings.TerminalFillEmptyText.Value, ref lastNodeFormatted, spaceToFill);
+                FillText(QoLConfig.TerminalFillEmptyText.Value, ref lastNodeFormatted, spaceToFill);
             }
         }
 
@@ -104,7 +110,7 @@ namespace TerminalStuff.EventSub
 
         internal static void OnLoadAffordable(TerminalNode node)
         {
-            if (!ConfigSettings.TerminalRefund.Value || !ConfigSettings.ModNetworking.Value)
+            if (!Commands.TerminalRefund.Value || !ConfigSettings.ModNetworking.Value)
                 return;
 
             if (node == null)
@@ -119,9 +125,9 @@ namespace TerminalStuff.EventSub
 
         internal static void OnSetTerminalInUse()
         {
-            string setting = ConfigSettings.TerminalLightBehaviour.Value;
+            string setting = QoLConfig.TerminalLightBehaviour.Value;
 
-            AlwaysOnStuff.screenSettings ??= new(ConfigSettings.TerminalScreen.Value);
+            AlwaysOnStuff.screenSettings ??= new(QoLConfig.TerminalScreen.Value);
 
             if (AlwaysOnStuff.screenSettings.inUse && InUseCheck(StartOfRound.Instance.localPlayerController))
             {
@@ -158,7 +164,7 @@ namespace TerminalStuff.EventSub
                 ShortcutBindings.HandleKeyPress(ShortcutBindings.keyBeingPressed);
             }
 
-            if(ConfigSettings.WalkieTerm.Value)
+            if(QoLConfig.WalkieTerm.Value)
             {
                 WalkieTerm.WalkieTerminal();
             }

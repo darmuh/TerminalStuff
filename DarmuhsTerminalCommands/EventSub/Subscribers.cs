@@ -1,5 +1,6 @@
 ﻿using OpenLib.CoreMethods;
 using OpenLib.Events;
+using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.VisualCore;
@@ -34,6 +35,7 @@ namespace TerminalStuff.EventSub
             EventManager.GameNetworkManagerStart.AddListener(GameStuff.OnGameStart);
             EventManager.StartOfRoundStart.AddListener(GameStuff.OnStartOfRoundStart);
             EventManager.StartOfRoundChangeLevel.AddListener(GameStuff.OnChangeLevel);
+            EventManager.ShipReset.AddListener(GameStuff.OnShipReset);
             EventManager.NextDayEvent.AddListener(GameStuff.OnNextDay);
             EventManager.PlayerSpawn.AddListener(GameStuff.OnPlayerSpawn);
             ClockTimePatch.OnRefreshClock.AddListener(TerminalClockStuff.ClockUpdate);
@@ -60,7 +62,7 @@ namespace TerminalStuff.EventSub
             CacheDefaultDisplayTexts();
             FontStuff.SetCachedDefault();
             StuffForLibrary.AddCommands(); //replaced addkeywords
-            AlwaysOnStuff.screenSettings ??= new(ConfigSettings.TerminalScreen.Value);
+            AlwaysOnStuff.screenSettings ??= new(QoLConfig.TerminalScreen.Value);
             if(Plugin.instance.CruiserTerm)
                 Compatibility.CruiserTerm.CreateDenyKeyword();
         }

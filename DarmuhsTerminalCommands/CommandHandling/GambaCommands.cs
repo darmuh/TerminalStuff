@@ -1,4 +1,5 @@
-﻿using TerminalStuff.EventSub;
+﻿using TerminalStuff.Configs;
+using TerminalStuff.EventSub;
 using UnityEngine;
 using static TerminalStuff.DynamicCommands;
 using static TerminalStuff.StringStuff;
@@ -12,7 +13,7 @@ namespace TerminalStuff
         internal static string Ask2Gamble()
         {
             Plugin.MoreLogs("Ask2Gamble");
-            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.GambleKeywords.Value));
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.GambleKeywords.Value));
 
             if (val.Length < 1)
             {

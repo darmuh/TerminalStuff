@@ -88,6 +88,10 @@
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\Rozebud-FOV_Adjust\FovAdjust.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="GeneralImprovements">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\ShaosilGaming-GeneralImprovements\GeneralImprovements.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="InteractiveTerminalAPI" Publicize="true">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\WhiteSpike-Interactive_Terminal_API\InteractiveTerminalAPI\InteractiveTerminalAPI.dll</HintPath>
       <Private>False</Private>
@@ -96,8 +100,12 @@
       <HintPath>C:\Users\user\source\repos\LethalConstellations\Template\LethalConstellations\_Release Files\LethalConstellations.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="LethalLevelLoader">
+    <Reference Include="LethalLevelLoader" Publicize="true">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\IAmBatby-LethalLevelLoader\LethalLevelLoader.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="LethalLib">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\BepInEx\dontloadpls\Evaisa-LethalLib\LethalLib\LethalLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="OpenBodyCams">
@@ -218,10 +226,15 @@
     <Compile Include="Compatibility\CruiserTermOld.cs" />
     <Compile Include="Compatibility\FovAdjustStuff.cs" />
     <Compile Include="CommandHandling\GambaCommands.cs" />
+    <Compile Include="Compatibility\GenImproves.cs" />
     <Compile Include="Compatibility\InteractiveAPI.cs" />
     <Compile Include="Compatibility\LLLCompat.cs" />
     <Compile Include="Compatibility\ShipInventoryCompat.cs" />
     <Compile Include="Compatibility\WeatherTweaksCompat.cs" />
+    <Compile Include="Configs\CustomizeConfig.cs" />
+    <Compile Include="Configs\KeywordConfigs.cs" />
+    <Compile Include="Configs\Commands.cs" />
+    <Compile Include="Configs\QoLConfig.cs" />
     <Compile Include="EventSub\GameStuff.cs" />
     <Compile Include="EventSub\Subscribers.cs" />
     <Compile Include="EventSub\Teleporters.cs" />
@@ -238,15 +251,23 @@
     <Compile Include="PluginCore\StringStuff.cs" />
     <Compile Include="PluginCore\StuffForLibrary.cs" />
     <Compile Include="PluginCore\TerminalCustomizer.cs" />
-    <Compile Include="SpecialStuff\AutoComplete.cs" />
-    <Compile Include="SpecialStuff\ConflictRes.cs" />
-    <Compile Include="SpecialStuff\Fastenshtein.cs" />
-    <Compile Include="SpecialStuff\FilterView.cs" />
-    <Compile Include="SpecialStuff\FontStuff.cs" />
-    <Compile Include="SpecialStuff\MoonInfo.cs" />
-    <Compile Include="SpecialStuff\MoonsPlus.cs" />
-    <Compile Include="SpecialStuff\MoonsPlusConfig.cs" />
-    <Compile Include="SpecialStuff\TerminalHistory.cs" />
+    <Compile Include="SpecialStuff\Keywords\AutoComplete.cs" />
+    <Compile Include="SpecialStuff\Keywords\ConflictRes.cs" />
+    <Compile Include="SpecialStuff\Keywords\DelayRun.cs" />
+    <Compile Include="SpecialStuff\Keywords\Fastenshtein.cs" />
+    <Compile Include="SpecialStuff\MapObjects.cs" />
+    <Compile Include="SpecialStuff\Moons\FilterView.cs" />
+    <Compile Include="SpecialStuff\Other QoL\FontStuff.cs" />
+    <Compile Include="SpecialStuff\Moons\MoonInfo.cs" />
+    <Compile Include="SpecialStuff\Moons\MoonsPlus.cs" />
+    <Compile Include="Configs\MoonsPlusConfig.cs" />
+    <Compile Include="SpecialStuff\Store\StoreInfo.cs" />
+    <Compile Include="SpecialStuff\Store\StorePacks.cs" />
+    <Compile Include="SpecialStuff\Store\StorePlus.cs" />
+    <Compile Include="Configs\StorePlusConfig.cs" />
+    <Compile Include="SpecialStuff\Keywords\TerminalHistory.cs" />
+    <Compile Include="SpecialStuff\Store\StoreRefund.cs" />
+    <Compile Include="SpecialStuff\Store\StoreSettings.cs" />
     <Compile Include="throwawaycode.cs" />
     <Compile Include="VisualCore\AlwaysOnStuff.cs" />
     <Compile Include="Compatibility\PlayerCamsCompatibility.cs" />
@@ -262,25 +283,25 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="CommandHandling\ShipControls.cs" />
-    <Compile Include="SpecialStuff\ShortcutBindings.cs" />
-    <Compile Include="SpecialStuff\SpecialConfirmationLogic.cs" />
+    <Compile Include="SpecialStuff\Keywords\ShortcutBindings.cs" />
     <Compile Include="VisualCore\CamEvents.cs" />
     <Compile Include="VisualCore\CamsClass.cs" />
+    <Compile Include="VisualCore\CustomAutoSize.cs" />
     <Compile Include="VisualCore\MoreCamStuff.cs" />
     <Compile Include="VisualCore\SplitViewChecks.cs" />
     <Compile Include="PluginCore\StartofHandling.cs" />
     <Compile Include="CommandHandling\SuitCommands.cs" />
     <Compile Include="Compatibility\SuitsTerminalCompatibility.cs" />
-    <Compile Include="SpecialStuff\TerminalClockStuff.cs" />
+    <Compile Include="SpecialStuff\Other QoL\TerminalClockStuff.cs" />
     <Compile Include="PluginCore\TerminalEvents.cs" />
     <Compile Include="Compatibility\TwoRadarMapsCompatibility.cs" />
     <Compile Include="VisualCore\VideoManager.cs" />
-    <Compile Include="PluginCore\ConfigSettings.cs" />
+    <Compile Include="Configs\ConfigSettings.cs" />
     <Compile Include="PatchThings\MyTerminalPatcher.cs" />
     <Compile Include="PluginCore\Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandHandling\ViewCommands.cs" />
-    <Compile Include="SpecialStuff\WalkieTerm.cs" />
+    <Compile Include="SpecialStuff\Other QoL\WalkieTerm.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="darmuhngo" />
@@ -297,5 +318,6 @@
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

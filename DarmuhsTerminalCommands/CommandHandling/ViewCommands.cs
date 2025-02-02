@@ -1,6 +1,7 @@
 ﻿using OpenLib.Menus;
 using System.Collections.Generic;
 using System.Text;
+using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using UnityEngine;
 using static OpenLib.Menus.MenuBuild;
@@ -104,7 +105,7 @@ namespace TerminalStuff
             if (earlyReturn)
                 return displayText;
 
-            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.SwitchKeywords.Value));
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.SwitchKeywords.Value));
 
             if (val.Length > 1)
             {
@@ -206,54 +207,54 @@ namespace TerminalStuff
         {
             string config = ConfigSettings.MonitoringDefaultView.Value.ToLower();
 
-            if(config == "map" && ConfigSettings.TerminalMap.Value)
+            if(config == "map" && Commands.TerminalMap.Value)
             {
                 modeNum = 5;
                 return true;
             }
-            else if (config == "cams" && ConfigSettings.TerminalCams.Value)
+            else if (config == "cams" && Commands.TerminalCams.Value)
             {
                 modeNum = 1;
                 return true;
             }
-            else if(config == "overlay" && ConfigSettings.TerminalOverlay.Value)
+            else if(config == "overlay" && Commands.TerminalOverlay.Value)
             {
                 modeNum = 2;
                 return true;
             }
-            else if (config == "minimap" && ConfigSettings.TerminalMinimap.Value)
+            else if (config == "minimap" && Commands.TerminalMinimap.Value)
             {
                 modeNum = 3;
                 return true;
             }
-            else if (config == "minicams" && ConfigSettings.TerminalMinicams.Value)
+            else if (config == "minicams" && Commands.TerminalMinicams.Value)
             {
                 modeNum = 4;
                 return true;
             }
             else if (config != "none" && BoolStuff.AnyMonitoringModesEnabled())
             {
-                if (ConfigSettings.TerminalMap.Value)
+                if (Commands.TerminalMap.Value)
                 {
                     modeNum = 5;
                     return true;
                 }
-                else if (ConfigSettings.TerminalCams.Value)
+                else if (Commands.TerminalCams.Value)
                 {
                     modeNum = 1;
                     return true;
                 }
-                else if (ConfigSettings.TerminalOverlay.Value)
+                else if (Commands.TerminalOverlay.Value)
                 {
                     modeNum = 2;
                     return true;
                 }
-                else if (ConfigSettings.TerminalMinimap.Value)
+                else if (Commands.TerminalMinimap.Value)
                 {
                     modeNum = 3;
                     return true;
                 }
-                else if (ConfigSettings.TerminalMinicams.Value)
+                else if (Commands.TerminalMinicams.Value)
                 {
                     modeNum = 4;
                     return true;
@@ -393,7 +394,7 @@ namespace TerminalStuff
 
         internal static string RadarZoomEvent()
         {
-            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.RadarZoomKWs.Value));
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.RadarZoomKWs.Value));
 
             if (!AnyActiveMonitoring() && Plugin.instance.splitViewCreated)
             {
@@ -551,7 +552,7 @@ namespace TerminalStuff
         {
             StringBuilder message = new();
             message.AppendLine("\tThis command has been <color=#ff1a1a>replaced</color>!\n\nPlease use one of the following alternatives:\n");
-            List<TerminalMenuItem> menus = TerminalMenuItems(ConfigSettings.ViewConfig);
+            List<TerminalMenuItem> menus = TerminalMenuItems(Commands.ViewConfig);
 
             foreach (TerminalMenuItem menuItem in menus)
             {

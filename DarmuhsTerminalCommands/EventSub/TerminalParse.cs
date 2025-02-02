@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using HarmonyLib;
+using System.Collections.Generic;
+using System.Linq;
+using TerminalStuff.Configs;
+using TerminalStuff.SpecialStuff;
 using static OpenLib.Menus.MenuBuild;
 
 namespace TerminalStuff.EventSub
@@ -15,7 +19,7 @@ namespace TerminalStuff.EventSub
             if (node.name.Equals("0_StoreHub") && ConfigSettings.TerminalStuffMain.storePacks.Count > 0)
                 GetDynamicCost();
 
-            if (ConfigSettings.CreateMoreMenus.Value)
+            if (QoLConfig.CreateMoreMenus.Value)
             {
                 if (InMainMenu(node, MenuBuild.myMenu))
                     Plugin.Spam("got node from menus");
@@ -75,8 +79,7 @@ namespace TerminalStuff.EventSub
             {
                 if (!item.Key.name.Contains("_confirm"))
                 {
-                    int itemCost = CostCommands.GetItemListCost(item.Value);
-                    item.Key.itemCost = itemCost;
+                    item.Key.itemCost = StorePacks.GetPriceFromNode(item.Key);
                     Plugin.Spam($"Updating price for {item.Key.name} to {item.Key.itemCost}");
                 }
             }
@@ -93,9 +96,10 @@ namespace TerminalStuff.EventSub
             {
                 node.itemCost = 0;
                 Plugin.MoreLogs("Updating currentPackList");
-                CostCommands.currentPackList = value;
+                TerminalNode refNode = node;
+                StorePacksInfo.Selected = StorePacksInfo.AllPacks.FirstOrDefault(x => x.terminalNode == refNode);
                 if (node.creatureName != string.Empty)
-                    CostCommands.currentPackName = node.creatureName;
+                    StorePacksInfo.CurrentPackName = node.creatureName;
             }
 
             return node;

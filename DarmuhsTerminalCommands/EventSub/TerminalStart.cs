@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using TerminalStuff.Compatibility;
+using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
+using TerminalStuff.SpecialStuff;
 using UnityEngine;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.CoreMethods.LogicHandling;
@@ -17,7 +19,6 @@ namespace TerminalStuff.EventSub
         internal static List<TerminalNode> vanillaNodes = [];
         internal static TerminalNode viewMonitorVanilla = null;
         internal static TerminalNode switchNodeVanilla = null;
-        internal static TerminalNode OriginalMoonsPage = null!;
         internal static bool delayStartEnum = false;
 
         internal static void OnTerminalStart()
@@ -29,7 +30,7 @@ namespace TerminalStuff.EventSub
         internal static void TerminalStartGroup()
         {
             Plugin.MoreLogs("Upgrading terminal with my stuff, smile.");
-            Plugin.Allnodes = GetAllNodes();
+
             OtherModWords();
             OverWriteTextNodes();
             VanillaNodesCache();
@@ -51,6 +52,7 @@ namespace TerminalStuff.EventSub
         {
             Plugin.MoreLogs("updating displaytext for help");
             helpNode = Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[13];
+            Plugin.instance.Terminal.terminalNodes.specialNodes[4].displayText = Plugin.instance.Terminal.terminalNodes.specialNodes[4].displayText.Replace("12", $"[GetMaxPossibleItems]");
 
             if (!GameStuff.oneTimeOnly)
             {
@@ -124,6 +126,7 @@ namespace TerminalStuff.EventSub
             ViewCommands.isVideoPlaying = false;
             //TerminalClockStuff.StartClockCoroutine();
             AlwaysOnStart(Plugin.instance.Terminal, startNode);
+            StorePlus.GetStoreItems();
             yield return new WaitForSeconds(0.1f);
             Plugin.instance.Terminal.topRightText.text = $"${Plugin.instance.Terminal.groupCredits}"; //fix creds display for alwayson
             StartCheck(Plugin.instance.Terminal, startNode);
@@ -141,7 +144,7 @@ namespace TerminalStuff.EventSub
             if (Plugin.instance.Terminal == null)
                 return;
 
-            terminalSettings.StartPage(ConfigSettings.TerminalStartPage.Value);
+            terminalSettings.StartPage(QoLConfig.TerminalStartPage.Value);
         }
 
         private static void AlwaysOnStart(Terminal thisterm, TerminalNode startNode)
@@ -162,7 +165,7 @@ namespace TerminalStuff.EventSub
                     thisterm.LoadNewNode(startNode);
                 }
 
-                if (ConfigSettings.TerminalLightBehaviour.Value == "alwayson")
+                if (QoLConfig.TerminalLightBehaviour.Value == "alwayson")
                     ShouldDisableTerminalLight(false, "alwayson");
 
             }
@@ -183,7 +186,7 @@ namespace TerminalStuff.EventSub
             if (GameNetworkManager.Instance.localPlayerController.IsHost)
             {
                 GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(0); //fix vanilla bug where you need to switch map target at start
-                NetHandler.Instance.SyncRadarZoomServerRpc(ConfigSettings.TerminalRadarDefaultZoom.Value); //host only at load-in
+                NetHandler.Instance.SyncRadarZoomServerRpc(QoLConfig.TerminalRadarDefaultZoom.Value); //host only at load-in
                 thisterm.LoadNewNode(startNode);
                 StartofHandling.CheckNetNode(startNode);
                 return;
@@ -210,7 +213,7 @@ namespace TerminalStuff.EventSub
         {
             Plugin.Spam($"Terminal Keywords Count: {Plugin.instance.Terminal.terminalNodes.allKeywords.Length}");
             Plugin.Spam($"Plugin.Allnodes: {Plugin.Allnodes.Count}");
-            Plugin.Spam($"TerminalStuffBools.Count: {ConfigSettings.TerminalStuffBools.Count}");
+            Plugin.Spam($"TerminalStuffBools.Count: {Commands.TerminalStuffBools.Count}");
             Plugin.Spam($"TerminalStuffMain.Listing.Count: {ConfigSettings.TerminalStuffMain.Listing.Count}");
             Plugin.Spam($"defaultListing.Listing.Count: {defaultListing.Listing.Count}");
             Plugin.Spam($"defaultManaged.Count: {defaultManaged.Count}");

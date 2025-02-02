@@ -1,11 +1,14 @@
 ﻿using GameNetcodeStuff;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using TerminalStuff.PluginCore;
+using TerminalStuff.SpecialStuff.Store;
 using UnityEngine;
 
 namespace TerminalStuff
@@ -82,7 +85,7 @@ namespace TerminalStuff
             {
                 int scannedEnemies = RoundManager.Instance.SpawnedEnemies.Count;
                 int getCreds = Plugin.instance.Terminal.groupCredits;
-                int costCreds = ConfigSettings.BioScanCost.Value;
+                int costCreds = Commands.BioScanCost.Value;
 
                 if (ShouldRunBioscan2(getCreds, costCreds)) //upgraded bioscan
                 {
@@ -201,7 +204,7 @@ namespace TerminalStuff
         {
             if (!upgradeStatus)
             {
-                return ConfigSettings.VitalsCost.Value;
+                return Commands.VitalsCost.Value;
             }
             else
             {
@@ -212,7 +215,7 @@ namespace TerminalStuff
         {
             if (enemyScanUpgradeEnabled == false)
             {
-                string patchASK = $"Purchase the BioScanner 2.0 Upgrade Patch?\nThis software update is available for {ConfigSettings.BioScanUpgradeCost.Value} Credits.\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n";
+                string patchASK = $"Purchase the BioScanner 2.0 Upgrade Patch?\nThis software update is available for {Commands.BioScanUpgradeCost.Value} Credits.\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n";
                 return patchASK;
             }
             else
@@ -226,7 +229,7 @@ namespace TerminalStuff
         {
             if (vitalsUpgradeEnabled == false)
             {
-                string patchASK = $"Purchase the Vitals Scanner 2.0 Patch?\nThis software update is available for {ConfigSettings.VitalsUpgradeCost.Value} Credits.\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n";
+                string patchASK = $"Purchase the Vitals Scanner 2.0 Patch?\nThis software update is available for {Commands.VitalsUpgradeCost.Value} Credits.\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n";
                 return patchASK;
             }
             else
@@ -237,354 +240,11 @@ namespace TerminalStuff
             }
         }
 
-        private static int GetIndexNum(Item givenItem)
-        {
-            int index = 0;
-            foreach (Item item in Plugin.instance.Terminal.buyableItemsList)
-            {
-                if (givenItem == item)
-                    return index;
-                else
-                    index++;
-            }
-
-            return -1;
-        }
-
-        private static bool TryGetItemToBuy(string itemName, out Item itemValue)
-        {
-            int indexNum = 0;
-            foreach (Item item in Plugin.instance.Terminal.buyableItemsList)
-            {
-                if (item.itemName.ToLower().Contains(itemName))
-                {
-                    Plugin.Spam($"{item.itemName} found matching to {itemName} at index: [{indexNum}]");
-                    if (itemsIndexed.ContainsKey(item))
-                        Plugin.Spam($"{itemName} already indexed");
-                    else
-                    {
-                        itemsIndexed.Add(item, indexNum);
-                        Plugin.Spam($"indexed item: {itemName}");
-                    }
-
-                    itemValue = item;
-                    return true;
-                }
-                Plugin.Spam($"{item.itemName} at index [{indexNum}] does not match config item {itemName}");
-                indexNum++;
-            }
-
-            itemValue = null;
-            return false;
-        }
-
-        private static int GetTotalCost(Dictionary<Item, int> itemsToPurchase, Dictionary<Item, int> itemsIndexed, out int itemCount)
-        {
-            int totalCost = 0;
-            itemCount = 0;
-            if (itemsIndexed.Count == 0 || itemsToPurchase.Count == 0)
-                return totalCost;
-
-            foreach (KeyValuePair<Item, int> item in itemsToPurchase)
-            {
-                int purchaseCount = itemsToPurchase[item.Key];
-                int itemCost = item.Key.creditsWorth * (Plugin.instance.Terminal.itemSalesPercentages[itemsIndexed[item.Key]] / 100);
-                itemCost *= purchaseCount;
-                totalCost += itemCost;
-                itemCount += purchaseCount;
-                Plugin.Spam($"Added {itemCost} to total: {totalCost} (total item count: {itemCount})");
-
-            }
-
-            Plugin.MoreLogs($"Total Cost: [{totalCost}]");
-            return totalCost;
-        }
-
-        private static int GetUpgradesTotalCost(List<TerminalNode> upgradeList, out int itemCount)
-        {
-            int totalCost = 0;
-            itemCount = 0;
-            foreach (TerminalNode item in upgradeList)
-            {
-                totalCost += item.itemCost;
-                itemCount++;
-                Plugin.Spam($"Adding {item.itemCost} to total: {totalCost}");
-            }
-
-            Plugin.Spam($"totalCost: {totalCost}");
-            return totalCost;
-        }
-
-        internal static string AskPurchasePack()
-        {
-            itemsIndexed.Clear();
-            List<string> itemList = StringStuff.GetItemList(currentPackList);
-            Dictionary<Item, int> itemsToPurchase = [];
-            StringBuilder packAsk = new();
-            packAsk.AppendLine($"Would you like to purchase the [{currentPackName}] PurchasePack?\r\n\r\n\tContents:\r\n");
-
-            PurchasePackContents(itemList, ref itemsToPurchase, ref packAsk, out List<TerminalNode> upgradeItems);
-
-            int totalCost = GetTotalCost(itemsToPurchase, itemsIndexed, out int itemCount);
-
-            if (upgradeItems.Count > 0)
-            {
-                int upgradesCost = GetUpgradesTotalCost(upgradeItems, out int upgradeCount);
-                Plugin.Spam($"Adding {upgradesCost} to {totalCost}");
-                totalCost += upgradesCost;
-                //itemCount += upgradeCount;
-            }
-
-            if (totalCost <= Plugin.instance.Terminal.groupCredits)
-            {
-                packAsk.AppendLine($"\r\n\tTotal Cost: ■{totalCost}({itemCount} items)\r\n\r\nPlease CONFIRM or DENY.\n");
-                buyPackName = currentPackName;
-                return packAsk.ToString();
-            }
-            else
-            {
-                Plugin.MoreLogs("not enough credits to purchase, sending to cannot afford display");
-                TerminalGeneral.CancelConfirmation = true;
-                return $"You cannot afford the {currentPackName} PurchasePack ({itemCount} items).\r\n\r\n\tTotal Cost: ■<color=#BD3131>{totalCost}</color>\r\n\r\n";
-            }
-        }
-
-        private static int GetNameCount(List<string> itemList, string itemName)
-        {
-            int count = 0;
-            foreach (string name in itemList)
-            {
-                if (name == itemName)
-                {
-                    count++;
-                    Plugin.Spam($"Count for {name} - {count}");
-                }
-            }
-            Plugin.MoreLogs($"Final Count: {itemName} - {count}");
-            return count;
-        }
-
-        internal static int GetCostFromList(List<string> itemList)
-        {
-            int total = 0;
-            foreach (string itemName in itemList)
-            {
-                if (TryGetItem(itemName, out Item itemObject))
-                {
-                    Plugin.Spam($"{itemName} is a valid item, getting cost");
-                    int indexNum = GetIndexNum(itemObject);
-                    int price = itemObject.creditsWorth * (Plugin.instance.Terminal.itemSalesPercentages[indexNum] / 100);
-                    Plugin.Spam($"Adding {price} to {total}");
-                    total += price;
-                }
-                else if (TryGetUpgrade(itemName, out TerminalNode upgradeItem))
-                {
-                    Plugin.Spam($"Upgrade detected");
-                    if (upgradeItem == null)
-                        Plugin.Spam("returned upgradeItem terminalNode is null for some reason");
-                    else if (CheckUnlockableStatus(upgradeItem.shipUnlockableID))
-                    {
-                        Plugin.Spam($"list contains ship upgrade {upgradeItem.creatureName}, adding value {upgradeItem.itemCost} to {total}");
-                        total += upgradeItem.itemCost;
-                    }
-                }
-            }
-            Plugin.MoreLogs($"total cost of list: {total}");
-            return total;
-        }
-
-        private static bool TryGetItem(string itemName, out Item itemValue)
-        {
-            foreach (Item item in Plugin.instance.Terminal.buyableItemsList)
-            {
-                if (item.itemName.ToLower().Contains(itemName))
-                {
-                    itemValue = item;
-                    return true;
-                }
-                //Plugin.MoreLogs($"{item.itemName} at index [{indexNum}] does not match config item {itemName}");
-            }
-
-            itemValue = null;
-            return false;
-        }
-
-        private static bool TryGetUpgrade(string upgradeName, out TerminalNode UpgradeNode)
-        {
-            UpgradeNode = null;
-            Plugin.Spam($"TryGetUpgrade from {upgradeName}");
-
-            Plugin.Spam($"iterating through Plugin.Allnodes");
-
-            foreach (TerminalNode node in Plugin.Allnodes)
-            {
-                if (node != null)
-                {
-                    //Plugin.Spam($"checking node: {node.name}");
-                    if (node.creatureName != null)
-                    {
-                        if (node.creatureName.ToLower().StartsWith(upgradeName.ToLower()) && node.shipUnlockableID > 0 && CheckUnlockableStatus(node.shipUnlockableID))
-                        {
-                            Plugin.Spam($"unlockableID: {node.shipUnlockableID}");
-                            Plugin.Spam($"creatureName: {node.creatureName} matching {upgradeName}");
-                            UpgradeNode = node;
-                            return true;
-                        }
-                    }
-                }
-                //Plugin.Spam("node is null");
-            }
-            return false;
-        }
-
-
-        private static void PurchasePackContents(List<string> itemList, ref Dictionary<Item, int> itemsToPurchase, ref StringBuilder packAsk, out List<TerminalNode> upgradeItems)
-        {
-            List<string> itemNames = [];
-            upgradeItems = [];
-            foreach (string item in itemList)
-            {
-                if (TryGetItemToBuy(item, out Item itemValue))
-                {
-                    Plugin.Spam($"{item} is a valid item, adding to pack purchase");
-                    int count = GetNameCount(itemList, item);
-                    if (count > 1 && !itemNames.Contains(itemValue.itemName))
-                        packAsk.AppendLine($"{itemValue.itemName} x{count}");
-                    else if (count <= 1)
-                        packAsk.AppendLine($"{itemValue.itemName}");
-
-                    if (!itemNames.Contains(itemValue.itemName))
-                        itemNames.Add(itemValue.itemName);
-                    if (!itemsToPurchase.ContainsKey(itemValue))
-                        itemsToPurchase.Add(itemValue, count);
-                }
-                else if (TryGetUpgrade(item, out TerminalNode upgradeItem))
-                {
-                    if (!upgradeItems.Contains(upgradeItem) && (CheckUnlockableStatus(upgradeItem.shipUnlockableID)))
-                    {
-                        packAsk.AppendLine($"{upgradeItem.creatureName}");
-                        upgradeItems.Add(upgradeItem);
-                        Plugin.Spam($"list contains ship upgrades, adding to custom list and returning containsUpgrades true");
-                    }
-                }
-            }
-        }
-
-        internal static int GetItemListCost(string rawList)
-        {
-            List<string> itemList = StringStuff.GetItemList(rawList);
-            int totalCost = GetCostFromList(itemList);
-            return totalCost;
-        }
-
-        internal static string CompletePurchasePack()
-        {
-            itemsIndexed.Clear();
-            bool costDeducted = false;
-            List<string> itemList = StringStuff.GetItemList(currentPackList);
-            Dictionary<Item, int> itemsToPurchase = [];
-            StringBuilder packBuy = new();
-            packBuy.AppendLine($"You have purchased the {buyPackName} PurchasePack!\r\n\r\n\tContents:\r\n");
-            PurchasePackContents(itemList, ref itemsToPurchase, ref packBuy, out List<TerminalNode> upgradeItems);
-            int totalCost = GetTotalCost(itemsToPurchase, itemsIndexed, out int itemCount);
-
-            if (upgradeItems.Count > 0)
-            {
-                int upgradesCost = GetUpgradesTotalCost(upgradeItems, out int upgradeCount);
-                Plugin.Spam($"Adding {upgradesCost} to {totalCost}");
-                totalCost += upgradesCost;
-                //itemCount += upgradeCount;
-            }
-
-            if (totalCost > Plugin.instance.Terminal.groupCredits)
-            {
-                Plugin.MoreLogs("not enough credits to purchase, sending to error message");
-                return Plugin.instance.Terminal.terminalNodes.specialNodes[5].displayText;
-            }
-            int[] fullItemList = BuyItems(itemsIndexed, itemsToPurchase);
-            if (fullItemList.Length > 9)
-                MegaPurchase(fullItemList, totalCost, out costDeducted);
-            else
-            {
-                Plugin.instance.Terminal.BuyItemsServerRpc([.. fullItemList], Plugin.instance.Terminal.groupCredits - totalCost, Plugin.instance.Terminal.numberOfItemsInDropship + itemCount);
-                costDeducted = true;
-            }
-
-            if (upgradeItems.Count > 0)
-            {
-                foreach (TerminalNode item in upgradeItems)
-                {
-                    StartOfRound.Instance.BuyShipUnlockableServerRpc(item.shipUnlockableID, Plugin.instance.Terminal.groupCredits);
-                    Plugin.MoreLogs($"Unlocking {item.creatureName}");
-                }
-
-                if (!costDeducted)
-                {
-                    int[] boughtItems = [];
-                    Plugin.instance.Terminal.BuyItemsServerRpc([.. boughtItems], Plugin.instance.Terminal.groupCredits - totalCost, Plugin.instance.Terminal.numberOfItemsInDropship);
-                }
-
-            }
-
-            packBuy.AppendLine($"\r\n\r\nYour new balance is ■{Plugin.instance.Terminal.groupCredits} credits\r\n\r\n\tEnjoy!\r\n");
-            Plugin.instance.Terminal.PlayTerminalAudioServerRpc(0);
-            return packBuy.ToString();
-        }
-
-        private static void MegaPurchase(int[] fullItemList, int totalCost, out bool costDeducted)
-        {
-            int count = 0;
-            List<int> splitArray = [];
-            foreach (int item in fullItemList)
-            {
-                if (count < 9)
-                {
-                    splitArray.Add(item);
-                    count++;
-                    Plugin.Spam($"count: {count}");
-                }
-                else
-                {
-                    Plugin.instance.Terminal.BuyItemsServerRpc([.. splitArray], Plugin.instance.Terminal.groupCredits, Plugin.instance.Terminal.numberOfItemsInDropship + 9);
-                    Plugin.Spam($"purchased {count} items");
-                    count = 0;
-                    splitArray.Clear();
-                    splitArray.Add(item);
-                    count++;
-                }
-            }
-            if (splitArray.Count > 0)
-            {
-                Plugin.instance.Terminal.BuyItemsServerRpc([.. splitArray], Plugin.instance.Terminal.groupCredits, Plugin.instance.Terminal.numberOfItemsInDropship + splitArray.Count);
-                Plugin.Spam($"purchased another {splitArray.Count} items");
-            }
-
-            int[] boughtItems = [];
-            Plugin.instance.Terminal.BuyItemsServerRpc([.. boughtItems], Plugin.instance.Terminal.groupCredits - totalCost, Plugin.instance.Terminal.numberOfItemsInDropship);
-            costDeducted = true;
-            Plugin.Spam("end of megapurchase");
-        }
-
-        private static int[] BuyItems(Dictionary<Item, int> itemsIndexed, Dictionary<Item, int> itemCounts)
-        {
-            List<int> thisOrder = [];
-            foreach (KeyValuePair<Item, int> item in itemsIndexed)
-            {
-                int count = itemCounts[item.Key];
-                for (int i = 0; i < count; i++)
-                {
-                    thisOrder.Add(item.Value);
-                    Plugin.Spam($"Adding {item.Key} to order list ({i})");
-                }
-            }
-            return [.. thisOrder];
-        }
-
         internal static string PerformBioscanUpgrade()
         {
             if (enemyScanUpgradeEnabled == false)
             {
-                int newCreds = Plugin.instance.Terminal.groupCredits - ConfigSettings.BioScanUpgradeCost.Value;
+                int newCreds = Plugin.instance.Terminal.groupCredits - Commands.BioScanUpgradeCost.Value;
                 string displayText = $"Biomatter Scanner software has been updated to the latest patch (2.0) and now provides more detailed information!\r\n\r\nYour new balance is ■{newCreds} Credits\r\n";
                 SaveManager.NewUnlock("BioscanPatch");
                 Plugin.instance.Terminal.SyncGroupCreditsServerRpc(newCreds, Plugin.instance.Terminal.numberOfItemsInDropship);
@@ -603,11 +263,12 @@ namespace TerminalStuff
             string displayText;
             int deliverables = Plugin.instance.Terminal.numberOfItemsInDropship;
             Item[] buyables = Plugin.instance.Terminal.buyableItemsList;
-            //List<int> items = Plugin.instance.Terminal.orderedItemsFromTerminal; //not using this cursed list anymore
             List<string> returnlist = [];
             int refund = 0;
 
-            Plugin.MoreLogs($"buyables: {buyables.Length}, deliverables: {deliverables}, items: {storeCart.Count}");
+            Plugin.MoreLogs($"buyables: {buyables.Length}, deliverables: {deliverables}, storeCart: {storeCart.Count}");
+
+            StoreRefundList.storeRefundItems = [];
 
             if (deliverables > 0)
             {
@@ -615,19 +276,34 @@ namespace TerminalStuff
                 {
                     if (num <= buyables.Length)
                     {
-                        int index = GetIndexNum(buyables[num]);
-                        int itemCost = buyables[num].creditsWorth * (Plugin.instance.Terminal.itemSalesPercentages[index] / 100);
-                        refund += itemCost;
-                        string itemname = buyables[num].itemName;
-                        returnlist.Add(itemname + "\n");
-                        Plugin.Spam($"Adding {itemname} ${itemCost} to refund list");
+                        StoreRefundItem refundItem = StoreRefundList.storeRefundItems.FirstOrDefault(i => i.item == buyables[num]);
+                        if (refundItem != null)
+                        {
+                            refundItem.count++;
+                            Plugin.Spam($"Updating refundItem ({refundItem.item.itemName}) count to {refundItem.count}");
+                        }
+                            
+                        else
+                        {
+                            Plugin.Spam($"Creating refundItem for {buyables[num].itemName}!");
+                            refundItem = new(buyables[num], 1);
+                            refundItem.GetValue(buyables, num);
+                            StoreRefundList.storeRefundItems.Add(refundItem);
+                        }
+
+                        refund += refundItem.value;
+                        Plugin.Spam($"Adding {refundItem.item.itemName} ${refundItem.value} to refund list");
                     }
                     else
                     {
-                        Plugin.Spam($"Unable to add item to refund list");
+                        Plugin.WARNING($"Unable to add item at index {num} to refund list! (out of index)");
                     }
 
                 }
+
+                StoreRefundList.storeRefundItems.Do(x => returnlist.Add($"${x.value} {x.item.itemName} x {x.count}\n"));
+
+
                 Plugin.Spam($"old creds: {Plugin.instance.Terminal.groupCredits}");
                 int newCreds = Plugin.instance.Terminal.groupCredits + refund;
                 Plugin.instance.Terminal.groupCredits = newCreds;
@@ -667,7 +343,7 @@ namespace TerminalStuff
         {
             if (vitalsUpgradeEnabled == false)
             {
-                int newCreds = Plugin.instance.Terminal.groupCredits - ConfigSettings.VitalsUpgradeCost.Value;
+                int newCreds = Plugin.instance.Terminal.groupCredits - Commands.VitalsUpgradeCost.Value;
                 SaveManager.NewUnlock("VitalsPatch");
                 string displayText = $"Vitals Scanner software has been updated to the latest patch (2.0) and no longer requires credits to scan.\r\n\r\nYour new balance is ■{newCreds} credits\r\n";
                 Plugin.instance.Terminal.SyncGroupCreditsServerRpc(newCreds, Plugin.instance.Terminal.numberOfItemsInDropship);

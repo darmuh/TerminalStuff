@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using System;
 using System.Text.RegularExpressions;
+using TerminalStuff.Configs;
 using UnityEngine;
 using static TerminalStuff.StringStuff;
 using Color = UnityEngine.Color;
@@ -40,6 +41,8 @@ namespace TerminalStuff
                 customColor = colorKeyword.ToLower() switch
                 {
                     "white" => (Color?)Color.white,
+                    "normal" => (Color?)Color.white,
+                    "default" => (Color?)Color.white,
                     "red" => (Color?)Color.red,
                     "blue" => (Color?)Color.blue,
                     "yellow" => (Color?)Color.yellow,
@@ -75,7 +78,7 @@ namespace TerminalStuff
 
         internal static string ShipColorBase()
         {
-            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.ScolorKeywords.Value));
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.ScolorKeywords.Value));
 
             if (val.Length < 1)
             {
@@ -155,14 +158,14 @@ namespace TerminalStuff
 
         internal static string ShipColorList()
         {
-            string sColor = GetKeywordsPerConfigItem(ConfigSettings.ScolorKeywords.Value)[0];
+            string sColor = GetKeywordsPerConfigItem(KeywordConfigs.ScolorKeywords.Value)[0];
             string listContent = $"========= Ship Lights Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"{sColor} all normal\" or \"{sColor} all default\"\r\nRed: \"{sColor} back red\"\r\nGreen: \"{sColor} mid green\"\r\nBlue: \"{sColor} front blue\"\r\nYellow: \"{sColor} middle yellow\"\r\nCyan: \"{sColor} all cyan\"\r\nMagenta: \"{sColor} back magenta\"\r\nPurple: \"{sColor} mid purple\"\r\nLime: \"{sColor} all lime\"\r\nPink: \"{sColor} front pink\"\r\nMaroon: \"{sColor} middle maroon\"\r\nOrange: \"{sColor} back orange\"\r\nSasstro's Color: \"{sColor} all sasstro\"\r\nSamstro's Color: \"{sColor} all samstro\"\r\nANY HEXCODE: \"{sColor} all FF00FF\"\r\n\r\n\r\n";
             return listContent;
         }
 
         internal static string FlashColorBase()
         {
-            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.FcolorKeywords.Value));
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.FcolorKeywords.Value));
             string message;
 
             if (val.Length < 1)
@@ -215,7 +218,7 @@ namespace TerminalStuff
 
         internal static string FlashColorList()
         {
-            string fColor = GetKeywordsPerConfigItem(ConfigSettings.FcolorKeywords.Value)[0];
+            string fColor = GetKeywordsPerConfigItem(KeywordConfigs.FcolorKeywords.Value)[0];
             string listContent = $"========= Flashlight Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"{fColor} normal\" or \"{fColor} default\"\r\nRed: \"{fColor} red\"\r\nGreen: \"{fColor} green\"\r\nBlue: \"{fColor} blue\"\r\nYellow: \"{fColor} yellow\"\r\nCyan: \"{fColor} cyan\"\r\nMagenta: \"{fColor} magenta\"\r\nPurple: \"{fColor} purple\"\r\nLime: \"{fColor} lime\"\r\nPink: \"{fColor} pink\"\r\nMaroon: \"{fColor} maroon\"\r\nOrange: \"{fColor} orange\"\r\nSasstro's Color: \"{fColor} sasstro\"\r\nSamstro's Color: \"{fColor} samstro\"\r\n\r\nRainbow Color (animated): \"{fColor} rainbow\"\r\nANY HEXCODE: \"{fColor} FF00FF\"\r\n\r\n";
             return listContent;
         }

@@ -363,6 +363,9 @@ namespace TerminalStuff
 
             MoonsPlus.MoonsVisited.Add(moonName);
 
+            if (GameNetworkManager.Instance.localPlayerController.IsHost)
+                SaveManager.SaveTravelHistory(MoonsPlus.MoonsVisited);
+
             Plugin.MoreLogs($"Client: Adding {moonName} to travel history for all clients");
             MoonsPlus.UpdateMoonTravelHistory(moonName);
         }

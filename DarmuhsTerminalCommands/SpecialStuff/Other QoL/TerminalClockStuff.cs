@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using TerminalStuff.Configs;
 using TMPro;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace TerminalStuff
 
         public static void ClockUpdate()
         {
-            if (textComponent == null || !ConfigSettings.TerminalClock.Value || StartOfRound.Instance.inShipPhase || TerminalEvents.clockDisabledByCommand || !StartOfRound.Instance.shipDoorsEnabled)
+            if (textComponent == null || !QoLConfig.TerminalClock.Value || StartOfRound.Instance.inShipPhase || TerminalEvents.clockDisabledByCommand || !StartOfRound.Instance.shipDoorsEnabled)
                 return;
 
             if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf && !textComponent.gameObject.activeSelf)
@@ -51,7 +52,7 @@ namespace TerminalStuff
 
         public static void MakeClock()
         {
-            if (!ConfigSettings.TerminalClock.Value)
+            if (!QoLConfig.TerminalClock.Value)
                 return;
 
             Plugin.Spam("MakeClock!");

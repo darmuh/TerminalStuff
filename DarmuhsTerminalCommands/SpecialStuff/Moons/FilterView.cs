@@ -40,9 +40,12 @@ namespace TerminalStuff.SpecialStuff
             }
         }
 
-        internal void GetMoonsToDisplay()
+        internal void GetMoonsToDisplay(ref int activeIndex)
         {
+            MoonOnTopCheck();
             MoonsPlus.MoonsDisplayed = MoonsPlus.MoonListing.FindAll(x => x.ShowInListing());
+            ResolveHideList(ref MoonsPlus.MoonsDisplayed);
+
             List<MoonInfo> FilteredWeather = [];
 
             if (RemoveBadWeather && MoonsPlus.AcceptableWeathers.Count > 0)
@@ -65,10 +68,62 @@ namespace TerminalStuff.SpecialStuff
             }
                 
             if (RemoveTooExpensive)
-                MoonsPlus.MoonsDisplayed = [.. MoonsPlus.MoonsDisplayed.FindAll(x => x.price <= Plugin.instance.Terminal.groupCredits)];
+                MoonsPlus.MoonsDisplayed = [.. MoonsPlus.MoonsDisplayed.FindAll(x => x.DisplayPrice <= Plugin.instance.Terminal.groupCredits)];
 
             MoonsPlus.UpdateMoonsDisplayed.Invoke(MoonsPlus.MoonsDisplayed); //should allow for external mods to filter as needed
 
+        }
+
+        internal static void MoonOnTopCheck()
+        {
+            if (MoonsPlusConfig.ThisAlwaysOnTop.Value.Length < 1)
+                return;
+
+            MoonInfo thismoon = MoonsPlus.MoonListing.Find(x => x.LevelName.ToLower() == MoonsPlusConfig.ThisAlwaysOnTop.Value.ToLower());
+            if (thismoon == null)
+                return;
+
+            int thisIndex = MoonsPlus.MoonListing.IndexOf(thismoon);
+            Plugin.Spam($"{MoonsPlusConfig.ThisAlwaysOnTop.Value} = {thisIndex}");
+            if (thisIndex > 0)
+            {
+                MoonsPlus.MoonListing.Remove(thismoon);
+                MoonsPlus.MoonListing.Insert(0, thismoon);
+
+                Plugin.Spam($"{MoonsPlusConfig.ThisAlwaysOnTop.Value} is now first in list!");
+            }
+        }
+
+        internal static void ResolveHideList(ref List<MoonInfo> moonsList)
+        {
+            if (MoonsPlusConfig.AlwaysHideList.Value.Length < 1)
+                return;
+
+            List<MoonInfo> HideList = [];
+
+            Plugin.MoreLogs("AlwaysHideList Resolution starting...");
+            List<string> moons = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(MoonsPlusConfig.AlwaysHideList.Value, ',');
+            Plugin.MoreLogs($"AlwaysHideList Count: {moons.Count}");
+            bool hidecompany = moons.Any(x => x.ToLower() == "thismoon");
+            foreach (MoonInfo moon in moonsList)
+            {
+                Plugin.MoreLogs($"Checking Moon: {moon.LevelName}");
+                if (moons.Any(x => x.ToLower() == moon.LevelName.ToLower()))
+                {
+                    Plugin.MoreLogs($"Matching moon name found! Hiding {moon.LevelName}");
+                    HideList.Add(moon);
+                }
+                else if(hidecompany && moon.IsCompany)
+                {
+                    Plugin.MoreLogs($"Matching moon name found! Hiding {moon.LevelName} (Company)");
+                    HideList.Add(moon);
+                }
+                else
+                    Plugin.MoreLogs($"{moon.LevelName} does not match any configuration entries for AlwaysHideList");
+
+            }
+
+            moonsList.RemoveAll(x => HideList.Contains(x));
         }
 
         internal void AssignSorting(string config)
@@ -120,7 +175,7 @@ namespace TerminalStuff.SpecialStuff
             {
                 SortType = type;
                 Sorting = "Price";
-                MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.price)];
+                MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.DisplayPrice)];
             }
             else if (type == 3)
             {
@@ -134,10 +189,6 @@ namespace TerminalStuff.SpecialStuff
                 Sorting = "Difficulty";
                 MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.Level.riskLevel)];
             }
-
-
-            for (int i = 0; i < MoonsPlus.MoonListing.Count; i++)
-                MoonsPlus.MoonListing[i].indexNum = i;
         }
 
     }

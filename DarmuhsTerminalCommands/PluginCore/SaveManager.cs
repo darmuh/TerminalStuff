@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using HarmonyLib;
+using System.Collections.Generic;
+using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using static TerminalStuff.SpecialStuff.MoonsPlus;
 
@@ -14,17 +16,21 @@ namespace TerminalStuff.PluginCore
             if (!ConfigSettings.ModNetworking.Value)
                 return;
 
-            if (!ConfigSettings.TerminalMoonsPlus.Value)
+            if (!Commands.TerminalMoonsPlus.Value)
                 return;
 
-            SetAllMoonsUnvisited();
-
-            if (!GameNetworkManager.Instance.isHostingGame)
+            if (!GameNetworkManager.Instance.localPlayerController.IsHost)
             {
                 NetHandler.Instance.GetTravelHistoryServerRpc();
                 return;
             }
 
+            //MoonsPlusHistory
+            HistorySaveInit();
+        }
+
+        internal static void HistorySaveInit()
+        {
             if (!ES3.KeyExists("darmuhsTerminalStuff_MoonsPlusHistory", GameNetworkManager.Instance.currentSaveFileName))
             {
                 Plugin.Spam("Creating save key for darmuhsTerminalStuff_MoonsPlusHistory");
@@ -44,6 +50,16 @@ namespace TerminalStuff.PluginCore
                     NetHandler.Instance.TravelHistoryServerRpc(name);
                 //network to clients
             }
+
+            MoonListing.Do(x => x.OneTimePurchaseLoadIn());
+        }
+
+        internal static void ResetUnlocks()
+        {
+            CostCommands.enemyScanUpgradeEnabled = false;
+            CostCommands.vitalsUpgradeEnabled = false;
+
+            AllUpgradesUnlocked = [];
         }
 
         internal static void InitUnlocks()
@@ -126,16 +142,21 @@ namespace TerminalStuff.PluginCore
             if (!GameNetworkManager.Instance.isHostingGame)
                 return;
 
-            Plugin.Spam("saving darmuhsTerminalStuff_MoonsPlusHistory");
+            Plugin.Spam($"saving darmuhsTerminalStuff_MoonsPlusHistory from list ({travelHistory.Count}):");
+            foreach(string t in travelHistory )
+                Plugin.Spam(t);
             ES3.Save<List<string>>("darmuhsTerminalStuff_MoonsPlusHistory", travelHistory, GameNetworkManager.Instance.currentSaveFileName);
         }
 
         internal static void AddToTravelHistory(MoonInfo moon)
         {
+            if (GameNetworkManager.Instance.localPlayerController == null)
+                return;
+
             if(!MoonsVisited.Contains(moon.LevelName))
                 MoonsVisited.Add(moon.LevelName);
 
-            if (GameNetworkManager.Instance.isHostingGame)
+            if (GameNetworkManager.Instance.localPlayerController.IsHost)
                 SaveTravelHistory(MoonsVisited);
 
             NetHandler.Instance.TravelHistoryServerRpc(moon.LevelName);

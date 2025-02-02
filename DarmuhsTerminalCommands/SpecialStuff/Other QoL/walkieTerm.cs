@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using TerminalStuff.Configs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
@@ -10,8 +11,8 @@ namespace TerminalStuff
     {
         //static PlayerControllerB getmyself = GameNetworkManager.Instance.localPlayerController;
 
-        public static string UseWalkieKey = ConfigSettings.WalkieTermKey.Value;
-        public static string UseWalkieMB = ConfigSettings.WalkieTermMB.Value;
+        public static string UseWalkieKey = QoLConfig.WalkieTermKey.Value;
+        public static string UseWalkieMB = QoLConfig.WalkieTermMB.Value;
         internal static bool walkieEnum = false;
 
         public WalkieTerm(string useWalkieKey)

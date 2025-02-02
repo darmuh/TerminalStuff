@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.VisualCore;
@@ -43,7 +44,7 @@ namespace TerminalStuff
     {
         public static void Postfix()
         {
-            if (!ConfigSettings.TerminalMoonsPlus.Value)
+            if (!Commands.TerminalMoonsPlus.Value)
                 return;
 
             MoonsPlus.HideLevelFromMapScreen();
@@ -61,9 +62,9 @@ namespace TerminalStuff
 
         private static void StartCreds()
         {
-            if (TimeOfDay.Instance.quotaVariables != null && ConfigSettings.StartingCreds.Value > -1)
+            if (TimeOfDay.Instance.quotaVariables != null && QoLConfig.StartingCreds.Value > -1)
             {
-                TimeOfDay.Instance.quotaVariables.startingCredits = ConfigSettings.StartingCreds.Value;
+                TimeOfDay.Instance.quotaVariables.startingCredits = QoLConfig.StartingCreds.Value;
                 Plugin.Log.LogInfo($"Starting credits modified to {TimeOfDay.Instance.quotaVariables.startingCredits}");
             }
         }

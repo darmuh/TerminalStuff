@@ -17,11 +17,13 @@ namespace TerminalStuff
         internal static string GetAfterKeyword(List<string> keywords)
         {
             string cleanedText = Plugin.instance.Terminal.screenText.text.Substring(Plugin.instance.Terminal.screenText.text.Length - Plugin.instance.Terminal.textAdded);
+
             foreach (string item in keywords)
             {
-                if (cleanedText.StartsWith(item, true, null))
+                if (cleanedText.StartsWith(item, true, System.Globalization.CultureInfo.InvariantCulture))
                 {
                     string val = cleanedText.Replace(item, "");
+                    val.Trim();
                     return val;
                 }
             }
@@ -57,19 +59,6 @@ namespace TerminalStuff
             }
 
             return numbersList;
-        }
-
-        internal static List<string> GetItemList(string rawList)
-        {
-            List<string> itemList = [];
-            if (rawList.Length > 0)
-            {
-                itemList = rawList.Split(',')
-                                      .Select(item => item.TrimStart())
-                                      .ToList();
-            }
-
-            return itemList;
         }
 
         internal static Dictionary<string, string> GetKeywordAndItemNames(string configItem)

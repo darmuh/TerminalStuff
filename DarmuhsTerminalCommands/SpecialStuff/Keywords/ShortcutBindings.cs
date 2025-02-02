@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TerminalStuff.Configs;
 using static OpenLib.ConfigManager.ConfigSetup;
 using Key = UnityEngine.InputSystem.Key;
 
@@ -18,7 +19,7 @@ namespace TerminalStuff
 
         internal static void InitSavedShortcuts()
         {
-            if (!ConfigSettings.TerminalShortcuts.Value)
+            if (!QoLConfig.TerminalShortcuts.Value)
                 return;
 
             Plugin.MoreLogs("Loading shortcuts from config");
@@ -27,7 +28,7 @@ namespace TerminalStuff
             Key.K, Key.L, Key.M, Key.N, Key.O, Key.P, Key.Q, Key.R, Key.S, Key.T,
             Key.U, Key.V, Key.W, Key.X, Key.Y, Key.Z, Key.Space
             ];
-            DeserializeKeyActions(ConfigSettings.KeyActionsConfig.Value);
+            DeserializeKeyActions(QoLConfig.KeyActionsConfig.Value);
             InitTerminalHistoryBinds();
             InitTerminalAutoCompleteBinds();
 
@@ -35,7 +36,7 @@ namespace TerminalStuff
 
         private static void InitTerminalHistoryBinds()
         {
-            if (!ConfigSettings.TerminalHistory.Value)
+            if (!QoLConfig.TerminalHistory.Value)
                 return;
 
             if (keyActions.ContainsKey(Key.UpArrow))
@@ -53,7 +54,7 @@ namespace TerminalStuff
 
         private static void InitTerminalAutoCompleteBinds()
         {
-            if (!ConfigSettings.TerminalAutoComplete.Value)
+            if (!QoLConfig.TerminalAutoComplete.Value)
                 return;
 
             keyActions.Add(GetAutoCompleteKey(), "[autocomplete]");
@@ -61,7 +62,7 @@ namespace TerminalStuff
 
         private static Key GetAutoCompleteKey()
         {
-            if (Enum.TryParse(ConfigSettings.TerminalAutoCompleteKey.Value, out Key keyFromString))
+            if (Enum.TryParse(QoLConfig.TerminalAutoCompleteKey.Value, out Key keyFromString))
             {
                 if (keyFromString.Equals(Key.Tab))
                     Plugin.instance.removeTab = true;
@@ -71,7 +72,7 @@ namespace TerminalStuff
                 if (keyActions.ContainsKey(keyFromString))
                 {
                     keyActions.Remove(keyFromString);
-                    Plugin.WARNING($"Key: {ConfigSettings.TerminalAutoCompleteKey.Value} had an active shortcut bind that has now been removed!");
+                    Plugin.WARNING($"Key: {QoLConfig.TerminalAutoCompleteKey.Value} had an active shortcut bind that has now been removed!");
                 }
 
 
@@ -111,7 +112,7 @@ namespace TerminalStuff
         private static void SaveShortcutsToConfig()
         {
             // Serialize the dictionary into a format that can be stored in the configuration
-            ConfigSettings.KeyActionsConfig.Value = SerializeKeyActions();
+            QoLConfig.KeyActionsConfig.Value = SerializeKeyActions();
 
             Plugin.MoreLogs("Shortcuts saved to config");
         }
@@ -176,7 +177,7 @@ namespace TerminalStuff
                         command.Append($"{words[i]} ");
                     }
 
-                    Plugin.MoreLogs($"Command: {command}");
+                    Plugin.Spam($"BindToCommand detected Command: {command}");
                     Enum.TryParse(givenKey, ignoreCase: true, out Key keyFromString);
                     keyActions.Add(keyFromString, command.ToString());
                     SaveShortcutsToConfig();
@@ -187,16 +188,17 @@ namespace TerminalStuff
             }
 
             string givenWord = words[2].ToLower();
+            Plugin.Spam($"BindToCommand detected givenWord - {givenWord}");
 
             if (!MatchToKeyword(givenWord))
             {
-                Plugin.MoreLogs("Invalid word detected!");
+                Plugin.MoreLogs($"Invalid word detected! {givenWord}");
                 displayText = invalidBind;
                 return;
             }
             else if (!IsValidKey(givenKey, invalidKeys))
             {
-                Plugin.MoreLogs("Invalid key detected!");
+                Plugin.MoreLogs($"Invalid key detected! {givenKey}");
                 displayText = invalidBind;
                 return;
             }
@@ -206,7 +208,7 @@ namespace TerminalStuff
                 keyActions.Add(keyFromString, givenWord);
                 SaveShortcutsToConfig();
                 displayText = $"Keybind created! Key: {givenKey} has been mapped to the command: {givenWord}\r\n";
-                Plugin.MoreLogs($"Keybind created mapping {givenKey} to {givenWord}");
+                Plugin.MoreLogs($"BindToCommand: Keybind created mapping {givenKey} to {givenWord}");
             }
         }
 
@@ -257,7 +259,7 @@ namespace TerminalStuff
 
         internal static void MatchToBind(string input)
         {
-            List<string> skipAllKeywords = [];
+            //List<string> skipAllKeywords = [];
 
             if (BannedWords(input))
             {
@@ -268,7 +270,7 @@ namespace TerminalStuff
             TerminalKeyword[] allKeywords = Plugin.instance.Terminal.terminalNodes.allKeywords;
             foreach (TerminalKeyword keyword in allKeywords)
             {
-                if (keyword.word == input && !skipAllKeywords.Contains(input))
+                if (keyword.word == input)
                 {
                     Plugin.MoreLogs("Loading node from Terminal Keywords");
                     List<MainListing> fullListings =
@@ -326,7 +328,7 @@ namespace TerminalStuff
                     Plugin.instance.Terminal.OnSubmit();
                     return;
                 }
-                else if (value.Equals("[historyPrevious]") && ConfigSettings.TerminalHistory.Value)
+                else if (value.Equals("[historyPrevious]") && QoLConfig.TerminalHistory.Value)
                 {
                     Plugin.Spam("terminalhistory [previous] bind detected and feature is enabled");
                     TerminalHistory.historyIndex = TerminalHistory.PreviousIndex();
@@ -335,7 +337,7 @@ namespace TerminalStuff
                     return;
 
                 }
-                else if (value.Equals("[historyNext]") && ConfigSettings.TerminalHistory.Value)
+                else if (value.Equals("[historyNext]") && QoLConfig.TerminalHistory.Value)
                 {
                     Plugin.Spam("terminalhistory [next] bind detected and feature is enabled");
                     TerminalHistory.historyIndex = TerminalHistory.NextIndex();
@@ -343,7 +345,7 @@ namespace TerminalStuff
                     Plugin.Log.LogDebug($"Terminal Input set to:{TerminalHistory.GetFromCommandHistory(ref TerminalHistory.historyIndex)}");
                     return;
                 }
-                else if (value.Equals("[autocomplete]") && ConfigSettings.TerminalAutoComplete.Value)
+                else if (value.Equals("[autocomplete]") && QoLConfig.TerminalAutoComplete.Value)
                 {
                     Plugin.Spam("autocomplete key detected");
 

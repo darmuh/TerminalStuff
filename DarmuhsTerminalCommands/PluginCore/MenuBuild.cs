@@ -3,6 +3,7 @@ using OpenLib.ConfigManager;
 using OpenLib.CoreMethods;
 using OpenLib.Menus;
 using System.Collections.Generic;
+using TerminalStuff.Configs;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.Menus.MenuBuild;
 
@@ -19,7 +20,7 @@ namespace TerminalStuff
             Dictionary<string, string> myCategories = [];
             myMenuItems.Clear();
             myMenuItems = TerminalMenuItems(defaultManaged);
-            AddMenuItems(ConfigSettings.TerminalStuffBools, myMenuItems);
+            AddMenuItems(Commands.TerminalStuffBools, myMenuItems);
             if (ShouldAddCategoryNameToMainMenu(myMenuItems, "COMFORT"))
                 myCategories.Add("COMFORT", "Improves the terminal user experience.");
             if (ShouldAddCategoryNameToMainMenu(myMenuItems, "EXTRAS"))
@@ -44,7 +45,7 @@ namespace TerminalStuff
         {
             Plugin.Spam("START CreateDarmuhsTerminalStuffMenus");
             EventSub.TerminalStart.InitiateTerminalStuff();
-            if (!ConfigSettings.CreateMoreMenus.Value)
+            if (!QoLConfig.CreateMoreMenus.Value)
             {
                 if (!DynamicBools.TryGetKeyword("other", out TerminalKeyword otherWord))
                     return;
@@ -68,15 +69,15 @@ namespace TerminalStuff
                 }
                 return;
             }
-            myMenu = AssembleMainMenu("darmuhsTerminalStuff", "more", ConfigSettings.MoreMenuText.Value, myMenuCategories, myMenuItems);
-            AddingThings.AddToHelpCommand(ConfigSettings.MoreHintText.Value);
+            myMenu = AssembleMainMenu("darmuhsTerminalStuff", "more", CustomizeConfig.MoreMenuText.Value, myMenuCategories, myMenuItems);
+            AddingThings.AddToHelpCommand(CustomizeConfig.MoreHintText.Value);
             if (LogicHandling.TryGetFromAllNodes("OtherCommands", out TerminalNode otherNode))
-                AddingThings.AddToExistingNodeText($"\n{ConfigSettings.MoreHintText.Value}", ref otherNode);
+                AddingThings.AddToExistingNodeText($"\n{CustomizeConfig.MoreHintText.Value}", ref otherNode);
 
             Plugin.Spam($"myMenu info:\nMenuName: {myMenu.MenuName}\nmyMenu.Categories.Count: {myMenu.Categories.Count}\n");
 
 
-            if (ConfigSettings.FauxMoreMenu.Value)
+            if (QoLConfig.FauxMoreMenu.Value)
                 CreateCategoryFauxCommands(myMenu, defaultListing);
             else
                 CreateCategoryCommands(myMenu, ConfigSettings.TerminalStuffMain);
@@ -124,7 +125,7 @@ namespace TerminalStuff
             myMenuItems.Clear();
             myMenuItems = TerminalMenuItems(defaultManaged);
             myMenu.menuItems = myMenuItems;
-            AddMenuItems(ConfigSettings.TerminalStuffBools, myMenu);
+            AddMenuItems(Commands.TerminalStuffBools, myMenu);
             UpdateCategories(myMenu);
         }
 

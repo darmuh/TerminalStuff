@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using TerminalStuff.Compatibility;
+using TerminalStuff.Configs;
 using TMPro;
 using UnityEngine;
 
@@ -68,46 +69,46 @@ namespace TerminalStuff.SpecialStuff
 
         internal static void GetAndSetFont()
         {
-            if (ConfigSettings.CustomFontName.Value.ToLower() == "default" || ConfigSettings.CustomFontName.Value.Length < 1)
+            if (CustomizeConfig.CustomFontName.Value.ToLower() == "default" || CustomizeConfig.CustomFontName.Value.Length < 1)
             {
                 Plugin.Spam("assigning cached default font");
                 SetTerminalFont(CachedDefault);
                 return;
             }
 
-            if (TryGetFontFromCustomPath(ConfigSettings.CustomFontName.Value, out TMP_FontAsset customFont))
+            if (TryGetFontFromCustomPath(CustomizeConfig.CustomFontName.Value, out TMP_FontAsset customFont))
             {
-                Plugin.Spam($"{ConfigSettings.CustomFontName.Value} found in custom fonts path - {ConfigSettings.CustomFontPath.Value}");
+                Plugin.Spam($"{CustomizeConfig.CustomFontName.Value} found in custom fonts path - {CustomizeConfig.CustomFontPath.Value}");
                 SetTerminalFont(customFont);
                 return;
             }
 
-            if (TryGetCustomOSFont(ConfigSettings.CustomFontName.Value, out TMP_FontAsset osFont))
+            if (TryGetCustomOSFont(CustomizeConfig.CustomFontName.Value, out TMP_FontAsset osFont))
             {
-                Plugin.Spam($"{ConfigSettings.CustomFontName.Value} found in system fonts!");
+                Plugin.Spam($"{CustomizeConfig.CustomFontName.Value} found in system fonts!");
                 SetTerminalFont(osFont);
                 return;
             }
 
-            if (TryGetCustomFont(ConfigSettings.CustomFontName.Value, out TMP_FontAsset newFont))
+            if (TryGetCustomFont(CustomizeConfig.CustomFontName.Value, out TMP_FontAsset newFont))
             {
-                Plugin.Spam($"{ConfigSettings.CustomFontName.Value} found in windows custom fonts path");
+                Plugin.Spam($"{CustomizeConfig.CustomFontName.Value} found in windows custom fonts path");
                 SetTerminalFont(newFont);
                 return;
             }
 
-            Plugin.Spam($"Unable to find {ConfigSettings.CustomFontName.Value} in system fonts, in windows fonts path, or custom fonts path {ConfigSettings.CustomFontPath.Value}");
+            Plugin.Spam($"Unable to find {CustomizeConfig.CustomFontName.Value} in system fonts, in windows fonts path, or custom fonts path {CustomizeConfig.CustomFontPath.Value}");
         }
 
         internal static bool TryGetFontFromCustomPath(string fontName, out TMP_FontAsset CustomFontAsset)
         {
-            if (ConfigSettings.CustomFontPath.Value.Length < 1)
+            if (CustomizeConfig.CustomFontPath.Value.Length < 1)
             {
                 CustomFontAsset = null;
                 return false;
             }
 
-            string path = Path.Combine(Paths.ConfigPath, ConfigSettings.CustomFontPath.Value);
+            string path = Path.Combine(Paths.ConfigPath, CustomizeConfig.CustomFontPath.Value);
             Plugin.Spam($"custom path: {path}");
             if (Directory.Exists(path))
             {
@@ -172,19 +173,19 @@ namespace TerminalStuff.SpecialStuff
             if (TerminalClockStuff.textComponent != null)
                 TerminalClockStuff.textComponent.font = newFont;
 
-            if (ConfigSettings.CustomFontSizeMain.Value > -1)
+            if (CustomizeConfig.CustomFontSizeMain.Value > -1)
             {
                 if (Plugin.instance.LethalLevelLoader)
-                    LLLCompat.UpdateLLLFontSize((float)ConfigSettings.CustomFontSizeMain.Value);
+                    LLLCompat.UpdateLLLFontSize((float)CustomizeConfig.CustomFontSizeMain.Value);
                 else
-                    Plugin.instance.Terminal.screenText.textComponent.fontSize = ConfigSettings.CustomFontSizeMain.Value;
+                    Plugin.instance.Terminal.screenText.textComponent.fontSize = CustomizeConfig.CustomFontSizeMain.Value;
             }
                
-            if (ConfigSettings.CustomFontSizeMoney.Value > -1)
-                Plugin.instance.Terminal.topRightText.fontSize = ConfigSettings.CustomFontSizeMoney.Value;
+            if (CustomizeConfig.CustomFontSizeMoney.Value > -1)
+                Plugin.instance.Terminal.topRightText.fontSize = CustomizeConfig.CustomFontSizeMoney.Value;
 
-            if (TerminalClockStuff.textComponent != null && ConfigSettings.CustomFontSizeClock.Value > -1)
-                TerminalClockStuff.textComponent.fontSize = ConfigSettings.CustomFontSizeClock.Value;
+            if (TerminalClockStuff.textComponent != null && CustomizeConfig.CustomFontSizeClock.Value > -1)
+                TerminalClockStuff.textComponent.fontSize = CustomizeConfig.CustomFontSizeClock.Value;
         }
     }
 }

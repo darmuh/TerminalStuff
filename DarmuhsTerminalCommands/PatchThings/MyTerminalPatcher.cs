@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
+using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using UnityEngine;
 using UnityEngine.Video;
@@ -10,17 +12,58 @@ namespace TerminalStuff
 {
     public class AllMyTerminalPatches : MonoBehaviour
     {
+        public class ConfigGetters
+        {
+            public static int GetMaxItems()
+            {
+                Plugin.Spam("GetMaxItems!");
+                if (Plugin.instance.GenImprovements)
+                {
+                    int other = Compatibility.GenImproves.GetMaxItems();
+                    if (other != 12)
+                    {
+                        QoLConfig.TerminalMaxOrderedItems.Value = other;
+                        return other;
+                    }
+                }
+
+                //Plugin.Spam($"GetMaxItems - {ConfigSettings.TerminalMaxOrderedItems.Value}");
+                return QoLConfig.TerminalMaxOrderedItems.Value;
+            }
+
+            public static float GetMaxItemsFloat()
+            {
+                //Plugin.Spam($"GetMaxItemsFloat - {ConfigSettings.TerminalMaxOrderedItems.Value}");
+                return (float)QoLConfig.TerminalMaxOrderedItems.Value;
+            }
+        }
+
         [HarmonyPatch(typeof(Terminal), "ParseWord")]
         public class ConflictResolution : Terminal
         {
             static void Postfix(string playerWord, ref TerminalKeyword __result)
             {
 
-                if (!ConfigSettings.TerminalConflictResolution.Value)
+                if (!QoLConfig.TerminalConflictResolution.Value)
                     return;
 
                 ConflictRes.InitRes(playerWord, ref __result); //should modify the keyword to whatever resolution finds as the best match
             }
+        }
+        [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
+        public class CustomReplacements
+        {
+            static void Postfix(ref string __result)
+            {
+                __result = __result.Replace("[leadingSpace]", " ");
+                __result = __result.Replace("[leadingSpacex4]", "    ");
+                __result = __result.Replace("[thisPlayerName]", $"{StartOfRound.Instance.localPlayerController.playerUsername}");
+                __result = __result.Replace("[thisPlayerHealth]", $"{StartOfRound.Instance.localPlayerController.health}");
+                __result = __result.Replace("[currentPlanetName]", $"{StartOfRound.Instance.currentLevel.PlanetName}");
+                __result = __result.Replace("[GetMaxPossibleItems]", $"{ConfigGetters.GetMaxItems()}");
+
+            }
+
         }
 
 
@@ -46,60 +89,196 @@ namespace TerminalStuff
         }
 
         [HarmonyPatch(typeof(Terminal), "BeginUsingTerminal")]
+        [HarmonyPriority(Priority.Last)]
         public class BeginUsingTranspiler : Terminal
         {
+            static int replacements = 0;
             [HarmonyTranspiler]
             private static IEnumerable<CodeInstruction> BeginUsingTerminal_Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                int replacements = 0;
-                CodeInstruction nothing = new(OpCodes.Nop);
-                foreach (CodeInstruction instruction in instructions)
-                {
-                    if (instruction.Calls(AccessTools.Method("Terminal:LoadNewNode")))
-                    {
-                        replacements++;
-                        yield return nothing;
-                    }
-                    else
-                    {
-                        //Plugin.Log.LogInfo(instruction.ToString());
-                        yield return instruction;
-                    }
+                Plugin.PatchLog("BeginUsingTerminal Transpiler Initialized");
+                MethodInfo LoadNewNode = AccessTools.Method("Terminal:LoadNewNode");
+                replacements = 0;
+                instructions.DoIf(instruction => instruction.Calls(LoadNewNode), Nothing);
+                return instructions;
+            }
 
-                }
-                if (replacements > 0)
-                    Plugin.Log.LogInfo($"BeginUsingTerminal - Transpiler success!\n [ {replacements} ] lines changed");
-                else
-                    Plugin.Log.LogInfo("BeginUsingTerminal - Transpiler ran with no changes");
+            private static void Nothing(CodeInstruction instruction)
+            {
+                replacements++;
+                Plugin.PatchLog($"BeginUsingTerminal - Transpiler removed matching instruction\n[ {replacements} ] lines changed");
+                instruction.opcode = OpCodes.Nop;
             }
         }
 
         [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
+        [HarmonyPriority(Priority.Last)]
         public class TextPostProcessTranspiler : Terminal
         {
+            static int replacements = 0;
             [HarmonyTranspiler]
             private static IEnumerable<CodeInstruction> TextPostProcess_Transpiler(IEnumerable<CodeInstruction> instructions)
             {
-                int replacements = 0;
+                Plugin.PatchLog("TextPostProcess Transpiler Initialized");
+                replacements = 0;
                 CodeInstruction original = new(OpCodes.Ldstr, "\n\n\n\n\n\n\n\n\n\n\n\n\n\nn\n\n\n\n\n\n");
-                CodeInstruction myFix = new(OpCodes.Ldstr, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-                foreach (CodeInstruction instruction in instructions)
-                {
-                    if (instruction.operand == original.operand)
-                    {
-                        replacements++;
-                        yield return myFix;
-                    }
-                    else
-                    {
-                        yield return instruction;
-                    }
-                }
+                instructions.DoIf(instruction => instruction.operand == original.operand, Fix);
+                return instructions;
+            }
 
-                if (replacements > 0)
-                    Plugin.Log.LogInfo($"TextPostProcess - Transpiler success!\n [ {replacements} ] lines changed");
-                else
-                    Plugin.Log.LogInfo("TextPostProcess - Transpiler ran with no changes");
+            static void Fix(CodeInstruction instruction)
+            {
+                replacements++;
+                instruction.operand = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+                Plugin.PatchLog($"TextPostProcess - Transpiler success!\n[ {replacements} ] lines changed");
+            }
+        }
+
+        [HarmonyPatch(typeof(Terminal), "BuyItemsServerRpc")]
+        [HarmonyPriority(Priority.Last)]
+        public class PurchaseLimitPatch1 : Terminal
+        {
+            static int replacements = 0;
+            [HarmonyTranspiler]
+            private static IEnumerable<CodeInstruction> BuyItemsServerRpc_Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                Plugin.PatchLog("BuyItemsServerRpc Transpiler Initialized");
+                replacements = 0;
+                CodeInstruction original = new(OpCodes.Ldc_I4_S, 12);
+                instructions.DoIf(instruction => instruction.opcode == original.opcode, OrderChange);
+                return instructions;
+            }
+            static void OrderChange(CodeInstruction instruction)
+            {
+                replacements++;
+                CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItems);
+                instruction.opcode = getter.opcode;
+                instruction.operand = getter.operand;
+                Plugin.PatchLog($"BuyItemsServerRpc - Transpiler success!\n[ {replacements} ] lines changed");
+            }
+        }
+
+        [HarmonyPatch(typeof(Terminal), "LoadNewNodeIfAffordable")]
+        [HarmonyPriority(Priority.Last)]
+        public class PurchaseLimitPatch2 : Terminal
+        {
+            static int replacements = 0;
+            [HarmonyTranspiler]
+            private static IEnumerable<CodeInstruction> LoadNewNodeIfAffordable_Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                Plugin.PatchLog("LoadNewNodeIfAffordable Transpiler Initialized");
+                replacements = 0;
+                CodeInstruction original = new(OpCodes.Ldc_I4_S, 12);
+                CodeInstruction originalfloat = new(OpCodes.Ldc_R4, 12f); //ldc.r4
+                instructions.DoIf(x => x.opcode == original.opcode, ReplaceInt);
+                instructions.DoIf(x => x.opcode == originalfloat.opcode, ReplaceFloat);
+
+
+                return instructions;
+            }
+
+            private static void ReplaceFloat(CodeInstruction instruction)
+            {
+                if (!float.TryParse(instruction.operand.ToString(), out float value))
+                    return;
+
+                if (value != 12f)
+                    return;
+
+                CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItemsFloat);
+                instruction.opcode = getter.opcode;
+                instruction.operand = getter.operand;
+                replacements++;
+                Plugin.PatchLog($"LoadNewNodeIfAffordable replaced float {value} in favor of maxitems config!\n[ {replacements} ] lines changed");
+            }
+
+            private static void ReplaceInt(CodeInstruction instruction)
+            {
+                if (!int.TryParse(instruction.operand.ToString(), out int value))
+                    return;
+
+                if (value != 12)
+                    return;
+
+                CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItems);
+                instruction.opcode = getter.opcode;
+                instruction.operand = getter.operand;
+                replacements++;
+                Plugin.PatchLog($"LoadNewNodeIfAffordable replaced int {value} in favor of maxitems config!\n[ {replacements} ] lines changed");
+            }
+        }
+
+        [HarmonyPatch(typeof(Terminal), "SyncBoughtItemsWithServer")]
+        [HarmonyPriority(Priority.Last)]
+        public class PurchaseLimitPatch3 : Terminal
+        {
+            static int replacements = 0;
+            [HarmonyTranspiler]
+            private static IEnumerable<CodeInstruction> SyncBoughtItemsWithServer_Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                Plugin.PatchLog("SyncBoughtItemsWithServer Transpiler Initialized");
+                replacements = 0;
+                instructions.DoIf(x => x.opcode == OpCodes.Ldc_I4_S, ReplaceInt);
+
+                return instructions;
+            }
+
+            private static void ReplaceInt(CodeInstruction instruction)
+            {
+                if (!int.TryParse(instruction.operand.ToString(), out int value))
+                    return;
+
+                if (value != 12)
+                    return;
+
+                CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItems);
+                instruction.opcode = getter.opcode;
+                instruction.operand = getter.operand;
+                replacements++;
+                Plugin.PatchLog($"SyncBoughtItemsWithServer replaced {value} in favor of maxitems config!\n[ {replacements} ] lines changed");
+            }
+        }
+
+        [HarmonyPatch(typeof(Terminal), "ParsePlayerSentence")]
+        [HarmonyPriority(Priority.Last)]
+        public class PurchaseLimitPatch4
+        {
+            static int replacements = 0;
+            [HarmonyTranspiler]
+            private static IEnumerable<CodeInstruction> ParsePlayerSentence_Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                //ldc.i4.s
+                CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItems);
+                FieldInfo playerDefined = typeof(Terminal).GetField(nameof(Terminal.playerDefinedAmount));
+                Plugin.PatchLog("ParsePlayerSentence Transpiler Initialized");
+                replacements = 0;
+                CodeMatcher codeMatcher = new(instructions);
+                codeMatcher = codeMatcher.Start();
+                Plugin.Spam($"codeMatcher at Start! {codeMatcher.Pos}");
+                codeMatcher = codeMatcher.SearchForward(x => x.StoresField(playerDefined));
+                Plugin.Spam($"SearchForward at playerDefined stored! {codeMatcher.Pos}");
+                codeMatcher = codeMatcher.SearchBack(x => x.opcode == OpCodes.Ldc_I4_S);
+                Plugin.Spam($"SearchBack at Float! {codeMatcher.Pos}");
+                codeMatcher = codeMatcher.SetInstruction(getter);
+                replacements++;
+                Plugin.PatchLog($"ParsePlayerSentence patched in favor of maxitems config!\n[ {replacements} ] lines changed");
+                return codeMatcher.Instructions();
+            }
+
+
+            private static void ReplaceInt(CodeInstruction instruction)
+            {
+                if (!int.TryParse(instruction.operand.ToString(), out int value))
+                    return;
+
+                if (value != 10)
+                    return;
+
+                CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItems);
+                instruction.opcode = getter.opcode;
+                instruction.operand = getter.operand;
+                replacements++;
+                Plugin.PatchLog($"ParsePlayerSentence replaced {value} in favor of maxitems config!\n[ {replacements} ] lines changed");
             }
         }
 

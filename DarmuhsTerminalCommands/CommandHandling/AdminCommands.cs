@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq;
 using System.Text;
+using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using UnityEngine;
 using static TerminalStuff.StringStuff;
@@ -17,7 +18,7 @@ namespace TerminalStuff
         {
             TerminalGeneral.CancelConfirmation = true;
             playerToKick = null;
-            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.KickKeywords.Value));
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.KickKeywords.Value));
 
             if (!AmIHost(out string displayText))
                 return displayText;

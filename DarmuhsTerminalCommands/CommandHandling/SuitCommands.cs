@@ -13,7 +13,7 @@ namespace TerminalStuff
             List<UnlockableSuit> allSuits = [];
             List<UnlockableItem> Unlockables = [];
 
-            //get allSuits
+            //get AllSuits
             allSuits = [.. Resources.FindObjectsOfTypeAll<UnlockableSuit>()];
             displayText = string.Empty;
 

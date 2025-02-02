@@ -1,4 +1,5 @@
 ﻿using OpenLib.Common;
+using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using static TerminalStuff.AlwaysOnStuff;
 using static TerminalStuff.EventSub.TerminalStart;
@@ -10,7 +11,7 @@ namespace TerminalStuff.EventSub
     {
         internal static void OnTerminalQuit()
         {
-            if (ConfigSettings.SaveLastInput.Value && Plugin.instance.Terminal.currentNode != null && Plugin.instance.Terminal.currentNode.name != "TerminalQuit")
+            if (QoLConfig.SaveLastInput.Value && Plugin.instance.Terminal.currentNode != null && Plugin.instance.Terminal.currentNode.name != "TerminalQuit")
             {
                 lastText = CommonStringStuff.GetCleanedScreenText(Plugin.instance.Terminal);
                 Plugin.Spam("grabbed lastText");
@@ -18,6 +19,9 @@ namespace TerminalStuff.EventSub
 
             if (MoonsPlus.MoonsPlusMenu.inMenu)
                 MoonsPlus.ExitMenu(false);
+
+            if (StorePlus.StorePlusMenu.inMenu)
+                StorePlus.ExitMenu(false);
 
             if (StartOfRound.Instance.localPlayerController != null)
                 ShouldLockPlayerCamera(true, StartOfRound.Instance.localPlayerController);

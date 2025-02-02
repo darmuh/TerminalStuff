@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using TerminalStuff.Configs;
 using UnityEngine;
 using static TerminalStuff.StringStuff;
 
@@ -40,7 +41,7 @@ namespace TerminalStuff
                 return displayText;
             }
 
-            string val = GetAfterKeyword(GetKeywordsPerConfigItem(ConfigSettings.FovKeywords.Value));
+            string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.FovKeywords.Value));
 
             if (val.Length < 1)
             {

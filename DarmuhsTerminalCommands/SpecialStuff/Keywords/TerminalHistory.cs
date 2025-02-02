@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TerminalStuff.Configs;
 
 namespace TerminalStuff
 {
@@ -9,10 +10,10 @@ namespace TerminalStuff
 
         internal static void AddToCommandHistory(string command)
         {
-            if (!ConfigSettings.TerminalHistory.Value)
+            if (!QoLConfig.TerminalHistory.Value)
                 return;
 
-            if (CommandHistory.Count < ConfigSettings.TerminalHistoryMaxCount.Value)
+            if (CommandHistory.Count < QoLConfig.TerminalHistoryMaxCount.Value)
                 CommandHistory.Add(command);
             else
             {

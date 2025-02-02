@@ -1,4 +1,5 @@
 ﻿using OpenLib.CoreMethods;
+using TerminalStuff.Configs;
 using UnityEngine.InputSystem;
 using static TerminalStuff.AdminCommands;
 using static TerminalStuff.DynamicCommands;
@@ -15,7 +16,7 @@ namespace TerminalStuff
     {
         internal static bool ListenForShortCuts()
         {
-            if (!ConfigSettings.TerminalShortcuts.Value || keyActions.Count < 1)
+            if (!QoLConfig.TerminalShortcuts.Value || keyActions.Count < 1)
                 return false;
 
             if (Plugin.instance.suitsTerminal && SuitsTerminalCompatibility.CheckForSuitsMenu())
@@ -27,10 +28,21 @@ namespace TerminalStuff
             if (!Plugin.instance.Terminal.terminalInUse)
                 return false;
 
-            if (!ConfigSettings.TerminalShortcuts.Value || stopForAnyReason)
+            if (!QoLConfig.TerminalShortcuts.Value || stopForAnyReason)
+                return false;
+
+            if (ITAPICheck())
                 return false;
 
             return true;
+        }
+
+        internal static bool ITAPICheck()
+        {
+            if (!OpenLib.Plugin.instance.ITAPI)
+                return false;
+
+            return OpenLib.Compat.InteractiveTermAPI.ApplicationInUse();
         }
 
         //check if any key that is bound by this mod is pressed
@@ -61,15 +73,15 @@ namespace TerminalStuff
 
         internal static bool ShouldAddCamsLogic()
         {
-            if (ConfigSettings.TerminalCams.Value)
+            if (Commands.TerminalCams.Value)
                 return true;
-            if (ConfigSettings.TerminalMap.Value)
+            if (Commands.TerminalMap.Value)
                 return true;
-            if (ConfigSettings.TerminalMinicams.Value)
+            if (Commands.TerminalMinicams.Value)
                 return true;
-            if (ConfigSettings.TerminalMinimap.Value)
+            if (Commands.TerminalMinimap.Value)
                 return true;
-            if (ConfigSettings.TerminalOverlay.Value)
+            if (Commands.TerminalOverlay.Value)
                 return true;
             return false;
         }
@@ -102,6 +114,9 @@ namespace TerminalStuff
             if (node.displayVideo != null)
                 return true;
 
+            if (node.displayTexture != null)
+                return true;
+
             if (ViewCommands.AnyActiveMonitoring())
                 return true;
 
@@ -119,7 +134,7 @@ namespace TerminalStuff
 
         internal static bool AnyMonitoringModesEnabled()
         {
-            return (ConfigSettings.TerminalMap.Value || ConfigSettings.TerminalCams.Value || ConfigSettings.TerminalOverlay.Value || ConfigSettings.TerminalMinimap.Value || ConfigSettings.TerminalMinicams.Value);
+            return (Commands.TerminalMap.Value || Commands.TerminalCams.Value || Commands.TerminalOverlay.Value || Commands.TerminalMinimap.Value || Commands.TerminalMinicams.Value);
         }
 
     }

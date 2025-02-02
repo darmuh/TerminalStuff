@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using TerminalStuff.Configs;
 using UnityEngine;
 
 namespace TerminalStuff
@@ -86,10 +87,10 @@ namespace TerminalStuff
                     Plugin.Spam($"disabling screen - screenSetting Dynamic {screenSettings.Dynamic}");
                     if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
                     {
-                        if (ConfigSettings.ScreenOffDelay.Value < 1)
+                        if (QoLConfig.ScreenOffDelay.Value < 1)
                             SetScreenPlus(false);
                         else
-                            Plugin.instance.StartCoroutine(DelayScreenOff(ConfigSettings.ScreenOffDelay.Value));
+                            Plugin.instance.StartCoroutine(DelayScreenOff(QoLConfig.ScreenOffDelay.Value));
                     }
 
                 }
@@ -110,7 +111,7 @@ namespace TerminalStuff
 
         internal static bool DisableScreenOnDeath()
         {
-            if (ConfigSettings.ScreenOnWhileDead.Value)
+            if (QoLConfig.ScreenOnWhileDead.Value)
                 return false;
 
             return StartOfRound.Instance.localPlayerController.isPlayerDead;

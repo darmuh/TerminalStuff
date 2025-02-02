@@ -1,4 +1,5 @@
 ﻿using LethalLevelLoader;
+using System.Linq;
 
 namespace TerminalStuff.Compatibility
 {
@@ -32,12 +33,8 @@ namespace TerminalStuff.Compatibility
                 return false;
 
             if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-            {
-                if (extendedLevel.IsRouteLocked)
-                    return true;
-                else
-                    return false;
-            }
+                return extendedLevel.IsRouteLocked;
+            
             return false;
         }
 
@@ -47,12 +44,21 @@ namespace TerminalStuff.Compatibility
                 return false;
 
             if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+                return extendedLevel.IsRouteHidden;
+
+            return false;
+        }
+
+        internal static bool IsDisabled(SelectableLevel level)
+        {
+            if (!Plugin.instance.LethalLevelLoader)
+                return false;
+
+            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
             {
-                if (extendedLevel.IsRouteHidden)
-                    return true;
-                else
-                    return false;
+                return !TerminalManager.routeKeyword.compatibleNouns.Any(x => x.result == extendedLevel.RouteNode);
             }
+
             return false;
         }
 

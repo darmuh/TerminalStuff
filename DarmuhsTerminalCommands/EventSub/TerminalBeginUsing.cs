@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TerminalStuff.Configs;
 using UnityEngine.InputSystem;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static TerminalStuff.EventSub.TerminalStart;
@@ -47,7 +48,7 @@ namespace TerminalStuff.EventSub
         {
             TerminalNode nextNode = null;
 
-            if (ConfigSettings.TerminalAutoComplete.Value)
+            if (QoLConfig.TerminalAutoComplete.Value)
             {
                 if (Plugin.instance.removeTab)
                 {
@@ -60,7 +61,7 @@ namespace TerminalStuff.EventSub
             }
 
             //refund init
-            if (ConfigSettings.TerminalRefund.Value && ConfigSettings.ModNetworking.Value)
+            if (Commands.TerminalRefund.Value && ConfigSettings.ModNetworking.Value)
             {
                 Plugin.Spam("Syncing items between players for refund command");
                 NetHandler.Instance.SyncDropShipServerRpc();
@@ -117,7 +118,7 @@ namespace TerminalStuff.EventSub
                 }
             }
 
-            if (lastText.Length > 0 && ConfigSettings.SaveLastInput.Value)
+            if (lastText.Length > 0 && QoLConfig.SaveLastInput.Value)
                 LogicHandling.SetTerminalInput(lastText);
         }
 

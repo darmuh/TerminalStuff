@@ -2,6 +2,8 @@
 using static TerminalStuff.EventSub.TerminalStart;
 using UnityEngine;
 using UnityEngine.UI;
+using TerminalStuff.Configs;
+using TerminalStuff.VisualCore;
 
 namespace TerminalStuff.PluginCore
 {
@@ -9,26 +11,27 @@ namespace TerminalStuff.PluginCore
     {
         internal static bool defaultsCached = false;
         internal static Image terminalBackground;
+        internal static Image moneyBG;
 
         private static void SetTerminalBodyColors()
         {
-            if (!ConfigSettings.TerminalCustomization.Value)
+            if (!CustomizeConfig.TerminalCustomization.Value)
                 return;
 
             MeshRenderer termMesh = GameObject.Find("Environment/HangarShip/Terminal").GetComponent<MeshRenderer>();
-
+    
             if (termMesh != null)
             {
                 if (termMesh.materials.Length <= 3)
                 {
-                    termMesh.materials[0].color = ColorCommands.HexToColor(ConfigSettings.TerminalColor.Value); //body
-                    termMesh.materials[1].color = ColorCommands.HexToColor(ConfigSettings.TerminalButtonsColor.Value); //glass buttons
+                    termMesh.materials[0].color = ColorCommands.HexToColor(CustomizeConfig.TerminalColor.Value); //body
+                    termMesh.materials[1].color = ColorCommands.HexToColor(CustomizeConfig.TerminalButtonsColor.Value); //glass buttons
                     //2 = warning sticker
                 }
                 else
                 {
                     Plugin.WARNING("termMesh does not have expected number of materials, only setting terminal body color");
-                    termMesh.material.color = ColorCommands.HexToColor(ConfigSettings.TerminalColor.Value);
+                    termMesh.material.color = ColorCommands.HexToColor(CustomizeConfig.TerminalColor.Value);
                 }
             }
             else
@@ -37,7 +40,7 @@ namespace TerminalStuff.PluginCore
 
         private static void GetTerminalBodyColors()
         {
-            if (!ConfigSettings.TerminalCustomization.Value)
+            if (!CustomizeConfig.TerminalCustomization.Value)
                 return;
 
             MeshRenderer termMesh = GameObject.Find("Environment/HangarShip/Terminal").GetComponent<MeshRenderer>();
@@ -65,14 +68,14 @@ namespace TerminalStuff.PluginCore
 
         private static void SetTerminalKeyboardColors()
         {
-            if (!ConfigSettings.TerminalCustomization.Value)
+            if (!CustomizeConfig.TerminalCustomization.Value)
                 return;
 
             MeshRenderer kbMesh = GameObject.Find("Environment/HangarShip/Terminal/Terminal.003").GetComponent<MeshRenderer>();
 
             if (kbMesh != null)
             {
-                kbMesh.material.color = ColorCommands.HexToColor(ConfigSettings.TerminalKeyboardColor.Value);
+                kbMesh.material.color = ColorCommands.HexToColor(CustomizeConfig.TerminalKeyboardColor.Value);
             }
             else
                 Plugin.WARNING("customization failure: kbMesh is null");
@@ -80,7 +83,7 @@ namespace TerminalStuff.PluginCore
 
         private static void GetTerminalKeyboardColors()
         {
-            if (!ConfigSettings.TerminalCustomization.Value)
+            if (!CustomizeConfig.TerminalCustomization.Value)
                 return;
 
             MeshRenderer kbMesh = GameObject.Find("Environment/HangarShip/Terminal/Terminal.003").GetComponent<MeshRenderer>();
@@ -98,18 +101,43 @@ namespace TerminalStuff.PluginCore
         {
             Plugin.Spam("Updating home displaytext");
             startNode = Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[1];
-            string asciiArt = ConfigSettings.HomeTextArt.Value;
-            asciiArt = asciiArt.Replace("[leadingSpace]", " ");
-            asciiArt = asciiArt.Replace("[leadingSpacex4]", "    ");
-            //no known compatibility issues with home screen
-            startNode.displayText = $"{ConfigSettings.HomeLine1.Value}\r\n{ConfigSettings.HomeLine2.Value}\r\n\r\n{ConfigSettings.HomeHelpLines.Value}\r\n{asciiArt}\r\n\r\n{ConfigSettings.HomeLine3.Value}\r\n\r\n";
+            startNode.displayText = $"{CustomizeConfig.HomeLine1.Value}\r\n{CustomizeConfig.HomeLine2.Value}\r\n\r\n{CustomizeConfig.HomeHelpLines.Value}\r\n{CustomizeConfig.HomeTextArt.Value}\r\n\r\n{CustomizeConfig.HomeLine3.Value}\r\n\r\n";
+        }
+
+        private static void AutoResizeMoneyBG()
+        {
+            if (!CustomizeConfig.AutoResizeMoneyBG.Value || moneyBG == null)
+                return;
+
+            CustomAutoSize customSizer = moneyBG.gameObject.AddComponent<CustomAutoSize>();
+            customSizer.SetValues(moneyBG.rectTransform, ref Plugin.instance.Terminal.topRightText, new(-195, moneyBG.rectTransform.anchoredPosition.y), new(34, 22));
+        }
+
+        private static void SetMoneyBGStuff(Color moneyBGColor)
+        { 
+            moneyBG.color = moneyBGColor;
+            AutoResizeMoneyBG();
+        }
+
+        private static void GetMoneyBG(Color moneyBGColor)
+        {
+            if (Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).childCount >= 6)
+            {
+                if (Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>() != null)
+                {
+                    moneyBG = Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>();
+                    SetMoneyBGStuff(moneyBGColor);
+                }
+            }
+            else
+                Plugin.WARNING("Unable to set TerminalMoneyBG customizations!!");
         }
 
         internal static void TerminalCustomization()
         {
             StartNode(); //should always be modified, not colors
 
-            if (!ConfigSettings.TerminalCustomization.Value)
+            if (!CustomizeConfig.TerminalCustomization.Value)
                 return;
 
             if (!defaultsCached)
@@ -120,45 +148,40 @@ namespace TerminalStuff.PluginCore
             FontStuff.GetAndSetFont();
 
 
-            Color moneyBGColor = SetColorFor(ConfigSettings.TerminalMoneyBGColor.Value, CustomTerminalStuff.MoneyBG, ConfigSettings.TerminalMoneyBGAlpha.Value);
-
-            if (Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).childCount >= 6)
-            {
-                if (Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>() != null)
-                    Plugin.instance.Terminal.terminalUIScreen.gameObject.transform.GetChild(0).GetChild(5).gameObject.GetComponent<Image>().color = moneyBGColor;
-            }
+            Color moneyBGColor = SetColorFor(CustomizeConfig.TerminalMoneyBGColor.Value, CustomTerminalStuff.MoneyBG, CustomizeConfig.TerminalMoneyBGAlpha.Value);
+            if (moneyBG != null)
+                SetMoneyBGStuff(moneyBGColor);
             else
-                Plugin.WARNING("Unable to set TerminalMoneyBG customizations!!");
-            
+                GetMoneyBG(moneyBGColor);
 
-            Plugin.instance.Terminal.screenText.textComponent.color = SetColorFor(ConfigSettings.TerminalTextColor.Value, CustomTerminalStuff.TerminalText);
-            Plugin.instance.Terminal.topRightText.color = SetColorFor(ConfigSettings.TerminalMoneyColor.Value, CustomTerminalStuff.MoneyText);
+            Plugin.instance.Terminal.screenText.textComponent.color = SetColorFor(CustomizeConfig.TerminalTextColor.Value, CustomTerminalStuff.TerminalText);
+            Plugin.instance.Terminal.topRightText.color = SetColorFor(CustomizeConfig.TerminalMoneyColor.Value, CustomTerminalStuff.MoneyText);
 
-            Plugin.instance.Terminal.screenText.caretColor = SetColorFor(ConfigSettings.TerminalCaretColor.Value, CustomTerminalStuff.TextCaret);
+            Plugin.instance.Terminal.screenText.caretColor = SetColorFor(CustomizeConfig.TerminalCaretColor.Value, CustomTerminalStuff.TextCaret);
             
             if(Plugin.instance.suitsTerminal)
                 SuitsTerminalCompatibility.SetCaretColor(Plugin.instance.Terminal.screenText.caretColor);
 
-            Plugin.instance.Terminal.scrollBarVertical.image.color = SetColorFor(ConfigSettings.TerminalScrollbarColor.Value, CustomTerminalStuff.Scrollbar);
-            Plugin.instance.Terminal.scrollBarVertical.gameObject.GetComponent<Image>().color = SetColorFor(ConfigSettings.TerminalScrollBGColor.Value, CustomTerminalStuff.ScrollbarBackground);
-            Plugin.instance.Terminal.terminalLight.color = SetColorFor(ConfigSettings.TerminalLightColor.Value, CustomTerminalStuff.TerminalLight);
+            Plugin.instance.Terminal.scrollBarVertical.image.color = SetColorFor(CustomizeConfig.TerminalScrollbarColor.Value, CustomTerminalStuff.Scrollbar);
+            Plugin.instance.Terminal.scrollBarVertical.gameObject.GetComponent<Image>().color = SetColorFor(CustomizeConfig.TerminalScrollBGColor.Value, CustomTerminalStuff.ScrollbarBackground);
+            Plugin.instance.Terminal.terminalLight.color = SetColorFor(CustomizeConfig.TerminalLightColor.Value, CustomTerminalStuff.TerminalLight);
 
             if (TerminalClockStuff.textComponent != null)
             {
                 Plugin.MoreLogs($"setting clock color");
-                TerminalClockStuff.textComponent.color = SetColorFor(ConfigSettings.TerminalClockColor.Value, CustomTerminalStuff.TerminalClock);
+                TerminalClockStuff.textComponent.color = SetColorFor(CustomizeConfig.TerminalClockColor.Value, CustomTerminalStuff.TerminalClock);
             }
 
             terminalBackground = Plugin.instance.Terminal.terminalUIScreen.gameObject.GetComponentInChildren<Image>();
 
             if (terminalBackground != null)
             {
-                terminalBackground.enabled = ConfigSettings.TerminalCustomBG.Value;
+                terminalBackground.enabled = CustomizeConfig.TerminalCustomBG.Value;
                 terminalBackground.transform.SetParent(Plugin.instance.Terminal.terminalImage.transform);
                 terminalBackground.transform.SetAsLastSibling();
                 terminalBackground.rectTransform.anchoredPosition = new Vector2(10, 0);
                 terminalBackground.rectTransform.sizeDelta = new Vector2(-80, 20);
-                Color bgColor = SetColorFor(ConfigSettings.TerminalCustomBGColor.Value, CustomTerminalStuff.TerminalBackground, ConfigSettings.TerminalCustomBGAlpha.Value);
+                Color bgColor = SetColorFor(CustomizeConfig.TerminalCustomBGColor.Value, CustomTerminalStuff.TerminalBackground, CustomizeConfig.TerminalCustomBGAlpha.Value);
                 terminalBackground.color = bgColor;
             }
             else
@@ -198,7 +221,7 @@ namespace TerminalStuff.PluginCore
 
         internal static void GetOtherDefaultColors()
         {
-            if (!ConfigSettings.TerminalCustomization.Value)
+            if (!CustomizeConfig.TerminalCustomization.Value)
                 return;
 
             CustomTerminalStuff.TerminalText = Plugin.instance.Terminal.screenText.textComponent.color;

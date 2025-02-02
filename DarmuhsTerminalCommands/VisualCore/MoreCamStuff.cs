@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using OpenLib.Common;
 using System.Collections.Generic;
+using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using UnityEngine;
 using static TerminalStuff.AllMyTerminalPatches;
@@ -83,10 +84,10 @@ namespace TerminalStuff
 
         private static bool IsViewNode(TerminalNode node)
         {
-            if (ConfigSettings.ViewConfig.Count == 0)
+            if (Commands.ViewConfig.Count == 0)
                 return false;
 
-            foreach (var item in ConfigSettings.ViewConfig)
+            foreach (var item in Commands.ViewConfig)
             {
                 if (item.TerminalNode == node)
                     return true;

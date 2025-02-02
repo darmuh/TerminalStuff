@@ -5,8 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
-## [3.7.8]
- - Switching some common moonsplus menu stuff to openlib
+## [3.8.0]
+ - Switched some common moonsplus menu stuff to openlib
+ - Added TerminalMaxOrderedItems config item and related transpiler patches.
+	- Also added compatibility support for GeneralImprovements which has a similar config item. When present, will use GeneralImprovement's config item value
+ - Improved performance of all terminal transpiler patches
+	- should fix the noticeable delay where the console would pause during the first transpiler 
+ - Attempted to optimize the networking code from Evasia's netcode patcher.
+ - Fixed travel history save key for MoonsPlus functions that need to remember your previous travel history
+ - Fixed issue with MoonsPlus LLL compatibility that would break LLL's ``IsRouteHidden`` property in certain circumstances
+ - Added Upgrade Unlocks reset at ship reset for Bioscan/Vitals upgrades
+ - Added new MoonsPlus config items:
+	- ``ShowVideoReels`` - set to false to disable the video previews for moons
+	- ``AlwaysHideList`` - add a moon's numberless name to always hide it from the moonsplus menu (will not disable the route keyword)
+	- ``UseVanillaPurchaseNodes`` - enable this in order to improve compatibility with mods like LethalMoonUnlocks that have patches related to loading the moon's route node. (NOTE: For some reason my code does not detect the company's route node, but I don't think this *should* be an issue)
+	- ``OneTimePurchase`` - enable this to remove the route cost after routing to a moon once. *Should* reset to it's correct price after getting fired or loading a different save (Requires networking)
+	- ``AffordableColor`` - set to a hexcode of your choice to set the color of moon routes that you CAN afford, leave blank to not change the color of this text.
+	- ``NotEnoughCredsColor``  - set to a hexcode of your choice to set the color of moon routes that you CANNOT afford, leave blank to not change the color of this text.
+ - Added StorePlus page (beta)
+	- This page includes some different safeguards from purchasing too many items and should stop you from "over-purchasing" more than what the dropship can handle
+	- Added direct support for purchase packs
+	- Added direct support for refund command
+	- Added direct support for other mod's store pages/menus (Late Game Upgrades, Too Many Emotes, Ship Inventory, etc.)
+	- Added settings submenu
+	- Added personal savings feature to prevent spending up to a certain credits amount
+	- Settings submenu also has different sorting features
+	- RespectStoreRotation configuration item determines whether or not to check the store rotation before displaying furniture/upgrades/suits in the listing
+	- AffordableColor and NotEnoughCredsColor allows you to set custom colors for a store item's price
+ - PurchasePacks has been updated to have less defined at run-time of the command
+	- Improved purchase result page formatting
+ - Updated refund command logic to use new class, should be a bit more optimized
+ - In an effort to clean up the code, broke some of the larger config sections out into their own classes.
+	- Should not be a noticeable difference in any way
+ - Fixed SColor normal/default color names not working.
+ - Fixed bind command not working for any commands that accepted input after the keyword
+ - Added AutoResizeMoneyBG config item to resize the credits background box to fit the credits text inside it.
+	- Will change size/position based on the credits text length.
+ - Fixed MoonsPlus adding moons that were disabled in LLL's config
+ - Fixed custom unlocks from this mod not resetting on ship reset
+ - Fixed shortcuts working in any Interactive Terminal API menu
+ - Fixed money background customizations not updating after initial load into the lobby
+ - Updated terminal patch for whether or not to enable the terminal image to always enable if the node has a displayTexture property
+	- I'm surprised this didn't cause issues for people before, might cause some odd issue that I didnt notice so please let me know if things act weirdly
+ - Added new feature ``TerminalRunDelay`` which allows you to set a command to run on a delay.
+	- The command will run after the delay is counted in seconds unless:
+		- the terminal is in use
+		- ship phase has changed since the delay started
+		- the delayed command has been cancelled by the person who started it running a command to stop it (this feature is not networked, but networked nodes will update the node for everyone)
+ - Removed system font information from debug spam
+ - Patched in some additional replace-able text strings in TextPostProcess to grab game values
+	- ``[leadingSpace]`` a single space
+	- ``[leadingSpacex4]`` 4 spaces
+	- ``[thisPlayerName]`` local player name
+	- ``[thisPlayerHealth]`` local player health
+	- ``[currentPlanetName]`` Moon you are currently orbiting or landed on
+	- ``[GetMaxPossibleItems]`` Gets max possible items as defined by ``TerminalMaxOrderedItems`` config item
+ 
 
 ## [3.7.7]
  - Fixed rare issue where a moon's (dine) price was inaccurate in a specific profile.

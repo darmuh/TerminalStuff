@@ -1,11 +1,23 @@
-﻿[19:46:39.1673000] [Error  : Unity Log] ArgumentNullException: Value cannot be null.
-Parameter name: key
-Stack trace:
-System.Collections.Generic.Dictionary`2[TKey,TValue].FindEntry (TKey key) (at <787acc3c9a4c471ba7d971300105af24>:IL_0008)
-System.Collections.Generic.Dictionary`2[TKey,TValue].TryGetValue (TKey key, TValue& value) (at <787acc3c9a4c471ba7d971300105af24>:IL_0000)
-LethalLevelLoader.TerminalManager.OnBeforeLoadNewNode (TerminalNode& node) (at ./Patches/TerminalManager.cs:140)
-LethalLevelLoader.Patches.TerminalLoadNewNode_Prefix (Terminal __instance, TerminalNode& node) (at ./General/Patches.cs:507)
-(wrapper dynamic-method) Terminal.DMD<Terminal::LoadNewNode>(Terminal,TerminalNode)
-TerminalStuff.EventSub.TerminalStart.StartCheck (Terminal thisterm, TerminalNode startNode) (at ./EventSub/TerminalStart.cs:175)
-TerminalStuff.EventSub.TerminalStart+<TerminalDelayStartEnumerator>d__11.MoveNext () (at ./EventSub/TerminalStart.cs:119)
-UnityEngine.SetupCoroutine.InvokeMoveNext (System.Collections.IEnumerator enumerator, System.IntPtr returnValueAddress) (at <e27997765c1848b09d8073e5d642717a>:IL_0026)
+﻿Add support for other modded menus in storeplus? (lgu)
+- WIP, added support for Interactive Terminal API menus
+add default moon clip video for hidden moons or moons that dont have one, maybe a video feed?
+- maybe Environment/HangarShip/Cameras/FrontDoorSecurityCam/SecurityCamera
+-- works, although probably not the best choice. A custom video reel would be better but I don't have one
+add option to resize the money background image to fit the text
+-- beta, works for the most part
+add command to run command on user specified delay, ie teleport 90 would teleport in 90 seconds (clamp to 5 mins max, for sanity)
+- done, we'll release it as beta
+purchasepacks still duplicating on second load
+- fixed
+other commands duplicating on second load
+- prob fixed
+menu order
+- prob fixed
+stop shortcuts when interactive terminal api menu in-use
+- fixed with new openlib compat bool to check itapi for active menus
+
+
+[actually left to do]
+add terminalaccessibleobjects for lights/door etc.?
+- will add this in a later version, need to figure out how I will standardize this so I'm not adding a method for each command
+test with larger profiles

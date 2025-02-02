@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 
 namespace TerminalStuff
@@ -57,7 +58,7 @@ namespace TerminalStuff
                 currentIndex = 0;
                 return string.Empty;
             }
-            else if (matchList.Count > ConfigSettings.TerminalAutoCompleteMaxCount.Value)
+            else if (matchList.Count > QoLConfig.TerminalAutoCompleteMaxCount.Value)
             {
                 Plugin.Spam("matchList count is too high");
                 currentIndex = -1;

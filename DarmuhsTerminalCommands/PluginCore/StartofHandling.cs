@@ -1,8 +1,8 @@
 ﻿using OpenLib.Common;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Compatibility;
+using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using static OpenLib.CoreMethods.LogicHandling;
 using static TerminalStuff.MoreCamStuff;
@@ -11,7 +11,6 @@ namespace TerminalStuff
 {
     internal class StartofHandling
     {
-
         internal static void HandleShortcutFinal(string cleanedText)
         {
             SetTerminalInput(cleanedText);
@@ -199,13 +198,13 @@ namespace TerminalStuff
         internal static void FirstCheck(TerminalNode initialResult)
         {
             string query = CommonStringStuff.GetCleanedScreenText(Plugin.instance.Terminal);
-            if (ConfigSettings.TerminalHistory.Value && GameStuff.otherModWords.Any(w => w.ToLower() == query.ToLower()))
+            if (QoLConfig.TerminalHistory.Value && GameStuff.otherModWords.Any(w => w.ToLower() == query.ToLower()))
                 TerminalHistory.AddToCommandHistory(query);
 
             if (initialResult == null)
                 return;
 
-            if (ConfigSettings.TerminalHistory.Value && !initialResult.name.Contains("ParserError") && !initialResult.name.Contains("GeneralError"))
+            if (QoLConfig.TerminalHistory.Value && !initialResult.name.Contains("ParserError") && !initialResult.name.Contains("GeneralError"))
                 TerminalHistory.AddToCommandHistory(query);
 
             VideoPersist(initialResult.name);

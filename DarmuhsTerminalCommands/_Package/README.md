@@ -6,7 +6,8 @@
 
 ### Features:
  - **Near infinite** customizable keywords for a majority of commands
- - MoonsPlus (experimental): Interactive moons catalogue menu within the terminal. Compatible with LethalLevelLoader & LethalConstellations
+ - MoonsPlus (beta): Interactive moons catalogue menu within the terminal. Compatible with LethalLevelLoader & LethalConstellations
+ - StorePlus (beta): Interactive store page to replace the vanilla store.
  - Networked Terminal nodes with Always On Display will let you see what your coworkers are doing on the terminal! **NOW WORKS WITH CAMS AND VIDEOS**
  - Customizable pricing, strings, upgrades, etc.
  - Customizable home (startup) page! **NOW WITH THE ABILITY TO ADD YOUR OWN ASCII ART IN UPDATE 3.0.0**
@@ -14,6 +15,7 @@
  - Configurable Use-Walkie at Terminal feature that will allow you to bind one key and one mousebutton to use any powered walkie from your inventory!
  - Terminal Shortcuts can be set using the bind command and removed using the unbind command! These binds will be saved in the config for continued use.
 	- Bind/Unbind commands can be disabled via terminalShortcutCommands
+ - Terminal Delayed Commands can be used to run a command on a specific delay
  - Configurable "Purchase Packs" that let you buy multiple items from the store with one command!
  - Client-side Terminal Customization, change the color of the terminal and the different text types!
  - Client-side Quality of Life features, make the terminal experience how you want it to be!
@@ -32,6 +34,7 @@
  - Loot commands have added compatiblility with ShipInventory
  - Special config items for CruiserTerminal compatibility!
 	- Choose which commands you'd like to work with the CruiserTerminal!
+ - Loads of other stuff, read through the changelogs lol
 
 ### Comfort Commands:
  - Lobby: Display the current lobby name.

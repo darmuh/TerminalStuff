@@ -1,5 +1,7 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
+using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;
 using static OpenLib.Common.StartGame;
@@ -10,15 +12,17 @@ namespace TerminalStuff.EventSub
     internal class GameStuff
     {
         //cachedstuff
+        private static ManualCameraRenderer maprenderer;
         internal static ManualCameraRenderer TerminalMapRenderer
         {
             get
             {
-                return GetMapRenderer();
+                maprenderer = GetMapRenderer();
+                return maprenderer;
             }
             set
             {
-                TerminalMapRenderer = value;
+                maprenderer = value;
             }
         }
 
@@ -31,6 +35,20 @@ namespace TerminalStuff.EventSub
             oneTimeOnly = false;
         }
 
+        internal static void OnChangeLevel()
+        {
+            if(Commands.TerminalMoonsPlus.Value)
+                MoonsPlus.MoonListing.Do(x => x.UpdateInfo());
+        }
+
+        internal static void OnShipReset()
+        {
+            if(Commands.TerminalMoonsPlus.Value)
+                MoonsPlus.ShipReset();
+
+            SaveManager.ResetUnlocks();
+        }
+
         internal static ManualCameraRenderer GetMapRenderer()
         {
             if (Plugin.instance.TwoRadarMapsMod)
@@ -41,7 +59,7 @@ namespace TerminalStuff.EventSub
 
         internal static void ResetClockStatus()
         {
-            if (!ConfigSettings.TerminalClock.Value)
+            if (!QoLConfig.TerminalClock.Value)
                 return;
 
             TerminalClockStuff.SetClockVisible(false);
@@ -61,16 +79,6 @@ namespace TerminalStuff.EventSub
             MoreCamStuff.ResetPluginInstanceBools(); //reset view command bools
         }
 
-        internal static void OnChangeLevel()
-        {
-            if (!ConfigSettings.TerminalMoonsPlus.Value)
-                return;
-
-            foreach (MoonInfo moon in MoonsPlus.MoonListing)
-                moon.UpdateInfo();
-                
-        }
-
         internal static void OnPlayerSpawn()
         {
             MoonsPlus.GetMoons();
@@ -78,7 +86,7 @@ namespace TerminalStuff.EventSub
             if (screenSettings == null)
                 return;
 
-            screenSettings.Update(ConfigSettings.TerminalScreen.Value);
+            screenSettings.Update(QoLConfig.TerminalScreen.Value);
             if (!screenSettings.inUse && (screenSettings.AlwaysOn || screenSettings.Dynamic))
             {
                 Plugin.Spam("Enabling screen!");
@@ -151,6 +159,9 @@ namespace TerminalStuff.EventSub
                 Plugin.Spam("LethalLevelLoader by IAmBatby detected!");
             if (SoftCompatibility("WeatherTweaks", ref Plugin.instance.WeatherTweaks))
                 Plugin.Spam("WeatherTweaks by mrov detected!");
+
+            if (SoftCompatibility("ShaosilGaming.GeneralImprovements", ref Plugin.instance.GenImprovements))
+                Plugin.Spam("Adding compatibility for General Improvements by Shaosil!");
 
             if (OpenLib.Plugin.instance.LethalConfig)
                 OpenLib.Compat.LethalConfigSoft.AddButton("Terminal Customization", "Refresh Customizations", "Press this button to refresh all terminal customizations", "Refresh", TerminalCustomizer.TerminalCustomization);

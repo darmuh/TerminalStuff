@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using UnityEngine;
 using static OpenLib.CoreMethods.AddingThings;
+using static TerminalStuff.MoreCamStuff;
 using static TerminalStuff.PluginCore.TerminalCustomizer;
 using static TerminalStuff.StringStuff;
-using static TerminalStuff.MoreCamStuff;
 
 namespace TerminalStuff
 {
@@ -21,9 +22,11 @@ namespace TerminalStuff
         internal static TerminalSettings terminalSettings = new();
         internal static bool quitTerminalEnum = false;
 
-        internal static void StorePacks()
+        internal static Color transparent = new(0, 0, 0, 0);
+
+        internal static void CreateStorePacks()
         {
-            if (!ConfigSettings.TerminalPurchasePacks.Value)
+            if (!Commands.TerminalPurchasePacks.Value)
                 return;
 
             if (ConfigSettings.PurchasePackCommands.Value == "")
@@ -37,7 +40,15 @@ namespace TerminalStuff
             foreach (KeyValuePair<string, string> item in keywordAndItems)
             {
                 Plugin.Spam($"setting {item.Key} keyword to purchase pack with items: {item.Value}");
-                AddNodeManual($"{item.Key}_PP", item.Key, CostCommands.AskPurchasePack, true, 2, ConfigSettings.TerminalStuffMain, 0, CostCommands.CompletePurchasePack, null, "", $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n", true, 0, item.Key, true, item.Value);
+                TerminalNode node = AddNodeManual($"{item.Key}", item.Key, StorePacks.AskPurchasePack, true, 2, ConfigSettings.TerminalStuffMain, 0, StorePacks.CompletePurchasePack, null, "", $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n", true, 0, item.Key, true, item.Value);
+                StorePlus.excludedNodesFromAutoGen.Add(node.shipUnlockableID);
+                
+                StorePacks pack = StorePacksInfo.AllPacks.FirstOrDefault(s => s.Name == item.Key);
+
+                if (pack != null)
+                    pack.UpdateExisting(item.Value, node);
+                else
+                    pack = new(item.Key, item.Value, node);
             }
         }
 
@@ -52,11 +63,13 @@ namespace TerminalStuff
             }
             return null; // No matching command found for the given query
         }
+
         internal static string RandomSuit()
         {
             SuitCommands.GetRandomSuit(out string suitString);
             return suitString;
         }
+
         internal static string QuitTerminalCommand()
         {
             string text = $"{ConfigSettings.QuitString.Value}";        
@@ -64,6 +77,7 @@ namespace TerminalStuff
             Plugin.instance.Terminal.StartCoroutine(TerminalQuitter(Plugin.instance.Terminal));
             return text;
         }
+
         internal static IEnumerator TerminalQuitter(Terminal terminal)
         {
             if (quitTerminalEnum)
@@ -134,7 +148,7 @@ namespace TerminalStuff
 
         internal static void ShouldLockPlayerCamera(bool value, PlayerControllerB localPlayer)
         {
-            if (!ConfigSettings.LockCameraInTerminal.Value)
+            if (!QoLConfig.LockCameraInTerminal.Value)
                 return;
 
             if (localPlayer != null)
@@ -222,6 +236,21 @@ namespace TerminalStuff
                 return "";
 
             return nameToScore.OrderBy(x => x.Value).First().Key; //order by score values and return targetnum with highest score
+        }
+
+        internal static void LoadAndSync(TerminalNode node)
+        {
+            if (node == null)
+                return;
+
+            Plugin.instance.Terminal.LoadNewNode(node);
+            Plugin.Spam($"Loading node!");
+
+            if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+                return;
+
+            Plugin.Spam($"Syncing with TerminalStuff!");
+            EventSub.TerminalParse.NetSync(node);
         }
     }
 
