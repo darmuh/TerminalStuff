@@ -385,10 +385,11 @@ namespace TerminalStuff.SpecialStuff
                 Plugin.Spam("displaying nested menu");
                 int level = menuLevel;
                 StoreMenuItem match = storeMenuMain.First(x => x.menuLevel == level && x.active);
+                StoreMenuItem.UpdateDisplayMenu(match);
                 message.Append($"=== Store Plus [ {match.MenuName} ]  ===\r\n\r\n");
-                currentPage = Mathf.Clamp(currentPage, 1, Mathf.CeilToInt((float)match.nestedMenuItems.Count / pageSize));
+                currentPage = Mathf.Clamp(currentPage, 1, Mathf.CeilToInt((float)storeMenuItemsDisplay.Count / pageSize));
                 int startIndex = (currentPage - 1) * pageSize;
-                int endIndex = Mathf.Min(startIndex + pageSize, match.nestedMenuItems.Count);
+                int endIndex = Mathf.Min(startIndex + pageSize, storeMenuItemsDisplay.Count);
                 activeIndex = Mathf.Clamp(activeIndex, startIndex, endIndex - 1);
                 Plugin.Spam($"activeSelection: {StorePlusMenu.activeSelection} activeIndex: {activeIndex}");
                 StorePlusMenu.activeSelection = activeIndex;
@@ -399,7 +400,7 @@ namespace TerminalStuff.SpecialStuff
                    ? $"> "
                    : $"";
 
-                    menuItem += match.nestedMenuItems[i].MenuName;
+                    menuItem += storeMenuItemsDisplay[i].MenuName;
                     message.Append(menuItem + "\n");
                 }
 
@@ -414,7 +415,7 @@ namespace TerminalStuff.SpecialStuff
                 message.Append($"\r\n\r\nCurrent Selection Total: [ <color=#e6b800>${SubTotal}</color> ]\r\n\r\n");
                 if (match.bottomTextAdd.Length > 0)
                     message.Append(match.bottomTextAdd);
-                message.Append($"Page [LeftArrow] < {currentPage}/{Mathf.CeilToInt((float)match.nestedMenuItems.Count / pageSize)} > [RightArrow]\r\n");
+                message.Append($"Page [LeftArrow] < {currentPage}/{Mathf.CeilToInt((float)storeMenuItemsDisplay.Count / pageSize)} > [RightArrow]\r\n");
                 message.Append($"Make Selection: [Enter]\r\n");
                 message.Append($"Leave Menu: [BackSpace]\r\n\r\n");
             }
@@ -545,7 +546,7 @@ namespace TerminalStuff.SpecialStuff
 
             List<TerminalNode> nodes = LogicHandling.GetAllNodes();
             List<TerminalNode> unlockables = nodes.FindAll(x => x.shipUnlockableID > -1);
-            List<TerminalNode> buyables = nodes.FindAll(n => n.buyItemIndex > -1);
+            List<TerminalNode> buyables = nodes.FindAll(n => StoreInfo.IsValidItem(n) && StoreInfo.IsItemEnabled(n.buyItemIndex));
             List<TerminalNode> terminalVehicles = nodes.FindAll(n => n.buyVehicleIndex > -1 && n.creatureFileID == -1 && n.buyItemIndex == -1 && n.buyRerouteToMoon == -1);
 
             foreach (TerminalNode node in unlockables)
@@ -597,7 +598,7 @@ namespace TerminalStuff.SpecialStuff
                 }
 
                 continue;
-            }
+            } 
 
             Plugin.Spam($"AllStoreItems count: {AllStoreItems.Count}");
             SortStoreItems();

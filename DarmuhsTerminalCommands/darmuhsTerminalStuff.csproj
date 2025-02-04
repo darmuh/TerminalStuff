@@ -46,6 +46,7 @@
   </Target>
   <ItemGroup>
     <None Remove="darmuhngo" />
+    <EmbeddedResource Include="Assets\hidden169" />
     <None Include="_Package\CHANGELOG.md" />
     <None Include="_Package\LICENSE.md" />
     <None Include="_Package\manifest.json" />

@@ -39,14 +39,19 @@ namespace TerminalStuff.SpecialStuff
         internal void UpdateNode(TerminalNode storeNode)
         {
             //name already exists
-            if(terminalNode == null) //only replace node if it's null
+            if (terminalNode == null) //replace node if it's null
                 terminalNode = storeNode;
+            else if (terminalNode.itemCost < storeNode.itemCost)
+                terminalNode = storeNode; //replace node that has a lower cost than the current one
 
-            price = storeNode.itemCost;
+            if(buyableItem == null) //buyable items do NOT use node cost
+            {
+                price = storeNode.itemCost;
 
-            if (terminalNode.itemCost != storeNode.itemCost) //fix cases where one terminal node has the price and one doesnt
-                price = Math.Max(terminalNode.itemCost, storeNode.itemCost);
-
+                if (terminalNode.itemCost != storeNode.itemCost) //fix cases where one terminal node has the price and one doesnt
+                    price = Math.Max(terminalNode.itemCost, storeNode.itemCost);
+            } 
+               
             GetStoreInfo(storeNode);
         }
 
@@ -56,7 +61,11 @@ namespace TerminalStuff.SpecialStuff
             {
                 buyableItem = Plugin.instance.Terminal.buyableItemsList[storeNode.buyItemIndex];
                 if(buyableItem != null)
+                {
                     name = buyableItem.itemName;
+                    price = buyableItem.creditsWorth; //buyableitems use this value
+                }
+                    
             }
 
             if (storeNode.buyVehicleIndex != -1)
@@ -107,7 +116,10 @@ namespace TerminalStuff.SpecialStuff
                 return;
             }
 
-            price = terminalNode.itemCost;
+            if(buyableItem == null)
+                price = terminalNode.itemCost;
+            else
+                price = buyableItem.creditsWorth;
 
             if (isPurchasePack)
             {
@@ -117,12 +129,14 @@ namespace TerminalStuff.SpecialStuff
 
             if (waitForDelivery)
             {
-                if(!isVehicle)
-                    price = StorePlus.GetSalesPrice(terminalNode.itemCost, terminalNode.buyItemIndex);
-                else
-                    price = StorePlus.GetSalesPrice(terminalNode.itemCost, terminalNode.buyVehicleIndex, true);
+                int original = price;
 
-                onSale = price != terminalNode.itemCost;
+                if(!isVehicle)
+                    price = StorePlus.GetSalesPrice(price, terminalNode.buyItemIndex);
+                else
+                    price = StorePlus.GetSalesPrice(price, terminalNode.buyVehicleIndex, true);
+
+                onSale = price != original;
             }
 
             if (isVehicle && Plugin.instance.Terminal.hasWarrantyTicket)
@@ -207,6 +221,33 @@ namespace TerminalStuff.SpecialStuff
 
         }
 
+        internal static bool IsItemEnabled(int indexNum)
+        {
+            if (indexNum < 0)
+                return false;
+
+            if (OpenLib.CoreMethods.DynamicBools.TryGetKeyword("buy", out TerminalKeyword buy))
+            {
+                return buy.compatibleNouns.Any(c => c.result.buyItemIndex == indexNum);
+            }
+
+            return false;
+        }
+
+        internal static bool IsValidItem(TerminalNode node)
+        {
+            if (node.terminalOptions == null)
+                return false;
+
+            if (node.terminalOptions.Length < 1)
+                return false;
+
+            if (node.buyItemIndex < 0)
+                return false;
+
+            return true;
+        }
+
     }
 
     internal class StoreMenuItem
@@ -271,6 +312,15 @@ namespace TerminalStuff.SpecialStuff
 
             menuLevel = level;
             externalCommand = true;
+        }
+
+        internal static void UpdateDisplayMenu(StoreMenuItem parent)
+        {
+            StorePlus.storeMenuItemsDisplay = parent.nestedMenuItems;
+
+            List<string> dontShow = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(StorePlusConfig.DontAddToOtherList.Value, ',');
+
+            StorePlus.storeMenuItemsDisplay = parent.nestedMenuItems.FindAll(p => p.externalCommand && !dontShow.Any(d => d.ToLower() == p.Keyword.ToLower()));
         }
     }
 }

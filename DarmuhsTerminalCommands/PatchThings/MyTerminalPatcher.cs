@@ -57,9 +57,17 @@ namespace TerminalStuff
             {
                 __result = __result.Replace("[leadingSpace]", " ");
                 __result = __result.Replace("[leadingSpacex4]", "    ");
-                __result = __result.Replace("[thisPlayerName]", $"{StartOfRound.Instance.localPlayerController.playerUsername}");
-                __result = __result.Replace("[thisPlayerHealth]", $"{StartOfRound.Instance.localPlayerController.health}");
-                __result = __result.Replace("[currentPlanetName]", $"{StartOfRound.Instance.currentLevel.PlanetName}");
+                if(StartOfRound.Instance != null)
+                {
+                    if(StartOfRound.Instance.localPlayerController != null)
+                    {
+                        __result = __result.Replace("[thisPlayerName]", $"{StartOfRound.Instance.localPlayerController.playerUsername}");
+                        __result = __result.Replace("[thisPlayerHealth]", $"{StartOfRound.Instance.localPlayerController.health}");
+                    }
+                    
+                    __result = __result.Replace("[currentPlanetName]", $"{StartOfRound.Instance.currentLevel.PlanetName}");
+                }
+                
                 __result = __result.Replace("[GetMaxPossibleItems]", $"{ConfigGetters.GetMaxItems()}");
 
             }

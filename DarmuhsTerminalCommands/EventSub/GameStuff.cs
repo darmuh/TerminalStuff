@@ -37,6 +37,7 @@ namespace TerminalStuff.EventSub
 
         internal static void OnChangeLevel()
         {
+            Plugin.Spam("OnChangeLevel!");
             if(Commands.TerminalMoonsPlus.Value)
                 MoonsPlus.MoonListing.Do(x => x.UpdateInfo());
         }

@@ -14,6 +14,8 @@ using TerminalStuff.Compatibility;
 using HarmonyLib;
 using TerminalStuff.Configs;
 using TerminalStuff.VisualCore;
+using System.Reflection;
+using UnityEngine.Video;
 
 namespace TerminalStuff.SpecialStuff
 {
@@ -35,12 +37,14 @@ namespace TerminalStuff.SpecialStuff
         internal static TerminalNode MoonsMenu = null!;
         internal static FilterView MoonsFilter = new();
 
-        //
-        internal static Camera ExternalShipCam;
+        //Assets
+        internal static AssetBundle hiddenAsset;
+        internal static VideoClip HiddenClip;
 
         internal static void SetToVanilla()
         {
             MoonsPlusMenu.isMenuEnabled = false;
+            UnloadAssets();
 
             if (OriginalMoonsPage == null)
                 return;
@@ -50,6 +54,19 @@ namespace TerminalStuff.SpecialStuff
                 Moons.specialKeywordResult = OriginalMoonsPage;
                 Plugin.Spam("Moons keyword set back to original");
             }
+        }
+
+        internal static void LoadAssets()
+        {
+            hiddenAsset = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("TerminalStuff.Assets.hidden169"));
+            HiddenClip = (VideoClip)hiddenAsset.LoadAsset("hidden169.mp4");
+
+        }
+
+        internal static void UnloadAssets()
+        {
+            HiddenClip = null!;
+            hiddenAsset.Unload(true);
         }
 
         internal static void GetFilters()
@@ -85,8 +102,7 @@ namespace TerminalStuff.SpecialStuff
                 return;
 
             MoonsDisplayed.Clear();
-
-           
+            LoadAssets();
 
             List<TerminalNode> allNodes = LogicHandling.GetAllNodes();
 
@@ -360,17 +376,21 @@ namespace TerminalStuff.SpecialStuff
         {
             yield return new WaitForEndOfFrame();
             if (!inFilterMenu)
+            {
                 MoonsMenu.displayText = GetMoonPage(MoonsPlusMenu.activeSelection, 10, ref MoonsPlusMenu.currentPage);
+                MoonInfo current = MoonsDisplayed[MoonsPlusMenu.activeSelection];
+
+                if (current.Level.videoReel != null)
+                    ShowReel(true);
+                else
+                    ShowReel(false);
+            }
             else
+            {
                 MoonsMenu.displayText = GetFiltersPage(MoonsPlusMenu.activeSelection);
-
-            MoonInfo current = MoonsDisplayed[MoonsPlusMenu.activeSelection];
-
-            if (current.Level.videoReel != null && !inFilterMenu)
-                ShowReel(true);
-            else
                 ShowReel(false);
-
+            }
+                
             yield return new WaitForEndOfFrame();
             LoadAndSync(MoonsMenu);
             yield return new WaitForEndOfFrame();
@@ -395,13 +415,11 @@ namespace TerminalStuff.SpecialStuff
                 {
                     if(currentMoon.IsHidden && MoonsPlusConfig.ObscureHiddenInfo.Value)
                     {
-                        ExternalShipCam = GameObject.Find("Environment/HangarShip/Cameras/FrontDoorSecurityCam/SecurityCamera")?.GetComponent<Camera>();
-                        if (ExternalShipCam != null)
+                        if (HiddenClip != null)
                         {
-                            MoonsMenu.displayVideo = null!;
                             Plugin.instance.Terminal.terminalImage.rectTransform.sizeDelta = new Vector2(200, 150);
                             Plugin.instance.Terminal.terminalImage.rectTransform.anchoredPosition = new Vector2(80, 0);
-                            MoonsMenu.displayTexture = ExternalShipCam.targetTexture;
+                            MoonsMenu.displayVideo = HiddenClip;
                             return;
                         }
 
@@ -421,7 +439,6 @@ namespace TerminalStuff.SpecialStuff
         internal static void HideReel()
         {
             MoonsMenu.displayVideo = null!;
-            MoonsMenu.displayTexture = null!;
             CamEvents.SetRawImageDimensions(Plugin.instance.Terminal.terminalImage.rectTransform, isFullScreen: true);
         }
 

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.8.2]
+ - Added new video reel for hidden moons. Thanks & Credit to @duskwise for providing the new clip!
+ - Added new config item ``DontAddToOtherList`` to StorePlus section that will allow you to filter out any external menus from showing up in the "Other" listing of StorePlus
+ - Added more checks for if networking is enabled in SaveManager to prevent errors (the features that require savemanager all require networking enabled)
+ - Fixed issue with MoonsPlus OTP only working when using vanilla purchase nodes
+ - Hopefully fixed some inconsistencies when using ``RevealHiddenOnRoute`` with MoonsPlus
+ - Fixed error being thrown when leaving the lobby due to Company building specifically having a null terminalNode
+ - Fixed incorrect store prices due to a wrong assumption of using the terminalNode's itemCost value instead of the Item's creditsWorth value.
+ - Added handling for terminalnodes that are not buyable items having a buyitemindex above -1
+	- This caused some irregularities with prices as well
+ - Added handling to always use the terminalnode with the higher price
+ - Fixed issue where items added by LethalLib that were disabled still showed in the store
+ - Added null checks for TextPostProcess postfix
+ - Readme finally updated
+	- tried to add an accurate credits section but I may have missed some peeps. Sorry if I did
+
 ## [3.8.1]
  - Fixed error being thrown in certain profiles when CruiserTerminal was not present.
  - Fixed Cruiser price getting overridden by enemy terminalnodes (football lol) and being set to 0

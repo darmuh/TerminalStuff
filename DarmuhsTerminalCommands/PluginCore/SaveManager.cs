@@ -12,7 +12,7 @@ namespace TerminalStuff.PluginCore
 
         internal static void InitMoonPlusSave()
         {
-            //havetraveledto
+            //networking disabled
             if (!ConfigSettings.ModNetworking.Value)
                 return;
 
@@ -31,6 +31,10 @@ namespace TerminalStuff.PluginCore
 
         internal static void HistorySaveInit()
         {
+            //networking disabled
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             if (!ES3.KeyExists("darmuhsTerminalStuff_MoonsPlusHistory", GameNetworkManager.Instance.currentSaveFileName))
             {
                 Plugin.Spam("Creating save key for darmuhsTerminalStuff_MoonsPlusHistory");
@@ -64,6 +68,10 @@ namespace TerminalStuff.PluginCore
 
         internal static void InitUnlocks()
         {
+            //networking disabled
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             CostCommands.enemyScanUpgradeEnabled = false;
             CostCommands.vitalsUpgradeEnabled = false;
 
@@ -119,6 +127,10 @@ namespace TerminalStuff.PluginCore
 
         internal static void NewUnlock(string unlockName)
         {
+            //networking disabled
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             if (!AllUpgradesUnlocked.Contains(unlockName))
                 AllUpgradesUnlocked.Add(unlockName);
 
@@ -150,6 +162,10 @@ namespace TerminalStuff.PluginCore
 
         internal static void AddToTravelHistory(MoonInfo moon)
         {
+            //networking disabled
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             if (GameNetworkManager.Instance.localPlayerController == null)
                 return;
 

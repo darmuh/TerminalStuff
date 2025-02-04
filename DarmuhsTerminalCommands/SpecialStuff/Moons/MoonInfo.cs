@@ -1,5 +1,4 @@
-﻿using OpenLib.CoreMethods;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Compatibility;
 
@@ -281,23 +280,24 @@ namespace TerminalStuff.SpecialStuff
 
         internal void UpdateInfo()
         {
-            if (Plugin.instance.LethalLevelLoader)
+            if (!IsCurrent)
             {
-                if (!IsCurrent)
-                {
-                    if (!IsDisabled() && HaveVisited && IsHidden)
-                        Hide(false);
-                }
-                else
-                {
-                    PluginCore.SaveManager.AddToTravelHistory(this);
-
-                    if (!MoonsPlusConfig.RevealHiddenOnRoute.Value)
-                        return;
-
+                if (!IsDisabled() && HaveVisited && IsHidden)
                     Hide(false);
-                }   
             }
+            else
+            {
+                PluginCore.SaveManager.AddToTravelHistory(this);
+                if (MoonsPlusConfig.OneTimePurchase.Value && !OTP)
+                    OTP = true;
+
+                if (!MoonsPlusConfig.RevealHiddenOnRoute.Value)
+                    return;
+
+                Hide(false);
+            }
+
+            Plugin.Spam($"===\n{LevelName} ran UpdateInfo:\nHide - {isHidden}\nHaveVisited - {HaveVisited}\n===");
         }
 
         internal void Hide(bool shouldHide)
@@ -347,8 +347,10 @@ namespace TerminalStuff.SpecialStuff
             if (OTP)
             {
                 Plugin.Spam($"Setting {LevelName} terminalnodes back to Price - {Price}");
-                resultNode.itemCost = Price;
-                purchaseNode.itemCost = Price;
+                if(resultNode != null)
+                    resultNode.itemCost = Price;
+                if(purchaseNode != null)
+                    purchaseNode.itemCost = Price;
                 OTP = false;
             }
         }
