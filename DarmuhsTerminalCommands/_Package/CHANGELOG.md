@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.8.4]
+ - Fixed NRE being thrown on player respawn that would cause the pov to be inside the player's head
+	- Moved MoonsPlus initiation to delayed terminal start instead of on player spawn (not sure why I had it that way to begin with)
+ - Fixed another NRE thrown at OneTimePurchaseLoadIn due to the company building having been visited in a save
+ - Fixed StorePlus settings menu that was broken after adding the ``DontAddToOtherList`` config item
+ - Updated readme to include a list of all text variables that can be used to replace text values in your custom strings
+
+## [3.8.3]
+ - Fixed null error being thrown on load of a lobby with moonsplus disabled
+
 ## [3.8.2]
  - Added new video reel for hidden moons. Thanks & Credit to @duskwise for providing the new clip!
  - Added new config item ``DontAddToOtherList`` to StorePlus section that will allow you to filter out any external menus from showing up in the "Other" listing of StorePlus

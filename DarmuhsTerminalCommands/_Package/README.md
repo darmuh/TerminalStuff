@@ -4,7 +4,7 @@
 
 ---
 
-## [Features]
+## [ **Features** ]
 
 ### Networked Terminal Nodes:
  - See what other people are doing at the terminal with this setting enabled.
@@ -40,6 +40,29 @@
  - Specify your own keywords for almost every command added by this mod via the CustomKeywords section
 	- There is no limit to how many keywords can run one specific command
  - For certain commands you can also specify your own custom message whenever the command is run
+ - Below is a list of all text variables that can be used in your custom text fields:
+	- ``[leadingSpace]`` (ADDED BY THIS MOD) a single space
+	- ``[leadingSpacex4]`` (ADDED BY THIS MOD) 4 spaces
+	- ``[thisPlayerName]`` (ADDED BY THIS MOD) local player name
+	- ``[thisPlayerHealth]`` (ADDED BY THIS MOD) local player health
+	- ``[currentPlanetName]`` (ADDED BY THIS MOD) Moon you are currently orbiting or landed on
+	- ``[GetMaxPossibleItems]`` (ADDED BY THIS MOD) Gets max possible items as defined by ``TerminalMaxOrderedItems`` config item
+	- ``[planetTime]`` (VANILLA) Used in moons catalogue to display information about each moon
+	- ``[currentPlanetTime]`` (VANILLA) Used for a moon's purchase page to display the weather on the moon
+	- ``[warranty]`` (VANILLA) When you have a warranty ticket (for the cruiser), will display ``You have a free warranty!``
+	- ``[currentScannedEnemiesList]`` (VANILLA) Displays ALL of the information from the ``bestiary`` command
+	- ``[buyableItemsList]`` (VANILLA) Displays ALL of the buyable store items from the store
+	- ``[buyableVehiclesList]`` (VANILLA) Displays ALL of the buyable vehicles from the store
+	- ``[currentUnlockedLogsList]`` (VANILLA) Displays a listing of all of the unlocked story logs
+	- ``[unlockablesSelectionList]`` (VANILLA) Displays ALL of the unlockables from the store
+	- ``[storedUnlockablesList]`` (VANILLA) Displays ALL of the information from ``storage`` command
+	- ``[scanForItems]`` (VANILLA) Displays ALL of the information from the ``scan`` command
+	- ``[numberOfItemsOnRoute]`` (VANILLA) Displays the number of items that are in the dropship waiting to be delivered
+	- ``[currentDay]`` (VANILLA) Displays the real-life day of the week
+	- ``[variableAmount]`` (VANILLA) When playerDefinedAmount is set (usually when ordering multiple items) will display the item amount provided by the player
+	- ``[playerCredits]`` (VANILLA) Displays the ship credits amount
+	- ``[totalCost]`` (VANILLA) When ordering something this is the total cost of your order
+	- ``[companyBuyingPercent]`` (VANILLA) The current company buying rate
 
 ### Terminal Shortcuts:
  - Set keybinds to run any terminal command via ``TerminalShortcuts``
@@ -101,7 +124,7 @@
 
  ---
 
-## FYI Section
+## [ **FYI Section** ]
 
 ### Compatibility:
  - Cams commands are compatibile with every major bodycam mod: OpenBodyCams, Helmet Cameras, and Solos Bodycams
@@ -127,4 +150,4 @@
  - [NotAtomicBomb](https://thunderstore.io/c/lethal-company/p/NotAtomicBomb/) for their work on TerminalAPI which was used in earlier versions of this mod. Their API is what inspired my own terminal command creation/management solutions in OpenLib
  - [Zaggy1024](https://thunderstore.io/c/lethal-company/p/Zaggy1024/), who has helped me countless times in improving my code and resolving issues.
  - [mrov](https://thunderstore.io/c/lethal-company/p/mrov/), who has also been a huge help in improving my code.
- - Thank you to Endoxicom, Lunxara, Seeya, Moroxide, nickham13, and all others in the Modding discord who continue to help improve this mod with their feedback/suggestions.
+ - Thank you to Endoxicom, Lunxara, Seeya, Moroxide, nickham13, explodingturtles456, and all others in the Modding discord who continue to help improve this mod with their feedback/suggestions.

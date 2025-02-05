@@ -82,7 +82,6 @@ namespace TerminalStuff.EventSub
 
         internal static void OnPlayerSpawn()
         {
-            MoonsPlus.GetMoons();
 
             if (screenSettings == null)
                 return;

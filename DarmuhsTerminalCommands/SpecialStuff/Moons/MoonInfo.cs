@@ -193,8 +193,10 @@ namespace TerminalStuff.SpecialStuff
             if(HaveVisited)
             {
                 OTP = true;
-                purchaseNode.itemCost = 0;
-                resultNode.itemCost = 0;
+                if(purchaseNode != null)
+                    purchaseNode.itemCost = 0;
+                if(resultNode != null)
+                    resultNode.itemCost = 0;
             }
         }
 

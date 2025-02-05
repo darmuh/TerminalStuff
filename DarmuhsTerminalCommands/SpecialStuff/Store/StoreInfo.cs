@@ -318,6 +318,9 @@ namespace TerminalStuff.SpecialStuff
         {
             StorePlus.storeMenuItemsDisplay = parent.nestedMenuItems;
 
+            if (parent != StorePlus.AllExternalModMenus)
+                return;
+
             List<string> dontShow = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(StorePlusConfig.DontAddToOtherList.Value, ',');
 
             StorePlus.storeMenuItemsDisplay = parent.nestedMenuItems.FindAll(p => p.externalCommand && !dontShow.Any(d => d.ToLower() == p.Keyword.ToLower()));

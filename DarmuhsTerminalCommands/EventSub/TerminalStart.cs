@@ -127,6 +127,7 @@ namespace TerminalStuff.EventSub
             //TerminalClockStuff.StartClockCoroutine();
             AlwaysOnStart(Plugin.instance.Terminal, startNode);
             StorePlus.GetStoreItems();
+            MoonsPlus.GetMoons();
             yield return new WaitForSeconds(0.1f);
             Plugin.instance.Terminal.topRightText.text = $"${Plugin.instance.Terminal.groupCredits}"; //fix creds display for alwayson
             StartCheck(Plugin.instance.Terminal, startNode);

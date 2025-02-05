@@ -58,13 +58,19 @@ namespace TerminalStuff.SpecialStuff
 
         internal static void LoadAssets()
         {
-            hiddenAsset = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("TerminalStuff.Assets.hidden169"));
-            HiddenClip = (VideoClip)hiddenAsset.LoadAsset("hidden169.mp4");
+            if(hiddenAsset == null)
+                hiddenAsset = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("TerminalStuff.Assets.hidden169"));
+            
+            if(HiddenClip == null)
+                HiddenClip = (VideoClip)hiddenAsset.LoadAsset("hidden169.mp4");
 
         }
 
         internal static void UnloadAssets()
         {
+            if (hiddenAsset == null)
+                return;
+
             HiddenClip = null!;
             hiddenAsset.Unload(true);
         }
