@@ -65,7 +65,7 @@ namespace TerminalStuff.SpecialStuff
                 if (Plugin.instance.LethalLevelLoader)
                     isHidden = LLLCompat.IsHidden(Level);
                 else
-                    isHidden = Plugin.instance.Terminal.moonsCatalogueList.Contains(Level);
+                    isHidden = !Plugin.instance.Terminal.moonsCatalogueList.Contains(Level);
 
                 Plugin.Spam($"{LevelName} IsHidden - {isHidden}");
 
@@ -190,7 +190,8 @@ namespace TerminalStuff.SpecialStuff
 
         internal void OneTimePurchaseLoadIn()
         {
-            if(HaveVisited)
+
+            if (HaveVisited)
             {
                 OTP = true;
                 if(purchaseNode != null)
@@ -238,6 +239,9 @@ namespace TerminalStuff.SpecialStuff
 
         internal bool NoPrice()
         {
+            if (!ConfigSettings.ModNetworking.Value)
+                return false;
+
             if (StartOfRound.Instance == null)
                 return false;
 
@@ -246,7 +250,7 @@ namespace TerminalStuff.SpecialStuff
 
         internal int GetPrice()
         {
-            Plugin.Spam($"GETPRICE FOR {this.LevelName}");
+            Plugin.Spam($"GETPRICE FOR {LevelName}");
 
             if (Plugin.instance.LethalLevelLoader)
                 return LLLCompat.GetPrice(Level);
@@ -259,6 +263,9 @@ namespace TerminalStuff.SpecialStuff
 
         internal void UpdateHistory()
         {
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             Plugin.Spam($"{LevelName} UpdateHistory");
 
             if (IsDisabled())
@@ -282,6 +289,9 @@ namespace TerminalStuff.SpecialStuff
 
         internal void UpdateInfo()
         {
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             if (!IsCurrent)
             {
                 if (!IsDisabled() && HaveVisited && IsHidden)
@@ -304,6 +314,9 @@ namespace TerminalStuff.SpecialStuff
 
         internal void Hide(bool shouldHide)
         {
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             Plugin.Spam($"Hiding {LevelName}");
             //IsHidden = shouldHide;
 
@@ -321,6 +334,9 @@ namespace TerminalStuff.SpecialStuff
 
         internal void UnlockUnhide()
         {
+            if (!ConfigSettings.ModNetworking.Value)
+                return;
+
             Plugin.Spam($"Unlock/Unhide {LevelName}");
 
             if (Plugin.instance.LethalLevelLoader)

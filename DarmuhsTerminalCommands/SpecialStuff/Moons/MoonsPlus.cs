@@ -523,7 +523,7 @@ namespace TerminalStuff.SpecialStuff
                 return;
             }
 
-            int newCreds = CostCommands.CalculateNewCredits(Plugin.instance.Terminal.groupCredits, MoonsDisplayed[MoonsPlusMenu.activeSelection].DisplayPrice, Plugin.instance.Terminal);
+            int newCreds = Plugin.instance.Terminal.groupCredits - MoonsDisplayed[MoonsPlusMenu.activeSelection].DisplayPrice;
 
             StartOfRound.Instance.ChangeLevelServerRpc(MoonsDisplayed[MoonsPlusMenu.activeSelection].Level.levelID, newCreds);
             StartOfRound.Instance.SetMapScreenInfoToCurrentLevel();

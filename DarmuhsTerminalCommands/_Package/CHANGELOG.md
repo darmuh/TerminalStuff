@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.8.5]
+ - Fixed some issues with MoonsPlus when networking is disabled.
+	- Added notes for all config items that require networking
+	- Removed credit calculating method that requires networking
+	- Added more networking disabled checks throughout all mooninfo methods
+ - Fixed IsHidden check for moons when LLL is not present
+
 ## [3.8.4]
  - Fixed NRE being thrown on player respawn that would cause the pov to be inside the player's head
 	- Moved MoonsPlus initiation to delayed terminal start instead of on player spawn (not sure why I had it that way to begin with)
@@ -89,8 +96,10 @@ This project does NOT adhere to perfect Semantic Versioning. Mostly because I do
 	- ``[thisPlayerName]`` local player name
 	- ``[thisPlayerHealth]`` local player health
 	- ``[currentPlanetName]`` Moon you are currently orbiting or landed on
-	- ``[GetMaxPossibleItems]`` Gets max possible items as defined by ``TerminalMaxOrderedItems`` config item
- 
+	- ``[GetMaxPossibleItems]`` Gets max possible items as defined by ``TerminalMaxOrderedItems`` config item 
+
+ <details open>
+ <summary>Historical Patch Notes</summary>
 
 ## [3.7.7]
  - Fixed rare issue where a moon's (dine) price was inaccurate in a specific profile.
@@ -713,9 +722,6 @@ This project does NOT adhere to perfect Semantic Versioning. Mostly because I do
  ### Note
  - Since this update took so long I'm probably forgetting some things that have been changed/fixed/updated.
  - If you have any questions regarding this update feel free to post on github, discord, etc. I may not see it right away but I will answer once I have the time.
-
- <details open>
- <summary>Historical Patch Notes</summary>
 
 ## [3.0.2]
 

@@ -146,7 +146,7 @@ namespace TerminalStuff.Configs
             AddManagedBool(TerminalBioScanPatch, defaultManaged, true, "EXTRAS", "bioscanpatch", CostCommands.AskBioscanUpgrade, 2, true, CostCommands.PerformBioscanUpgrade, null, "", "You have opted out of purchasing the BioScanner 2.0 Upgrade Patch.\n\n", "", -1, "", "", BioScanUpgradeCost.Value, "BioscanPatch", true, 1);
 
             TerminalVitalsUpgrade = MakeBool(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalVitalsUpgrade", false, "Purchase-able upgrade to vitals command to make the cost of each vitals scan free!");
-            AddManagedBool(TerminalVitalsUpgrade, defaultManaged, true, "EXTRAS", "vitalspatch", CostCommands.AskVitalsUpgrade, 2, true, CostCommands.PerformVitalsUpgrade, null, "", "You have opted out of purchasing the Vitals Scanner Upgrade.\n\n", "", -1, "   ", "", VitalsUpgradeCost.Value, "VitalsPatch", true, 1);
+            AddManagedBool(TerminalVitalsUpgrade, defaultManaged, true, "EXTRAS", "vitalspatch", CostCommands.AskVitalsUpgrade, 2, true, CostCommands.PerformVitalsUpgrade, null, "", "You have opted out of purchasing the Vitals Scanner Upgrade.\n\n", "", -1, "VitalsPatch", "", VitalsUpgradeCost.Value, "VitalsPatch", true, 1);
 
             //----------------------------------upgrade managed bools----------------------------------//
 
