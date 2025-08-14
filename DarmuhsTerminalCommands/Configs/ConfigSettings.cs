@@ -1,7 +1,5 @@
 ﻿using BepInEx.Configuration;
-using OpenLib.ConfigManager;
 using OpenLib.CoreMethods;
-using System.Collections.Generic;
 using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using static OpenLib.ConfigManager.ConfigSetup;
@@ -186,6 +184,7 @@ namespace TerminalStuff
             RemoveOrphanedEntries(Plugin.instance.Config);
             NetworkingCheck(ModNetworking.Value, Plugin.instance.Config, defaultManaged);
             Plugin.Spam("Main config load COMPLETE");
+            Commands.CommandDefinitions();
         }
 
         public static void CruiserTerminalConfigs()

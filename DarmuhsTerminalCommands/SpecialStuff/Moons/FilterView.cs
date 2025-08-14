@@ -1,19 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using OpenLib.InteractiveMenus;
+using System.Collections.Generic;
 using System.Linq;
-using System;
+using static TerminalStuff.SpecialStuff.MoonsPlus;
 
 namespace TerminalStuff.SpecialStuff
 {
-    internal class FilterView
+    public class FilterView
     {
         internal bool Weather = true;
         internal bool Price = true;
         internal bool Difficulty = false;
         internal bool RemoveBadWeather = false;
         internal bool RemoveTooExpensive = false;
+        public MoonMenuItem menuItem;
 
-        internal string Sorting = "LevelID";
-        internal int SortType = 0;
+        public string Sorting = "LevelID";
 
         internal void SetDefaults(string config)
         {
@@ -40,155 +41,159 @@ namespace TerminalStuff.SpecialStuff
             }
         }
 
-        internal void GetMoonsToDisplay(ref int activeIndex)
-        {
-            MoonOnTopCheck();
-            MoonsPlus.MoonsDisplayed = MoonsPlus.MoonListing.FindAll(x => x.ShowInListing());
-            ResolveHideList(ref MoonsPlus.MoonsDisplayed);
-
-            List<MoonInfo> FilteredWeather = [];
-
-            if (RemoveBadWeather && MoonsPlus.AcceptableWeathers.Count > 0)
-            {
-                
-                foreach(MoonInfo moon in MoonsPlus.MoonsDisplayed)
-                {
-                    string currentWeather = MoonsPlus.GetWeatherName(moon.Level);
-                    Plugin.Spam($"Checking {moon.LevelName} weather - {currentWeather}");
-                    if (currentWeather.Length < 1)
-                        FilteredWeather.Add(moon);
-                    else if (MoonsPlus.AcceptableWeathers.Any(x => currentWeather.IndexOf(x, StringComparison.InvariantCultureIgnoreCase) != -1))
-                        FilteredWeather.Add(moon);
-                    else
-                        Plugin.Spam($"Not displaying {moon.LevelName}");
-                }
-
-                if(FilteredWeather.Count > 0)
-                    MoonsPlus.MoonsDisplayed = FilteredWeather;
-            }
-                
-            if (RemoveTooExpensive)
-                MoonsPlus.MoonsDisplayed = [.. MoonsPlus.MoonsDisplayed.FindAll(x => x.DisplayPrice <= Plugin.instance.Terminal.groupCredits)];
-
-            MoonsPlus.UpdateMoonsDisplayed.Invoke(MoonsPlus.MoonsDisplayed); //should allow for external mods to filter as needed
-
-        }
-
         internal static void MoonOnTopCheck()
         {
             if (MoonsPlusConfig.ThisAlwaysOnTop.Value.Length < 1)
                 return;
 
-            MoonInfo thismoon = MoonsPlus.MoonListing.Find(x => x.LevelName.ToLower() == MoonsPlusConfig.ThisAlwaysOnTop.Value.ToLower());
-            if (thismoon == null)
-                return;
+            MenuItem thisMoon = ShowMoons.NestedMenus.FirstOrDefault(x => x.Name.ToLowerInvariant().Contains(MoonsPlusConfig.ThisAlwaysOnTop.Value.ToLowerInvariant()));
 
-            int thisIndex = MoonsPlus.MoonListing.IndexOf(thismoon);
+            if (thisMoon == null)
+            {
+                Plugin.Log.LogMessage($"Could not find {MoonsPlusConfig.ThisAlwaysOnTop.Value} in nested menus");
+                return;
+            }
+
+            int thisIndex = ShowMoons.NestedMenus.IndexOf(thisMoon);
             Plugin.Spam($"{MoonsPlusConfig.ThisAlwaysOnTop.Value} = {thisIndex}");
             if (thisIndex > 0)
             {
-                MoonsPlus.MoonListing.Remove(thismoon);
-                MoonsPlus.MoonListing.Insert(0, thismoon);
+                ShowMoons.NestedMenus.Remove(thisMoon);
+                ShowMoons.NestedMenus.Insert(0, thisMoon);
 
                 Plugin.Spam($"{MoonsPlusConfig.ThisAlwaysOnTop.Value} is now first in list!");
             }
         }
 
-        internal static void ResolveHideList(ref List<MoonInfo> moonsList)
-        {
-            if (MoonsPlusConfig.AlwaysHideList.Value.Length < 1)
-                return;
-
-            List<MoonInfo> HideList = [];
-
-            Plugin.MoreLogs("AlwaysHideList Resolution starting...");
-            List<string> moons = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(MoonsPlusConfig.AlwaysHideList.Value, ',');
-            Plugin.MoreLogs($"AlwaysHideList Count: {moons.Count}");
-            bool hidecompany = moons.Any(x => x.ToLower() == "thismoon");
-            foreach (MoonInfo moon in moonsList)
-            {
-                Plugin.MoreLogs($"Checking Moon: {moon.LevelName}");
-                if (moons.Any(x => x.ToLower() == moon.LevelName.ToLower()))
-                {
-                    Plugin.MoreLogs($"Matching moon name found! Hiding {moon.LevelName}");
-                    HideList.Add(moon);
-                }
-                else if(hidecompany && moon.IsCompany)
-                {
-                    Plugin.MoreLogs($"Matching moon name found! Hiding {moon.LevelName} (Company)");
-                    HideList.Add(moon);
-                }
-                else
-                    Plugin.MoreLogs($"{moon.LevelName} does not match any configuration entries for AlwaysHideList");
-
-            }
-
-            moonsList.RemoveAll(x => HideList.Contains(x));
-        }
-
         internal void AssignSorting(string config)
         {
             if (config == "id")
-            {
-                SortType = 0;
-                Sorting = "LevelID";
-            }
+                SortByLevelID();
             else if (config == "alphabetical")
-            {
-                SortType = 1;
-                Sorting = "Alphabetical";
-            }
+                SortByName();
             else if (config == "price")
-            {
-                SortType = 2;
-                Sorting = "Price";
-            }
+                SortByPrice();
             else if (config == "weather")
-            {
-                SortType = 3;
-                Sorting = "Weather";
-            }
+                SortByWeather();
             else if (config == "difficulty")
-            {
-                SortType = 4;
-                Sorting = "Difficulty";
-            }
+                SortByRisk();
             else
                 Plugin.WARNING("Failed to assign DefaultSorting value from config!");
         }
 
-        internal void ChangeSort(int type)
+        internal static void SortByLevelID()
         {
-            if (type == 0)
+            MoonsFilter.Sorting = "LevelID";
+
+            if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                return;
+
+            MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderBy(x => x.moonInfo.LevelID)];
+        }
+
+        internal static void ToggleHideByAffordable()
+        {
+            MoonsFilter.RemoveTooExpensive = !MoonsFilter.RemoveTooExpensive;
+        }
+
+        internal static void ToggleHideByWeather()
+        {
+            MoonsFilter.RemoveBadWeather = !MoonsFilter.RemoveBadWeather;
+        }
+
+        internal static void SortByName()
+        {
+            if(MoonsFilter.Sorting == "Name (A-Z)")
             {
-                SortType = type;
-                Sorting = "LevelID";
-                MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.Level.levelID)];
+                MoonsFilter.Sorting = "Name (Z-A)";
+
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderByDescending(x => x.moonInfo.LevelName)];
             }
-            else if (type == 1)
+            else
             {
-                SortType = type;
-                Sorting = "Alphabetical";
-                MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.LevelName)];
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsFilter.Sorting = "Name (A-Z)";
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderBy(x => x.moonInfo.LevelName)];
             }
-            else if (type == 2)
+            
+        }
+
+        internal static void SortByWeather()
+        {
+
+            if (MoonsFilter.Sorting == "Weather (A-Z)")
             {
-                SortType = type;
-                Sorting = "Price";
-                MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.DisplayPrice)];
+                MoonsFilter.Sorting = "Weather (Z-A)";
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderByDescending(x => GetWeatherName(x.moonInfo.Level))];
             }
-            else if (type == 3)
+            else
             {
-                SortType = type;
-                Sorting = "Weather";
-                MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.Level.currentWeather)];
+                MoonsFilter.Sorting = "Weather (A-Z)";
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderBy(x => GetWeatherName(x.moonInfo.Level))];
             }
-            else if (type == 4)
+
+        }
+
+        internal static void SortByRisk()
+        {
+            if (MoonsFilter.Sorting == "Risk (A-Z)")
             {
-                SortType = type;
-                Sorting = "Difficulty";
-                MoonsPlus.MoonListing = [.. MoonsPlus.MoonListing.OrderBy(x => x.Level.riskLevel)];
+                MoonsFilter.Sorting = "Risk (Z-A)";
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderByDescending(x => x.moonInfo.Level.riskLevel)];
             }
+            else
+            {
+                MoonsFilter.Sorting = "Risk (A-Z)";
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderBy(x => x.moonInfo.Level.riskLevel)];
+            }
+
+        }
+
+        internal static void SortByPrice()
+        {
+            if (MoonsFilter.Sorting == "Price (Up)")
+            {
+                MoonsFilter.Sorting = "Price (Down)";
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderByDescending(x => x.moonInfo.DisplayPrice)];
+            }
+            else
+            {
+                MoonsFilter.Sorting = "Price (Up)";
+                if (MoonsPlusMenu.DisplayMenuItemsOfType.Count == 0)
+                    return;
+                MoonsPlusMenu.DisplayMenuItemsOfType = [.. MoonsPlusMenu.DisplayMenuItemsOfType.OfType<MoonMenuItem>().OrderBy(x => x.moonInfo.DisplayPrice)];
+            }
+        }
+
+        internal static void ToggleWeatherDisplay()
+        {
+            MoonsFilter.Weather = !MoonsFilter.Weather;
+            ToggleWeather.Suffix = $" {FilterMenuBools(MoonsFilter.Weather)}";
+        }
+
+        internal static void TogglePriceDisplay()
+        {
+            MoonsFilter.Price = !MoonsFilter.Price;
+            TogglePrice.Suffix = $" {FilterMenuBools(MoonsFilter.Price)}";
+        }
+
+        internal static void ToggleRiskDisplay()
+        {
+            MoonsFilter.Difficulty = !MoonsFilter.Difficulty;
+            ToggleRisk.Suffix = $" {FilterMenuBools(MoonsFilter.Difficulty)}";
         }
 
     }

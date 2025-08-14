@@ -19,9 +19,9 @@ namespace TerminalStuff
         internal static bool enemyScanUpgradeEnabled = false;
         //List<int> items 
         internal static List<int> storeCart = [];
-        internal static string currentPackList;
-        internal static string currentPackName;
-        internal static string buyPackName;
+        //internal static string currentPackList;
+        //internal static string currentPackName;
+        //internal static string buyPackName;
         internal static Dictionary<Item, int> itemsIndexed = [];
 
         internal static bool CheckUnlockableStatus(string itemName)

@@ -26,7 +26,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>portable</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>_Package\</OutputPath>
     <DefineConstants>
     </DefineConstants>
@@ -258,11 +258,13 @@
     <Compile Include="SpecialStuff\Keywords\Fastenshtein.cs" />
     <Compile Include="SpecialStuff\MapObjects.cs" />
     <Compile Include="SpecialStuff\Moons\FilterView.cs" />
+    <Compile Include="SpecialStuff\Moons\MoonMenuItem.cs" />
     <Compile Include="SpecialStuff\Other QoL\FontStuff.cs" />
     <Compile Include="SpecialStuff\Moons\MoonInfo.cs" />
     <Compile Include="SpecialStuff\Moons\MoonsPlus.cs" />
     <Compile Include="Configs\MoonsPlusConfig.cs" />
     <Compile Include="SpecialStuff\Store\StoreInfo.cs" />
+    <Compile Include="SpecialStuff\Store\StoreMenuItem.cs" />
     <Compile Include="SpecialStuff\Store\StorePacks.cs" />
     <Compile Include="SpecialStuff\Store\StorePlus.cs" />
     <Compile Include="Configs\StorePlusConfig.cs" />

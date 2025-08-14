@@ -1,15 +1,15 @@
 ﻿using OpenLib.ConfigManager;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using static TerminalStuff.SpecialStuff.StorePlus;
 
 namespace TerminalStuff.SpecialStuff
 {
-    internal class StoreInfo
+    public class StoreInfo
     {
         internal int price = 0;
-        internal string name = "";
-        internal bool selected = false;
+        public string name = "";
+        public bool selected = false;
         internal UnlockableItem unlockable = null!;
         internal Item buyableItem = null!;
         internal BuyableVehicle vehicle = null!;
@@ -18,10 +18,12 @@ namespace TerminalStuff.SpecialStuff
         internal bool isPurchasePack = false;
         internal bool waitForDelivery = true;
         internal bool isUnlocked = false;
-        internal bool onSale = false;
-        internal int selectionCount = 1;
+        public bool onSale = false;
+        public int selectionCount = 1;
         internal int maxAllowed = 0;
         internal TerminalNode terminalNode = null!;
+
+        public StoreMenuItem menuItem;
 
         public override string ToString()
         {
@@ -34,6 +36,12 @@ namespace TerminalStuff.SpecialStuff
             price = storeNode.itemCost;
             isPurchasePack = purchasePack;
             GetStoreInfo(terminalNode);
+            menuItem = new(name, true)
+            {
+                OnPageLoad = PageLoad,
+                storeItem = this
+            };
+            menuItem.SelectionEvent.AddListener(OnSelect);
         }
 
         internal void UpdateNode(TerminalNode storeNode)
@@ -53,6 +61,58 @@ namespace TerminalStuff.SpecialStuff
             } 
                
             GetStoreInfo(storeNode);
+            menuItem.storeItem = this;
+        }
+
+        internal void OnSelect()
+        {
+            selected = !selected;
+            selectionCount = 1;
+            Plugin.Log.LogMessage($"{name} selected [{selected}]");
+            UpdateSelection();
+        }
+
+        internal void UpdateSelection()
+        {
+            if (selected && !storeSelection.Contains(this))
+                storeSelection.Add(this);
+
+            if (!selected && storeSelection.Contains(this))
+                storeSelection.Remove(this);
+        }
+
+        internal void PageLoad()
+        {
+            PriceChecks();
+
+            menuItem.Prefix = "";
+            menuItem.Suffix = "";
+
+            menuItem.Prefix += $"${price} ";
+
+            if (isVehicle && Plugin.instance.Terminal.hasWarrantyTicket)
+                menuItem.Prefix += "(warranty) ";
+
+            if (selectionCount > 1)
+                menuItem.Suffix += $" x {selectionCount}";
+
+            if (selected)
+                menuItem.Suffix += " *";
+
+            if(onSale)
+                menuItem.Suffix += $"   ({GetSalesPercentage(this)}% OFF!)";
+
+            if (price <= GetProjectedCredits() && StorePlusConfig.AffordableColor.Value.Length > 0)
+            {
+                menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={StorePlusConfig.AffordableColor.Value}>");
+                menuItem.Suffix += "</color>";
+            }
+
+            if (price > GetProjectedCredits() && StorePlusConfig.NotEnoughCredsColor.Value.Length > 0 && !selected)
+            {
+                menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={StorePlusConfig.NotEnoughCredsColor.Value}>");
+                menuItem.Suffix += "</color>";
+            }
         }
 
         internal void GetStoreInfo(TerminalNode storeNode)
@@ -176,51 +236,6 @@ namespace TerminalStuff.SpecialStuff
             selectionCount = 1;
         }
 
-        internal static void MakeStoreInfo(string kw, string displayName = "")
-        {
-            StoreMenuItem item;
-            string display;
-            if (displayName.Length > 0)
-                display = displayName;
-            else
-                display = kw;
-
-            item = StorePlus.AllExternalModMenus.nestedMenuItems.FirstOrDefault(x => x.MenuName == display);
-
-            if (item != null)
-                item.UpdateExternal(kw, 11, display);
-            else
-            {
-                item = new(kw, 11, true, display);
-                StorePlus.AddNestedMenuItem(item, "Other");
-            }
-
-        }
-
-        internal static void MakeMainMenuItem(string kw, string displayName = "")
-        {
-            StoreMenuItem item;
-            string display;
-            if (displayName.Length > 0)
-                display = displayName;
-            else
-                display = kw;
-
-            item = StorePlus.storeMenuMain.FirstOrDefault(x => x.MenuName == display);
-
-            if (item != null)
-                item.UpdateExternal(kw, 1, display);
-            else
-            {
-                item = new(display, 1, false)
-                {
-                    Keyword = kw,
-                    externalCommand = true
-                };
-            }
-
-        }
-
         internal static bool IsItemEnabled(int indexNum)
         {
             if (indexNum < 0)
@@ -248,82 +263,5 @@ namespace TerminalStuff.SpecialStuff
             return true;
         }
 
-    }
-
-    internal class StoreMenuItem
-    {
-        internal string MenuName = "";
-        internal string Keyword = "";
-        internal StoreMenuItem ParentMenu = null!;
-        internal List<StoreInfo> storeItems = [];
-        internal string bottomTextAdd = "";
-        internal List<StoreMenuItem> nestedMenuItems = [];
-        internal Action MenuSpecialAction = null!;
-        internal int menuLevel = 0;
-        internal bool active = false;
-
-        //for linking to external page outside this menu
-        internal bool externalCommand = false;
-
-        public override string ToString()
-        {
-            return MenuName;
-        }
-
-        internal StoreMenuItem(string menuName, int level, bool isNested = false)
-        {
-            Plugin.Spam("Registering modded menu keyword for loading");
-            MenuName = menuName;
-            menuLevel = level;
-
-            if(!isNested)
-                StorePlus.storeMenuMain.Add(this);
-
-        }
-
-        internal StoreMenuItem(string menuKW, int level, bool external = true, string displayName = "") //nested menu
-        {
-            Plugin.Spam("Registering external keyword for loading");
-            Keyword = menuKW;
-            if (displayName.Length > 0)
-                MenuName = displayName;
-            else
-                MenuName = menuKW;
-
-            menuLevel = level;
-            externalCommand = external;
-        }
-
-        internal void SetParentMenu(StoreMenuItem parent)
-        {
-            ParentMenu = parent;
-            if(!parent.nestedMenuItems.Contains(this))
-                parent.nestedMenuItems.Add(this);
-        }
-
-        internal void UpdateExternal(string menuKW, int level, string displayName = "")
-        {
-            Plugin.Spam("Updating registered keyword for loading");
-            Keyword = menuKW;
-            if (displayName.Length > 0)
-                MenuName = displayName;
-            else
-                MenuName = menuKW;
-
-            menuLevel = level;
-            externalCommand = true;
-        }
-
-        internal static void UpdateDisplayMenu(StoreMenuItem parent)
-        {
-            StorePlus.storeMenuItemsDisplay = parent.nestedMenuItems;
-
-            if (parent != StorePlus.AllExternalModMenus)
-                return;
-
-            List<string> dontShow = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(StorePlusConfig.DontAddToOtherList.Value, ',');
-
-            StorePlus.storeMenuItemsDisplay = parent.nestedMenuItems.FindAll(p => p.externalCommand && !dontShow.Any(d => d.ToLower() == p.Keyword.ToLower()));
-        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using TerminalStuff.EventSub;
-using static TerminalStuff.SpecialStuff.StoreInfo;
+using TerminalStuff.SpecialStuff;
 
 namespace TerminalStuff.Compatibility
 {
@@ -23,22 +23,28 @@ namespace TerminalStuff.Compatibility
             Plugin.Spam("Adding InteractiveTerminalAPI menus to storeplus");
             foreach(var pair in InteractiveTerminalAPI.UI.InteractiveTerminalManager.registeredApplications)
             {
-                if (pair.Key.ToLower() == "lgu")
+                if (pair.Key.ToLower() == "lgu" && !StoreMenuItem.DoesMenuItemExist(pair.Key))
                 {
-                    MakeStoreInfo(pair.Key, "Lategame Upgrades");
+                    _ = new StoreMenuItem("Lategame Upgrades", pair.Key, StorePlus.ExternalMods);
                 }
-                else if (pair.Key.ToLower() == "ship")
+                else if (pair.Key.ToLower() == "ship" && !StoreMenuItem.DoesMenuItemExist(pair.Key))
                 {
-                    MakeStoreInfo(pair.Key, "Ship Inventory");
+                    _ = new StoreMenuItem("Ship Inventory", pair.Key, StorePlus.ExternalMods);
                 }
-                else if (pair.Key.ToLower() == "contracts")
+                else if (pair.Key.ToLower() == "contracts" && !StoreMenuItem.DoesMenuItemExist(pair.Key))
                 {
-                    MakeStoreInfo(pair.Key, "Lategame Contracts");
+                    _ = new StoreMenuItem("Lategame Contracts", pair.Key, StorePlus.ExternalMods);
                 }
                 else if (pair.Key.ToLower() == "contract" || pair.Key.ToLower() == "lategame store")
                     continue;
                 else
-                    MakeStoreInfo(pair.Key);
+                {
+                    if (!StoreMenuItem.DoesMenuItemExist(pair.Key))
+                    {
+                        _ = new StoreMenuItem(pair.Key, pair.Key, StorePlus.ExternalMods);
+                    }
+                }
+                    
             }
         }
 

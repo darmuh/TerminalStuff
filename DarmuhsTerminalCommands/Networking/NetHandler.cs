@@ -185,6 +185,9 @@ namespace TerminalStuff
             if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value || !ConfigSettings.VideoSync.Value)
                 return;
 
+            if (Misc.IsLocalPlayerNull())
+                return;
+
             if (Instance == null || StartOfRound.Instance == null || StartOfRound.Instance.localPlayerController == null)
                 return;
 
@@ -203,6 +206,9 @@ namespace TerminalStuff
         internal void SyncVideoChoiceClientRpc(int fromClient, string videoPlaying)
         {
             if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
+                return;
+
+            if (Misc.IsLocalPlayerNull())
                 return;
 
             if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
@@ -229,7 +235,10 @@ namespace TerminalStuff
             if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
                 return;
 
-            if (Instance == null || StartOfRound.Instance == null || StartOfRound.Instance.localPlayerController == null)
+            if (Instance == null)
+                return;
+
+            if (Misc.IsLocalPlayerNull())
                 return;
 
             if (Plugin.instance.activeCam == myCams)
@@ -250,6 +259,9 @@ namespace TerminalStuff
         internal void SyncActiveCamsClientRpc(int fromClient, bool value)
         {
             if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
+                return;
+
+            if (Misc.IsLocalPlayerNull())
                 return;
 
             if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
@@ -288,9 +300,7 @@ namespace TerminalStuff
         [ClientRpc]
         internal void SyncTerminalClientRpc(int fromClient, int otherClient)
         {
-            if (StartOfRound.Instance == null)
-                return;
-            if (StartOfRound.Instance.localPlayerController == null)
+            if (Misc.IsLocalPlayerNull())
                 return;
 
             if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
@@ -451,6 +461,9 @@ namespace TerminalStuff
         [ClientRpc]
         internal void SyncRadarMapClientRpc(int fromClient, int newTarget)
         {
+            if (Misc.IsLocalPlayerNull())
+                return;
+
             if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
             {
                 Plugin.Spam($"This is the client updating target to {newTarget}");

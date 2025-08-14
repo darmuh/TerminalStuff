@@ -1,4 +1,4 @@
-﻿using OpenLib.CoreMethods;
+﻿using OpenLib.InteractiveMenus;
 using TerminalStuff.Configs;
 using UnityEngine.InputSystem;
 using static TerminalStuff.AdminCommands;
@@ -22,7 +22,7 @@ namespace TerminalStuff
             if (Plugin.instance.suitsTerminal && SuitsTerminalCompatibility.CheckForSuitsMenu())
                 return false;
 
-            if (AllInteractiveMenus.AnyMenuActive())
+            if (MenusContainer.AnyMenuActive())
                 return false;
 
             if (!Plugin.instance.Terminal.terminalInUse)

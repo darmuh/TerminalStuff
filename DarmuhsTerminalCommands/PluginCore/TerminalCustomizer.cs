@@ -1,9 +1,9 @@
-﻿using TerminalStuff.SpecialStuff;
-using static TerminalStuff.EventSub.TerminalStart;
+﻿using TerminalStuff.Configs;
+using TerminalStuff.SpecialStuff;
+using TerminalStuff.VisualCore;
 using UnityEngine;
 using UnityEngine.UI;
-using TerminalStuff.Configs;
-using TerminalStuff.VisualCore;
+using static TerminalStuff.EventSub.TerminalStart;
 
 namespace TerminalStuff.PluginCore
 {

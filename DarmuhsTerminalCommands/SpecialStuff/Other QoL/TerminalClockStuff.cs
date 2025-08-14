@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using TerminalStuff.Configs;
+﻿using TerminalStuff.Configs;
 using TMPro;
 using UnityEngine;
 

@@ -1,10 +1,4 @@
-﻿using BepInEx.Configuration;
-using HarmonyLib;
-using OpenLib.ConfigManager;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace TerminalStuff.SpecialStuff
+﻿namespace TerminalStuff.SpecialStuff
 {
     internal class MapObjects
     {

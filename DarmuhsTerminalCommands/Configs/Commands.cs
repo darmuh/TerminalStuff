@@ -1,9 +1,12 @@
 ﻿using BepInEx.Configuration;
 using OpenLib.ConfigManager;
-using static TerminalStuff.Configs.KeywordConfigs;
+using System.Collections.Generic;
+using TerminalStuff.EventSub;
+using TerminalStuff.PluginCore;
+using TerminalStuff.SpecialStuff;
 using static OpenLib.Common.CommonTerminal;
 using static OpenLib.ConfigManager.ConfigSetup;
-using System.Collections.Generic;
+using static TerminalStuff.Configs.KeywordConfigs;
 
 namespace TerminalStuff.Configs
 {
@@ -246,6 +249,49 @@ namespace TerminalStuff.Configs
             TerminalMoonsPlus = MakeBool(Plugin.instance.Config, "MoonsPlus", "TerminalMoonsPlus", false, "Enable/Disable the Moons Plus page for an interactive menu to select moons from.\nWARNING: This feature has limited compatibility testing with other mods that modify the vanilla moons page and mods that affect where you can route.");
             TerminalStorePlus = MakeBool(Plugin.instance.Config, "StorePlus", "TerminalStorePlus", false, "Enable/Disable the Store Plus page for an interactive menu to select shop items from.\nWARNING: This feature has limited compatibility testing with other mods that modify the vanilla store page and mods that affect what you can buy.");
             //NOT MANAGED BOOLS THAT ARE COMMANDS, DEFINE THESE COMMANDS LATER THAN TERMINAL AWAKE
+        }
+
+        internal static void CommandDefinitions()
+        {
+            MoonsPlus.MoonsCommand = new("MoonsPlus", TerminalMoonsPlus, MoonsPlusConfig.MoonsPlusKeywords, MoonsPlus.EnterMoonsMenu)
+            {
+                AddAtAwake = false
+            };
+
+            StorePlus.StoreCommand = new("StorePlus", TerminalStorePlus, StorePlusConfig.StorePlusKeywords, StorePlus.EnterStoreMenu)
+            {
+                AddAtAwake = false
+            };
+
+            Teleporters.Inverse = new("Use Inverse Teleporter", TerminalITP, ItpKeywords, ShipControls.InverseTeleporterCommand)
+            {
+                AddAtAwake = false
+            };
+
+            Teleporters.Regular = new("Use Teleporter", TerminalTP, TpKeywords, ShipControls.RegularTeleporterCommand)
+            {
+                AddAtAwake = false,
+                AcceptAdditionalText = true,
+            };
+
+            StuffForLibrary.Switch = new("SwitchedCam", SwitchKeywords, ViewCommands.SwitchCommandHandler)
+            {
+                AddAtAwake = false,
+                AcceptAdditionalText = true
+            };
+
+            StuffForLibrary.Bind = new("bindCommand", TerminalShortcutCommands, ["bind"], DynamicCommands.BindKeyToCommand)
+            {
+                
+                AddAtAwake = false,
+                AcceptAdditionalText = true
+            };
+
+            StuffForLibrary.Unbind = new("SwitchedCam", SwitchKeywords, ViewCommands.SwitchCommandHandler)
+            {
+                AddAtAwake = false,
+                AcceptAdditionalText = true
+            };
         }
     }
 }

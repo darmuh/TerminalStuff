@@ -4,6 +4,16 @@ namespace TerminalStuff
 {
     internal class Misc
     {
+        internal static bool IsLocalPlayerNull()
+        {
+            if (StartOfRound.Instance == null)
+                return true;
+            if (StartOfRound.Instance.localPlayerController == null)
+                return true;
+
+            return false;
+        }
+
         internal static PlayerControllerB GetPlayerFromName(string playerName)
         {
             foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)

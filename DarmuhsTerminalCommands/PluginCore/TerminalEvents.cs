@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using OpenLib.CoreMethods;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,6 @@ using System.Text;
 using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using UnityEngine;
-using static OpenLib.CoreMethods.AddingThings;
 using static TerminalStuff.MoreCamStuff;
 using static TerminalStuff.PluginCore.TerminalCustomizer;
 using static TerminalStuff.StringStuff;
@@ -19,8 +19,9 @@ namespace TerminalStuff
         internal static string lastText = "";
         internal static string VideoErrorMessage = "";
         public static bool clockDisabledByCommand = false;
-        internal static TerminalSettings terminalSettings = new();
+        public static TerminalSettings terminalSettings { get; internal set; } = new();
         internal static bool quitTerminalEnum = false;
+        internal static List<CommandManager> purchasePacks = [];
 
         internal static Color transparent = new(0, 0, 0, 0);
 
@@ -40,15 +41,42 @@ namespace TerminalStuff
             foreach (KeyValuePair<string, string> item in keywordAndItems)
             {
                 Plugin.Spam($"setting {item.Key} keyword to purchase pack with items: {item.Value}");
-                TerminalNode node = AddNodeManual($"{item.Key}", item.Key, StorePacks.AskPurchasePack, true, 2, ConfigSettings.TerminalStuffMain, 0, StorePacks.CompletePurchasePack, null, "", $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n", true, 0, item.Key, true, item.Value);
-                StorePlus.excludedNodesFromAutoGen.Add(node.shipUnlockableID);
+
+                if (purchasePacks.Count != 0)
+                {
+                    CommandManager match = purchasePacks.FirstOrDefault(p => p.KeywordList.Contains(item.Key));
+                    if(match != null)
+                    {
+                        match.RegisterCommand();
+                        continue;
+                    }
+                }
+
+                CommandManager packCmd = new($"{item.Key}_PP", Commands.TerminalPurchasePacks, [item.Key], StorePacks.AskPurchasePack, 2)
+                {
+                    AddAtAwake = false
+                };
+                packCmd.SetInfoText($"Purchase Pack [{item.Key}]\r\n\r\n\tContains:\r\n{item.Value.Replace(",", ", ")}\r\n\r\n");
+                packCmd.ConfirmBase = new(packCmd, StorePacks.CompletePurchasePack)
+                {
+                    DenyTxt = $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n"
+                };
+                packCmd.StoreBase = new(packCmd)
+                {
+                    AlwaysInStock = true
+                };
+
+                packCmd.RegisterCommand();
+                purchasePacks.Add(packCmd);
+
+                StorePlus.excludedNodesFromAutoGen.Add(packCmd.terminalNode.shipUnlockableID);
                 
                 StorePacks pack = StorePacksInfo.AllPacks.FirstOrDefault(s => s.Name == item.Key);
 
                 if (pack != null)
-                    pack.UpdateExisting(item.Value, node);
+                    pack.UpdateExisting(item.Value, packCmd.terminalNode);
                 else
-                    pack = new(item.Key, item.Value, node);
+                    pack = new(item.Key, item.Value, packCmd.terminalNode);
             }
         }
 
@@ -254,10 +282,10 @@ namespace TerminalStuff
         }
     }
 
-    internal class TerminalSettings
+    public class TerminalSettings
     {
-        internal TerminalNode startPage;
-        internal string startPageValue;
+        public TerminalNode startPage = null!;
+        public string startPageValue { get; internal set; } = string.Empty;
 
         internal void StartPage(string entry)
         {

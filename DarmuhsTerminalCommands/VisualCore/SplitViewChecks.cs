@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using static OpenLib.ConfigManager.ConfigSetup;
-using static OpenLib.CoreMethods.AddingThings;
 using static TerminalStuff.BoolStuff;
 using static TerminalStuff.EventSub.TerminalQuit;
 
@@ -16,6 +14,11 @@ namespace TerminalStuff
         internal static bool enabledSplitObjects = false;
         internal static bool replacedViewMon = false;
         internal static RawImage miniScreenImage;
+
+        internal static CommandManager viewMon = new("View Monitor Not Available", ["view monitor"], ViewCommands.NoVanillaView)
+        {
+            AddAtAwake = false
+        };
 
         private static void HandleVanillaMap(bool shouldRemove)
         {
@@ -29,7 +32,7 @@ namespace TerminalStuff
         {
             if (!DynamicBools.TryGetKeyword("view monitor"))
             {
-                AddNodeManual("View Monitor Not Available", "view monitor", ViewCommands.NoVanillaView, true, 0, defaultListing);
+                viewMon.RegisterCommand();
                 Plugin.Spam("Added view monitor warning");
             }
             else

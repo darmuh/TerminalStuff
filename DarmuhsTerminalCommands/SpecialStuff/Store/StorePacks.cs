@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using TerminalStuff.EventSub;
-using static TerminalStuff.SpecialStuff.StorePacksInfo;
-using static TerminalStuff.AllMyTerminalPatches;
 using TerminalStuff.Configs;
-using System.Xml.Linq;
-using Steamworks.Ugc;
+using TerminalStuff.EventSub;
+using static TerminalStuff.AllMyTerminalPatches;
+using static TerminalStuff.SpecialStuff.StorePacksInfo;
 
 
 namespace TerminalStuff.SpecialStuff
@@ -58,7 +56,15 @@ namespace TerminalStuff.SpecialStuff
             terminalNode.creatureName = Name;
             if(!StorePlus.ManualUpgradeNames.Contains(Name))
                 StorePlus.ManualUpgradeNames.Add(Name);
-            StoreInfo item = StorePlus.AllPurchasePacks.storeItems.FirstOrDefault(x => x.name == Name && x.isPurchasePack);
+            StoreInfo item = null!;
+            
+            if(StorePlus.Packs.NestedMenus.Count > 0)
+            {
+                StoreMenuItem existing = StorePlus.Packs.NestedMenus.Cast<StoreMenuItem>().FirstOrDefault(x => x.Name == Name && x.storeItem.isPurchasePack);
+                if (existing != null)
+                    item = existing.storeItem;
+            }
+
             if (item != null)
             {
                 Plugin.Spam("Updating purchasepack StorePlus item!");
@@ -66,11 +72,12 @@ namespace TerminalStuff.SpecialStuff
             }
             else
             {
-                item = new(terminalNode);
-                item.isPurchasePack = true;
-                item.name = Name;
-                StorePlus.AddToStorePlus(item, "Purchase Packs");
-                
+                item = new(terminalNode)
+                {
+                    isPurchasePack = true,
+                    name = Name
+                };
+                item.menuItem.SetParentMenu(StorePlus.Packs);
             }
                 
         }

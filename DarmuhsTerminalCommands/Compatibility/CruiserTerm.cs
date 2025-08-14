@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using CruiserTerminal.Patches;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using CruiserTerminal.Patches;
 
 namespace TerminalStuff.Compatibility
 {

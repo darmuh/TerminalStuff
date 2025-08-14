@@ -1,16 +1,18 @@
-﻿using static OpenLib.CoreMethods.AddingThings;
+﻿using OpenLib.CoreMethods;
+using TerminalStuff.Configs;
+using TerminalStuff.SpecialStuff.Keywords;
 using static OpenLib.Common.CommonStringStuff;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.CoreMethods.CommandRegistry;
 using static TerminalStuff.EventSub.TerminalStart;
-using System.Collections.Generic;
-using TerminalStuff.Configs;
-using TerminalStuff.SpecialStuff.Keywords;
 
 namespace TerminalStuff.PluginCore
 {
     internal class StuffForLibrary
     {
+        internal static CommandManager Switch;
+        internal static CommandManager Bind;
+        internal static CommandManager Unbind;
         internal static void Init()
         {
             Commands.TerminalStuffBools = [];
@@ -24,7 +26,6 @@ namespace TerminalStuff.PluginCore
         {
             Plugin.Log.LogInfo("AddCommands called for TerminalStuffMain listing");
             GetCommandsToAdd(Commands.TerminalStuffBools, ConfigSettings.TerminalStuffMain);
-            TerminalEvents.CreateStorePacks();
             SwitchCommand();
         }
 
@@ -34,29 +35,31 @@ namespace TerminalStuff.PluginCore
                 return;
 
             //switch command
-            if (!KeywordConfigs.SwitchKeywords.Value.Contains("switch"))
+            if (!Switch.KeywordsConfig.Value.Contains("switch"))
             {
-                KeywordConfigs.SwitchKeywords.Value += ", switch";
+                Switch.KeywordsConfig.Value += ", switch";
                 Plugin.WARNING("SwitchKeywords MUST contain \"switch\"");
             }
 
-            if (!OpenLib.CoreMethods.DynamicBools.TryGetKeyword("switch", out TerminalKeyword switchKeyword))
+            if (!DynamicBools.TryGetKeyword("switch", out TerminalKeyword switchKeyword))
                 Plugin.WARNING("Unable to get original switch keyword!!!");
 
-            TerminalNode switchNode = AddNodeManual("SwitchedCam", KeywordConfigs.SwitchKeywords, ViewCommands.SwitchCommandHandler, true, 0, ConfigSettings.TerminalStuffMain, defaultManaged, "EXTRAS", "Switch Camera/Radar Views. Type a crewmate's name after the command to target them");
-            switchKeyword.specialKeywordResult = switchNode;
+            Switch.RegisterCommand(false);
+            switchKeyword.specialKeywordResult = Switch.terminalNode;
             switchNodeVanilla = Plugin.instance.Terminal.terminalNodes.specialNodes[20];
-            Plugin.instance.Terminal.terminalNodes.specialNodes[20] = switchNode;
+            Plugin.instance.Terminal.terminalNodes.specialNodes[20] = Switch.terminalNode;
+        }
 
+        internal static void BindCommands()
+        {
+            if (!QoLConfig.TerminalShortcuts.Value && Commands.TerminalShortcutCommands.Value)
+            {
+                Commands.TerminalShortcutCommands.Value = false;
+                Plugin.WARNING("TerminalShortcutCommands was enabled while feature, TerminalShortcuts, was disabled. Setting to FALSE");
+                Plugin.instance.Config.Save();
+            }
 
-
-            List<string> keywords = GetKeywordsPerConfigItem(KeywordConfigs.SwitchKeywords.Value);
-
-
-            foreach (string keyword in keywords)
-                AddSpecialListString(ref defaultListing, switchNode, keyword);
-
-
+            Plugin.Spam($"TerminalShortcutCommands Value: {Commands.TerminalShortcutCommands.Value}");
         }
 
         internal static void ManualManagedBools() //for any commands that can be added before awake that are not managed by one config item per command

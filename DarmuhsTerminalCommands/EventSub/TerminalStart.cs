@@ -11,11 +11,11 @@ using static TerminalStuff.TerminalEvents;
 
 namespace TerminalStuff.EventSub
 {
-    internal class TerminalStart
+    public class TerminalStart
     {
         internal static bool alwaysOnDisplay = false;
-        internal static TerminalNode startNode = null;
-        internal static TerminalNode helpNode = null;
+        public static TerminalNode startNode { get; internal set; } = null;
+        public static TerminalNode helpNode { get; internal set; } = null;
         internal static List<TerminalNode> vanillaNodes = [];
         internal static TerminalNode viewMonitorVanilla = null;
         internal static TerminalNode switchNodeVanilla = null;
@@ -127,7 +127,7 @@ namespace TerminalStuff.EventSub
             //TerminalClockStuff.StartClockCoroutine();
             AlwaysOnStart(Plugin.instance.Terminal, startNode);
             StorePlus.GetStoreItems();
-            MoonsPlus.GetMoons();
+            MoonsPlus.MoonsPlusSetup();
             yield return new WaitForSeconds(0.1f);
             Plugin.instance.Terminal.topRightText.text = $"${Plugin.instance.Terminal.groupCredits}"; //fix creds display for alwayson
             StartCheck(Plugin.instance.Terminal, startNode);

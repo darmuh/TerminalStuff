@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using OpenLib.Common;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Compatibility;
+using static TerminalStuff.SpecialStuff.MoonsPlus;
 
 namespace TerminalStuff.SpecialStuff
 {
@@ -16,6 +19,9 @@ namespace TerminalStuff.SpecialStuff
         internal bool OTP = false;
         internal TerminalNode purchaseNode = null!;
         internal TerminalNode resultNode = null!;
+        internal MoonMenuItem menuItem;
+
+        //bettermenu
 
         private bool company;
         internal bool IsCompany
@@ -173,7 +179,12 @@ namespace TerminalStuff.SpecialStuff
             LevelName = GetNumberless(level.PlanetName);
             purchaseNode = AllNodes.FirstOrDefault(x => x.displayPlanetInfo == Level.levelID);
             resultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
-            
+            menuItem = new(LevelName);
+            menuItem.SelectionEvent.AddListener(SelectThisMoon);
+            menuItem.SetParentMenu(ShowMoons);
+            menuItem.OnPageLoad = AddToMenuName;
+            menuItem.moonInfo = this;
+
             Plugin.Spam($"NEW MOONINFO, {LevelName}");
         }
 
@@ -184,12 +195,128 @@ namespace TerminalStuff.SpecialStuff
             LevelName = GetNumberless(level.PlanetName);
             purchaseNode = AllNodes.FirstOrDefault(x => x.displayPlanetInfo == Level.levelID);
             resultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
+            menuItem ??= new(LevelName);
+            menuItem.SelectionEvent.AddListener(SelectThisMoon);
+            menuItem.SetParentMenu(ShowMoons);
+            menuItem.OnPageLoad = AddToMenuName;
+            menuItem.moonInfo = this;
 
             Plugin.Spam($"RELOAD MOONINFO, {LevelName}");
         }
 
+        public void AddToMenuName()
+        {
+            menuItem.Prefix = "";
+            menuItem.Suffix = "";
+
+            if (IsCompany)
+                menuItem.Name = "Gordion (Company)";
+            else if (IsLocked)
+                menuItem.Name = "[ROUTE LOCKED]";
+            else if (IsHidden)
+                menuItem.Name = "[ ??? ]";
+            
+            if(MoonsFilter.Price)
+                menuItem.Prefix += $"${DisplayPrice} ";
+
+            if (IsCurrent)
+            {
+                menuItem.Prefix += "<<";
+                menuItem.Suffix += ">>";
+            }
+
+            if (MoonsFilter.Weather && GetWeatherName(Level).Length > 1)
+                menuItem.Suffix += GetWeatherName(Level);
+
+            if (MoonsFilter.Difficulty)
+                menuItem.Suffix += $" ({Level.riskLevel})";
+
+            if (AdditionalInfo.Length > 0) //add any additional stuff from other mods accessing this attribute
+                menuItem.Suffix += AdditionalInfo;
+
+            if(DisplayPrice <= Plugin.instance.Terminal.groupCredits && MoonsPlusConfig.AffordableColor.Value.Length > 0)
+            {
+                menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={MoonsPlusConfig.AffordableColor.Value}>");
+                menuItem.Suffix += "</color>";
+            }
+
+            if (DisplayPrice > Plugin.instance.Terminal.groupCredits && MoonsPlusConfig.NotEnoughCredsColor.Value.Length > 0)
+            {
+                menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={MoonsPlusConfig.NotEnoughCredsColor.Value}>");
+                menuItem.Suffix += "</color>";
+            }
+
+        }
+
+        private void UnableToTravel(bool inMotion, bool isLanded, bool currentLevel)
+        {
+            if (currentLevel)
+            {
+                Plugin.Log.LogMessage("You are already orbiting this moon!");
+                Plugin.instance.Terminal.PlayTerminalAudioServerRpc(1);
+                return;
+            }
+
+            if (inMotion)
+            {
+                Plugin.Log.LogMessage("The ship is in motion and cannot change course!");
+                Plugin.instance.Terminal.PlayTerminalAudioServerRpc(1);
+                return;
+            }
+
+            if (isLanded)
+            {
+                Plugin.Log.LogMessage("The ship is not in orbit!");
+                Plugin.instance.Terminal.PlayTerminalAudioServerRpc(1);
+                return;
+            }
+ 
+        }
+
+        internal void SelectThisMoon()
+        {
+            MoonsPlusMenu.ExitAction = null!;
+
+            if (Level == null)
+            {
+                Plugin.ERROR($"(SelectThisMoon) - Level at Active Moons Selection is NULL! - {MoonsPlusMenu.ActiveSelection}");
+                return;
+            }
+
+            if (StartOfRound.Instance.travellingToNewLevel || !StartOfRound.Instance.inShipPhase || StartOfRound.Instance.currentLevel == Level)
+            {
+                UnableToTravel(StartOfRound.Instance.travellingToNewLevel, !StartOfRound.Instance.inShipPhase, StartOfRound.Instance.currentLevel == Level);
+                return;
+            }
+
+
+            if (DisplayPrice > Plugin.instance.Terminal.groupCredits)
+            {
+                Plugin.instance.Terminal.PlayTerminalAudioServerRpc(1);
+                return;
+            }
+
+            if (MoonsPlusConfig.UseVanillaPurchaseNodes.Value && purchaseNode != null)
+            {
+                MoonsPlusMenu.ExitAction = () =>
+                {
+                    CommonTerminal.LoadNewNode(purchaseNode);
+                    Plugin.Spam("Loading vanilla node!");
+                };
+                MoonsPlusMenu.ExitInTerminal();
+                return;
+            }
+
+            int newCreds = Plugin.instance.Terminal.groupCredits - DisplayPrice;
+
+            StartOfRound.Instance.ChangeLevelServerRpc(Level.levelID, newCreds);
+            StartOfRound.Instance.SetMapScreenInfoToCurrentLevel();
+        }
+
         internal void OneTimePurchaseLoadIn()
         {
+            if (!MoonsPlusConfig.OneTimePurchase.Value)
+                return;
 
             if (HaveVisited)
             {
@@ -218,7 +345,52 @@ namespace TerminalStuff.SpecialStuff
             if (IsHidden && IsLocked)
                 return false;
 
+            if (IsManuallyHidden())
+                return false;
+
+            if (HasBadWeather())
+                return false;
+
+            if (MoonsFilter.RemoveTooExpensive && DisplayPrice < Plugin.instance.Terminal.groupCredits)
+                return false;
+
             return true;
+        }
+
+        internal bool IsManuallyHidden()
+        {
+            if (MoonsPlusConfig.AlwaysHideList.Value.Length < 1)
+            {
+                Plugin.MoreLogs($"{LevelName} does not match any configuration entries for AlwaysHideList");
+                return false;
+            }
+
+            List<string> moons = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(MoonsPlusConfig.AlwaysHideList.Value, ',');
+
+            if(moons.Any(m => m.ToLowerInvariant() == LevelName.ToLowerInvariant()))
+            {
+                Plugin.MoreLogs($"Matching moon name found! Hiding {LevelName}");
+                return true;
+            }
+
+            Plugin.MoreLogs($"{LevelName} does not match any configuration entries for AlwaysHideList");
+            return false;
+
+        }
+
+        internal bool HasBadWeather()
+        {
+            if (!MoonsFilter.RemoveBadWeather || AcceptableWeathers.Count == 0)
+                return false;
+
+
+            string currentWeather = GetWeatherName(Level);
+            Plugin.Spam($"Checking {LevelName} weather - {currentWeather}");
+
+            if (currentWeather.Length < 1)
+                return false;
+
+            return AcceptableWeathers.Any(w => w.ToLowerInvariant() != currentWeather.ToLowerInvariant());
         }
 
         internal bool IsThisGordion()
@@ -282,7 +454,7 @@ namespace TerminalStuff.SpecialStuff
 
         internal bool HasVisited()
         {
-            bool value = MoonsPlus.MoonsVisited.Any(x => x == LevelName);
+            bool value = MoonsVisited.Any(x => x == LevelName);
             Plugin.Spam($"{LevelName} has been visited = {value}!!");
             return value;     
         }

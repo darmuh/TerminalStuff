@@ -1,5 +1,5 @@
-﻿using static OpenLib.ConfigManager.ConfigSetup;
-using BepInEx.Configuration;
+﻿using BepInEx.Configuration;
+using static OpenLib.ConfigManager.ConfigSetup;
 
 namespace TerminalStuff.SpecialStuff
 {
@@ -20,6 +20,8 @@ namespace TerminalStuff.SpecialStuff
         public static ConfigEntry<bool> OneTimePurchase {  get; internal set; }
         public static ConfigEntry<string> AffordableColor { get; internal set; }
         public static ConfigEntry<string> NotEnoughCredsColor { get; internal set; }
+        public static ConfigEntry<string> MenuStartPage { get; internal set; }
+        public static ConfigEntry<int> MenuPageSize { get; internal set; }
 
 
         internal static void Init()
@@ -39,6 +41,8 @@ namespace TerminalStuff.SpecialStuff
             OneTimePurchase = MakeBool(Plugin.instance.Config, "MoonsPlus", "OneTimePurchase", false, "When enabled, will make the Price to route to a moon free after your first purchase\nRequires networking");
             AffordableColor = MakeString(Plugin.instance.Config, "MoonsPlus", "AffordableColor", "#00ab66", "The color of moon routes that you CAN afford, leave blank to not change the color");
             NotEnoughCredsColor = MakeString(Plugin.instance.Config, "MoonsPlus", "NotEnoughCredsColor", "#b22222", "The color of moon routes that you CANNOT afford, leave blank to not change the color");
+            MenuStartPage = MakeClampedString(Plugin.instance.Config, "MoonsPlus", "MenuStartPage", "main", "The menu that will open when first running the moons command.", new AcceptableValueList<string>("main", "filter", "get moons"));
+            MenuPageSize = MakeClampedInt(Plugin.instance.Config, "MoonsPlus", "MenuPageSize", 10, "The amount of menu items to display per page of this menu.\nNote: Anything over 10 will enable automated scrolling (beta)", 3, 30);
 
 
             MoonsPlus.MoonsFilter.AssignSorting(DefaultSorting.Value);
