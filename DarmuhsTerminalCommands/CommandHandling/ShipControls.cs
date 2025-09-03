@@ -125,7 +125,7 @@ namespace TerminalStuff
                     if (val.Length > 1)
                     {
                         Plugin.MoreLogs("attempting to tp specific player");
-                        string playerName = QueryToPlayerName(val, GameStuff.TerminalMapRenderer.radarTargets);
+                        string playerName = PlayerNameToTargetString(val, GameStuff.TerminalMapRenderer.radarTargets);
                         PlayerControllerB player = GetPlayerFromName(playerName);
                         if (player != null && player.isPlayerControlled)
                         {

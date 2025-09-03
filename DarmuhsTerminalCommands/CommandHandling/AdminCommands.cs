@@ -11,13 +11,13 @@ namespace TerminalStuff
 {
     internal class AdminCommands
     {
-        internal static PlayerControllerB playerToKick = null;
+        internal static PlayerControllerB playerToKick = null!;
         internal static bool kickEnum = false;
 
         internal static string KickPlayersAsk()
         {
             TerminalGeneral.CancelConfirmation = true;
-            playerToKick = null;
+            playerToKick = null!;
             string val = GetAfterKeyword(GetKeywordsPerConfigItem(KeywordConfigs.KickKeywords.Value));
 
             if (!AmIHost(out string displayText))
@@ -103,7 +103,7 @@ namespace TerminalStuff
         internal static string KickPlayerDeny()
         {
             string displayText = $"Cancelling kick player action for player:{playerToKick.playerUsername}\r\n\r\n";
-            playerToKick = null;
+            playerToKick = null!;
             return displayText;
         }
 

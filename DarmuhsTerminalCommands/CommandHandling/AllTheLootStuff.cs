@@ -4,92 +4,47 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace TerminalStuff
+namespace TerminalStuff;
+
+internal class AllTheLootStuff
 {
-    internal class AllTheLootStuff
+    internal static string GetLootSimple()
     {
-        internal static string GetLootSimple()
+        string displayText;
+        Plugin.Spam("calculating loot value next");
+        float lootValue = CalculateLootValue();
+        string totalvalue;
+        if (Plugin.instance.ShipInventory)
         {
-            string displayText;
-            Plugin.Spam("calculating loot value next");
-            float lootValue = CalculateLootValue();
-            string totalvalue;
-            if (Plugin.instance.ShipInventory)
-            {
-                int inventoryVal = Compatibility.ShipInventoryCompat.GetInventoryValue();
-                totalvalue = $"Total Value on Ship: ${lootValue}\n\nTotal Value in Ship Inventory: ${inventoryVal}";
-            }
-            else
-            {
-                totalvalue = $"Total Value on Ship: ${lootValue}";
-            }
-
-            Plugin.Spam("loot calculated");
-            displayText = $"{totalvalue}\n\n";
-            return displayText;
+            int inventoryVal = Compatibility.ShipInventoryCompat.GetInventoryValue();
+            totalvalue = $"Total Value on Ship: ${lootValue}\n\nTotal Value in Ship Inventory: ${inventoryVal}";
+        }
+        else
+        {
+            totalvalue = $"Total Value on Ship: ${lootValue}";
         }
 
-        internal static string DetailedLootCommand()
+        Plugin.Spam("loot calculated");
+        displayText = $"{totalvalue}\n\n";
+        return displayText;
+    }
+
+    internal static string DetailedLootCommand()
+    {
+        LoadGrabbablesOnShip.LoadAllItems();
+        string displayText;
+        StringBuilder sb = new();
+        Dictionary<string, int> lineOccurrences = [];
+        int totalCredsWorth = 0;
+
+        foreach (var grabbableItem in LoadGrabbablesOnShip.ItemsOnShip)
         {
-            LoadGrabbablesOnShip.LoadAllItems();
-            string displayText;
-            StringBuilder sb = new();
-            Dictionary<string, int> lineOccurrences = [];
-            int totalCredsWorth = 0;
+            string itemName = grabbableItem.itemProperties.itemName;
+            int scrapWorth = grabbableItem.scrapValue;
 
-            foreach (var grabbableItem in LoadGrabbablesOnShip.ItemsOnShip)
+
+            if (grabbableItem.itemProperties.isScrap)
             {
-                string itemName = grabbableItem.itemProperties.itemName;
-                int scrapWorth = grabbableItem.scrapValue;
-
-
-                if (grabbableItem.itemProperties.isScrap)
-                {
-                    // Concatenate the itemName and scrapWorth to form the line
-                    string line = $"{itemName} ({scrapWorth} credits)";
-                    Plugin.Spam(line + "added to output");
-                    totalCredsWorth += scrapWorth;
-
-                    lineOccurrences[line] = lineOccurrences.TryGetValue(line, out int count) ? count + 1 : 1;
-                }
-            }
-
-            foreach (var kvp in lineOccurrences)
-            {
-                if (kvp.Value > 1)
-                {
-                    sb.AppendLine($"{kvp.Key} [x{kvp.Value}]");
-                }
-                else
-                    sb.AppendLine($"{kvp.Key}");
-            }
-
-            if (Plugin.instance.ShipInventory)
-            {
-                Compatibility.ShipInventoryCompat.GetInventoryItems(out List<Item> itemsInv);
-                StringBuilder inv = ShipInventoryItems(itemsInv, ref totalCredsWorth);
-                displayText = $"Scrap on ship (not stored):\n\n{sb}Scrap stored in Ship Inventory:\n\n{inv}\n\n\tTotal Value: {totalCredsWorth}\n\n";
-
-            }
-            else
-                displayText = $"Scrap on ship:\n\n{sb}\n\n\tTotal Value: {totalCredsWorth}\n\n";
-
-            return displayText;
-        }
-
-        private static StringBuilder ShipInventoryItems(List<Item> inventory, ref int totalCredsWorth)
-        {
-            StringBuilder builder = new();
-            Dictionary<string, int> lineOccurrences = [];
-
-            foreach (Item item in inventory)
-            {
-                if (!item.isScrap)
-                    continue;
-
-                string itemName = item.itemName;
-                int scrapWorth = item.creditsWorth;
-
                 // Concatenate the itemName and scrapWorth to form the line
                 string line = $"{itemName} ({scrapWorth} credits)";
                 Plugin.Spam(line + "added to output");
@@ -97,32 +52,75 @@ namespace TerminalStuff
 
                 lineOccurrences[line] = lineOccurrences.TryGetValue(line, out int count) ? count + 1 : 1;
             }
-
-            foreach (var kvp in lineOccurrences)
-            {
-                if (kvp.Value > 1)
-                {
-                    builder.AppendLine($"{kvp.Key} [x{kvp.Value}]");
-                }
-                else
-                    builder.AppendLine($"{kvp.Key}");
-            }
-
-            return builder;
         }
 
-        private static float CalculateLootValue()
+        foreach (var kvp in lineOccurrences)
         {
-            List<GrabbableObject> list = GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>()
-                .Where<GrabbableObject>(obj => obj.name != "ClipboardManual" && obj.name != "StickyNoteItem" && obj.name != "Key(Clone)").ToList<GrabbableObject>(); //!obj.name.Contains("Key") or Key(Clone)
-
-            Plugin.Log.LogDebug("Calculating total ship scrap value.");
-
-            CollectionExtensions.Do<GrabbableObject>(list, scrap => Plugin.Log.LogDebug(string.Format("{0} - ${1}", scrap.name, scrap.scrapValue)));
-
-            return list.Sum<GrabbableObject>(scrap => scrap.scrapValue);
+            if (kvp.Value > 1)
+            {
+                sb.AppendLine($"{kvp.Key} [x{kvp.Value}]");
+            }
+            else
+                sb.AppendLine($"{kvp.Key}");
         }
 
+        if (Plugin.instance.ShipInventory)
+        {
+            Compatibility.ShipInventoryCompat.GetInventoryItems(out List<Item> itemsInv);
+            StringBuilder inv = ShipInventoryItems(itemsInv, ref totalCredsWorth);
+            displayText = $"Scrap on ship (not stored):\n\n{sb}Scrap stored in Ship Inventory:\n\n{inv}\n\n\tTotal Value: {totalCredsWorth}\n\n";
 
+        }
+        else
+            displayText = $"Scrap on ship:\n\n{sb}\n\n\tTotal Value: {totalCredsWorth}\n\n";
+
+        return displayText;
     }
+
+    private static StringBuilder ShipInventoryItems(List<Item> inventory, ref int totalCredsWorth)
+    {
+        StringBuilder builder = new();
+        Dictionary<string, int> lineOccurrences = [];
+
+        foreach (Item item in inventory)
+        {
+            if (!item.isScrap)
+                continue;
+
+            string itemName = item.itemName;
+            int scrapWorth = item.creditsWorth;
+
+            // Concatenate the itemName and scrapWorth to form the line
+            string line = $"{itemName} ({scrapWorth} credits)";
+            Plugin.Spam(line + "added to output");
+            totalCredsWorth += scrapWorth;
+
+            lineOccurrences[line] = lineOccurrences.TryGetValue(line, out int count) ? count + 1 : 1;
+        }
+
+        foreach (var kvp in lineOccurrences)
+        {
+            if (kvp.Value > 1)
+            {
+                builder.AppendLine($"{kvp.Key} [x{kvp.Value}]");
+            }
+            else
+                builder.AppendLine($"{kvp.Key}");
+        }
+
+        return builder;
+    }
+
+    private static float CalculateLootValue()
+    {
+        List<GrabbableObject> list = [.. GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>().Where<GrabbableObject>(obj => obj.name != "ClipboardManual" && obj.name != "StickyNoteItem" && obj.name != "Key(Clone)")]; //!obj.name.Contains("Key") or Key(Clone)
+
+        Plugin.Log.LogDebug("Calculating total ship scrap value.");
+
+        HarmonyLib.CollectionExtensions.Do<GrabbableObject>(list, scrap => Plugin.Log.LogDebug(string.Format("{0} - ${1}", scrap.name, scrap.scrapValue)));
+
+        return list.Sum<GrabbableObject>(scrap => scrap.scrapValue);
+    }
+
+
 }

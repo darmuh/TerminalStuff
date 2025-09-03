@@ -14,11 +14,11 @@ namespace TerminalStuff.EventSub
     public class TerminalStart
     {
         internal static bool alwaysOnDisplay = false;
-        public static TerminalNode startNode { get; internal set; } = null;
-        public static TerminalNode helpNode { get; internal set; } = null;
+        public static TerminalNode startNode { get; internal set; } = null!;
+        public static TerminalNode helpNode { get; internal set; } = null!;
         internal static List<TerminalNode> vanillaNodes = [];
-        internal static TerminalNode viewMonitorVanilla = null;
-        internal static TerminalNode switchNodeVanilla = null;
+        internal static TerminalNode viewMonitorVanilla = null!;
+        internal static TerminalNode switchNodeVanilla = null!;
         internal static bool delayStartEnum = false;
 
         internal static void OnTerminalStart()

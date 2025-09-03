@@ -13,7 +13,6 @@ using static TerminalStuff.StringStuff;
 
 namespace TerminalStuff
 {
-
     public static class TerminalEvents
     {
         internal static string lastText = "";
@@ -89,7 +88,7 @@ namespace TerminalStuff
                     return pairValue.Value;
                 }
             }
-            return null; // No matching command found for the given query
+            return null!; // No matching command found for the given query
         }
 
         internal static string RandomSuit()
@@ -155,7 +154,7 @@ namespace TerminalStuff
 
         internal static string GetCleanedScreenText(Terminal __instance)
         {
-            string s = __instance.screenText.text.Substring(__instance.screenText.text.Length - __instance.textAdded);
+            string s = __instance.screenText.text[^__instance.textAdded..];
 
             return RemovePunctuation(s);
         }
@@ -206,7 +205,7 @@ namespace TerminalStuff
             return text;
         }
 
-        internal static int PlayerNameToTarget(string query, List<TransformAndName> radarTargets)
+        internal static int PlayerNameToTargetInt(string query, List<TransformAndName> radarTargets)
         {
             query = query.TrimStart();
 
@@ -217,16 +216,16 @@ namespace TerminalStuff
 
             for (int i = 0; i < radarTargets.Count; i++) //iterate through all targets
             {
-                if (TargetIsValid(radarTargets[i]?.transform)) //verify target is valid
+                if (TargetIsValid(radarTargets[i])) //verify target is valid
                 {
-                    if (radarTargets[i].name.ToLower().StartsWith(query.ToLower().Substring(0, 2))) //still need to test this
+                    if (OpenLib.Common.Misc.StringStartsWithInvariant(radarTargets[i].name, query[..2])) 
                     {
                         int score = Levenshtein.Distance(query, radarTargets[i].name); //get score at current target
                         Plugin.Spam($"TargetNum {i} has score {score}");
                         nameToScore.Add(i, score); //map score to current target
                     }
                     else
-                        Plugin.Spam($"name [ {radarTargets[i].name.ToLower()} ] does not match start of query [ {query.ToLower().Substring(0, 2)} ]");
+                        Plugin.Spam($"name [ {radarTargets[i].name} ] does not match start of query [ {query[..2]} ]");
                 }
             }
 
@@ -236,7 +235,7 @@ namespace TerminalStuff
             return nameToScore.OrderBy(x => x.Value).First().Key; //order by score values and return targetnum with highest score
         }
 
-        internal static string QueryToPlayerName(string query, List<TransformAndName> radarTargets)
+        internal static string PlayerNameToTargetString(string query, List<TransformAndName> radarTargets)
         {
             query = query.TrimStart();
 
@@ -247,16 +246,16 @@ namespace TerminalStuff
 
             for (int i = 0; i < radarTargets.Count; i++) //iterate through all targets
             {
-                if (TargetIsValid(radarTargets[i]?.transform)) //verify target is valid
+                if (TargetIsValid(radarTargets[i])) //verify target is valid
                 {
-                    if (radarTargets[i].name.ToLower().StartsWith(query.ToLower().Substring(0, 2))) //still need to test this
+                    if (OpenLib.Common.Misc.StringStartsWithInvariant(radarTargets[i].name, query[..2]))
                     {
                         int score = Levenshtein.Distance(query, radarTargets[i].name); //get score at current target
                         Plugin.Spam($"TargetNum {i} has score {score}");
                         nameToScore.Add(radarTargets[i].name, score); //map score to current target
                     }
                     else
-                        Plugin.Spam($"name [ {radarTargets[i].name.ToLower()} ] does not match start of query [ {query.ToLower().Substring(0, 2)} ]");
+                        Plugin.Spam($"name [ {radarTargets[i].name} ] does not match start of query [ {query[..2]} ]");
                 }
             }
 
@@ -290,11 +289,11 @@ namespace TerminalStuff
         internal void StartPage(string entry)
         {
             startPageValue = entry;
-            startPage = null;
-            if (startPageValue.ToLower() == "none" || startPageValue.Length < 2)
+            startPage = null!;
+            if (OpenLib.Common.Misc.StringStartsWithInvariant(startPageValue, "none") || startPageValue.Length < 2)
                 return;
 
-            if (OpenLib.CoreMethods.DynamicBools.TryGetKeyword(startPageValue, out TerminalKeyword keyword))
+            if (DynamicBools.TryGetKeyword(startPageValue, out TerminalKeyword keyword))
             {
                 startPage = keyword.specialKeywordResult;
             }

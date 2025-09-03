@@ -15,8 +15,8 @@ namespace TerminalStuff
     internal class ViewCommands
     {
         internal static bool isVideoPlaying = false;
-        internal static RenderTexture mycamTexture;
-        internal static Camera playerCam = null;
+        internal static RenderTexture mycamTexture = null!;
+        internal static Camera playerCam = null!;
 
         internal static float radarZoom;
 
@@ -111,7 +111,7 @@ namespace TerminalStuff
             {
                 Plugin.MoreLogs("switch to specific player command detected");
 
-                int playernum = TerminalEvents.PlayerNameToTarget(val, GameStuff.TerminalMapRenderer.radarTargets);
+                int playernum = TerminalEvents.PlayerNameToTargetInt(val, GameStuff.TerminalMapRenderer.radarTargets);
                 Plugin.Spam($"PlayerNameToTarget determined playernum - {playernum}");
                 if (playernum != -1)
                 {

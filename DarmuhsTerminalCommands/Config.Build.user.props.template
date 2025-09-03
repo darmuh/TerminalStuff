@@ -1,0 +1,16 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Set if the default steam game install directory doesn't work. -->
+    <!-- <GameRootDir></GameRootDir> -->
+    <!-- Set if your BepInEx/plugins/ directory isn't in the game files. -->
+    <!-- <GamePluginsDir></GamePluginsDir> -->
+  </PropertyGroup>
+
+  <Target Name="DeployFiles" AfterTargets="Build">
+    <Message Text="Deploy → $(GamePluginsDir)$(AssemblyName).dll" Importance="High" />
+    <Error Text="Plugins directory '$(GamePluginsDir)' doesn't exist!" Condition="!Exists('$(GamePluginsDir)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GamePluginsDir)" />
+  </Target>
+
+</Project>

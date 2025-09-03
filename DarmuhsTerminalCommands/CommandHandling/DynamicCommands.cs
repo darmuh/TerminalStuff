@@ -8,14 +8,14 @@ namespace TerminalStuff
     internal class DynamicCommands //Non-terminalAPI commands
     {
         //stuff
-        public static int ParsedValue { get; internal set; }
+        public static int ParsedValue { get; internal set; } = 0;
         internal static bool newParsedValue = false;
 
         //fov
         internal static bool validFovNum = false;
         internal static bool fovEnum = false;
 
-        public static string Linktext { get; internal set; } //public static string
+        public static string Linktext { get; internal set; } = null!; //public static string
 
 
         internal static string BindKeyToCommand()
