@@ -4,178 +4,177 @@ using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using static TerminalStuff.SpecialStuff.MoonsPlus;
 
-namespace TerminalStuff.PluginCore
+namespace TerminalStuff.PluginCore;
+
+internal class SaveManager
 {
-    internal class SaveManager
+    internal static List<string> AllUpgradesUnlocked = [];
+
+    internal static void InitMoonPlusSave()
     {
-        internal static List<string> AllUpgradesUnlocked = [];
+        //networking disabled
+        if (!ConfigSettings.ModNetworking.Value)
+            return;
 
-        internal static void InitMoonPlusSave()
+        if (!Commands.TerminalMoonsPlus.Value)
+            return;
+
+        if (!GameNetworkManager.Instance.localPlayerController.IsHost)
         {
-            //networking disabled
-            if (!ConfigSettings.ModNetworking.Value)
-                return;
-
-            if (!Commands.TerminalMoonsPlus.Value)
-                return;
-
-            if (!GameNetworkManager.Instance.localPlayerController.IsHost)
-            {
-                NetHandler.Instance.GetTravelHistoryServerRpc();
-                return;
-            }
-
-            //MoonsPlusHistory
-            HistorySaveInit();
+            NetHandler.Instance.GetTravelHistoryServerRpc();
+            return;
         }
 
-        internal static void HistorySaveInit()
+        //MoonsPlusHistory
+        HistorySaveInit();
+    }
+
+    internal static void HistorySaveInit()
+    {
+        //networking disabled
+        if (!ConfigSettings.ModNetworking.Value)
+            return;
+
+        if (!ES3.KeyExists("darmuhsTerminalStuff_MoonsPlusHistory", GameNetworkManager.Instance.currentSaveFileName))
         {
-            //networking disabled
-            if (!ConfigSettings.ModNetworking.Value)
-                return;
-
-            if (!ES3.KeyExists("darmuhsTerminalStuff_MoonsPlusHistory", GameNetworkManager.Instance.currentSaveFileName))
-            {
-                Plugin.Spam("Creating save key for darmuhsTerminalStuff_MoonsPlusHistory");
-                MoonsVisited.Clear();
-                MoonsVisited = GetTravelHistory();
-                SaveTravelHistory(MoonsVisited);
-                foreach (string name in MoonsVisited)
-                    NetHandler.Instance.TravelHistoryServerRpc(name);
-                //network to clients
-            }
-            else
-            {
-                MoonsVisited = ES3.Load<List<string>>("darmuhsTerminalStuff_MoonsPlusHistory", GameNetworkManager.Instance.currentSaveFileName);
-                Plugin.Spam("Updating MoonsPlus Travel History from save key darmuhsTerminalStuff_MoonsPlusHistory");
-                Plugin.Spam($"MoonsVisited count: {MoonsVisited.Count}");
-                foreach (string name in MoonsVisited)
-                    NetHandler.Instance.TravelHistoryServerRpc(name);
-                //network to clients
-            }
-
-            MoonListing.Do(x => x.OneTimePurchaseLoadIn());
+            Loggers.LogDebug("Creating save key for darmuhsTerminalStuff_MoonsPlusHistory");
+            MoonsVisited.Clear();
+            MoonsVisited = GetTravelHistory();
+            SaveTravelHistory(MoonsVisited);
+            foreach (string name in MoonsVisited)
+                NetHandler.Instance.TravelHistoryServerRpc(name);
+            //network to clients
+        }
+        else
+        {
+            MoonsVisited = ES3.Load<List<string>>("darmuhsTerminalStuff_MoonsPlusHistory", GameNetworkManager.Instance.currentSaveFileName);
+            Loggers.LogDebug("Updating MoonsPlus Travel History from save key darmuhsTerminalStuff_MoonsPlusHistory");
+            Loggers.LogDebug($"MoonsVisited count: {MoonsVisited.Count}");
+            foreach (string name in MoonsVisited)
+                NetHandler.Instance.TravelHistoryServerRpc(name);
+            //network to clients
         }
 
-        internal static void ResetUnlocks()
-        {
-            CostCommands.enemyScanUpgradeEnabled = false;
-            CostCommands.vitalsUpgradeEnabled = false;
+        MoonListing.Do(x => x.OneTimePurchaseLoadIn());
+    }
 
-            AllUpgradesUnlocked = [];
+    internal static void ResetUnlocks()
+    {
+        CostCommands.enemyScanUpgradeEnabled = false;
+        CostCommands.vitalsUpgradeEnabled = false;
+
+        AllUpgradesUnlocked = [];
+    }
+
+    internal static void InitUnlocks()
+    {
+        //networking disabled
+        if (!ConfigSettings.ModNetworking.Value)
+            return;
+
+        CostCommands.enemyScanUpgradeEnabled = false;
+        CostCommands.vitalsUpgradeEnabled = false;
+
+        if (!ConfigSettings.ModNetworking.Value)
+            return;
+
+        if (!GameNetworkManager.Instance.isHostingGame)
+        {
+            NetHandler.Instance.AskUpgradeStatusServerRpc();
+            return;
         }
 
-        internal static void InitUnlocks()
+        if (!ES3.KeyExists("darmuhsTerminalStuff_Upgrades", GameNetworkManager.Instance.currentSaveFileName))
         {
-            //networking disabled
-            if (!ConfigSettings.ModNetworking.Value)
-                return;
-
-            CostCommands.enemyScanUpgradeEnabled = false;
-            CostCommands.vitalsUpgradeEnabled = false;
-
-            if (!ConfigSettings.ModNetworking.Value)
-                return;
-
-            if (!GameNetworkManager.Instance.isHostingGame)
-            {
-                NetHandler.Instance.AskUpgradeStatusServerRpc();
-                return;
-            }
-
-            if (!ES3.KeyExists("darmuhsTerminalStuff_Upgrades", GameNetworkManager.Instance.currentSaveFileName))
-            {
-                Plugin.Spam("Creating save key for darmuhsTerminalStuff_Upgrades");
-                AllUpgradesUnlocked = GetUnlockList();
-                SaveUnlocks(AllUpgradesUnlocked);
-                foreach(string name in AllUpgradesUnlocked)
-                    NetHandler.Instance.UpgradeStatusServerRpc(name);
-                //network to clients
-            }
-            else
-            {
-                AllUpgradesUnlocked = ES3.Load<List<string>>("darmuhsTerminalStuff_Upgrades", GameNetworkManager.Instance.currentSaveFileName);
-                Plugin.Spam("Updating upgrades unlock status from save key darmuhsTerminalStuff_Upgrades");
-                Plugin.Spam($"AllUpgrades count: {AllUpgradesUnlocked.Count}");
-                foreach (string name in AllUpgradesUnlocked)
-                    NetHandler.Instance.UpgradeStatusServerRpc(name);
-                //network to clients
-            }
+            Loggers.LogDebug("Creating save key for darmuhsTerminalStuff_Upgrades");
+            AllUpgradesUnlocked = GetUnlockList();
+            SaveUnlocks(AllUpgradesUnlocked);
+            foreach (string name in AllUpgradesUnlocked)
+                NetHandler.Instance.UpgradeStatusServerRpc(name);
+            //network to clients
         }
-
-        internal static List<string> GetUnlockList()
+        else
         {
-            List<string> upgradesUnlocked = [];
-            if (!GameNetworkManager.Instance.isHostingGame)
-                return upgradesUnlocked;
+            AllUpgradesUnlocked = ES3.Load<List<string>>("darmuhsTerminalStuff_Upgrades", GameNetworkManager.Instance.currentSaveFileName);
+            Loggers.LogDebug("Updating upgrades unlock status from save key darmuhsTerminalStuff_Upgrades");
+            Loggers.LogDebug($"AllUpgrades count: {AllUpgradesUnlocked.Count}");
+            foreach (string name in AllUpgradesUnlocked)
+                NetHandler.Instance.UpgradeStatusServerRpc(name);
+            //network to clients
+        }
+    }
 
-            if (CostCommands.CheckUnlockableStatus("BioscanPatch"))
-            {
-                CostCommands.enemyScanUpgradeEnabled = true;
-                upgradesUnlocked.Add("BioscanPatch");
-            }
-
-            if (CostCommands.CheckUnlockableStatus("VitalsPatch"))
-            {
-                CostCommands.vitalsUpgradeEnabled = true;
-                upgradesUnlocked.Add("VitalsPatch");
-            }
-
+    internal static List<string> GetUnlockList()
+    {
+        List<string> upgradesUnlocked = [];
+        if (!GameNetworkManager.Instance.isHostingGame)
             return upgradesUnlocked;
-        }
 
-        internal static void NewUnlock(string unlockName)
+        if (CostCommands.CheckUnlockableStatus("BioscanPatch"))
         {
-            //networking disabled
-            if (!ConfigSettings.ModNetworking.Value)
-                return;
-
-            if (!AllUpgradesUnlocked.Contains(unlockName))
-                AllUpgradesUnlocked.Add(unlockName);
-
-            if(GameNetworkManager.Instance.isHostingGame)
-                SaveUnlocks(AllUpgradesUnlocked);
-
-            NetHandler.Instance.UpgradeStatusServerRpc(unlockName);
+            CostCommands.enemyScanUpgradeEnabled = true;
+            upgradesUnlocked.Add("BioscanPatch");
         }
 
-        internal static void SaveUnlocks(List<string> unlockList)
+        if (CostCommands.CheckUnlockableStatus("VitalsPatch"))
         {
-            if (!GameNetworkManager.Instance.isHostingGame)
-                return;
-
-            Plugin.Spam("saving darmuhsTerminalStuff_Upgrades");
-            ES3.Save<List<string>>("darmuhsTerminalStuff_Upgrades", unlockList, GameNetworkManager.Instance.currentSaveFileName);
+            CostCommands.vitalsUpgradeEnabled = true;
+            upgradesUnlocked.Add("VitalsPatch");
         }
 
-        internal static void SaveTravelHistory(List<string> travelHistory)
-        {
-            if (!GameNetworkManager.Instance.isHostingGame)
-                return;
+        return upgradesUnlocked;
+    }
 
-            Plugin.Spam($"saving darmuhsTerminalStuff_MoonsPlusHistory from list ({travelHistory.Count}):");
-            foreach(string t in travelHistory )
-                Plugin.Spam(t);
-            ES3.Save<List<string>>("darmuhsTerminalStuff_MoonsPlusHistory", travelHistory, GameNetworkManager.Instance.currentSaveFileName);
-        }
+    internal static void NewUnlock(string unlockName)
+    {
+        //networking disabled
+        if (!ConfigSettings.ModNetworking.Value)
+            return;
 
-        internal static void AddToTravelHistory(MoonInfo moon)
-        {
-            //networking disabled
-            if (!ConfigSettings.ModNetworking.Value)
-                return;
+        if (!AllUpgradesUnlocked.Contains(unlockName))
+            AllUpgradesUnlocked.Add(unlockName);
 
-            if (GameNetworkManager.Instance.localPlayerController == null)
-                return;
+        if (GameNetworkManager.Instance.isHostingGame)
+            SaveUnlocks(AllUpgradesUnlocked);
 
-            if(!MoonsVisited.Contains(moon.LevelName))
-                MoonsVisited.Add(moon.LevelName);
+        NetHandler.Instance.UpgradeStatusServerRpc(unlockName);
+    }
 
-            if (GameNetworkManager.Instance.localPlayerController.IsHost)
-                SaveTravelHistory(MoonsVisited);
+    internal static void SaveUnlocks(List<string> unlockList)
+    {
+        if (!GameNetworkManager.Instance.isHostingGame)
+            return;
 
-            NetHandler.Instance.TravelHistoryServerRpc(moon.LevelName);
-        }
+        Loggers.LogDebug("saving darmuhsTerminalStuff_Upgrades");
+        ES3.Save<List<string>>("darmuhsTerminalStuff_Upgrades", unlockList, GameNetworkManager.Instance.currentSaveFileName);
+    }
+
+    internal static void SaveTravelHistory(List<string> travelHistory)
+    {
+        if (!GameNetworkManager.Instance.isHostingGame)
+            return;
+
+        Loggers.LogDebug($"saving darmuhsTerminalStuff_MoonsPlusHistory from list ({travelHistory.Count}):");
+        foreach (string t in travelHistory)
+            Loggers.LogDebug(t);
+        ES3.Save<List<string>>("darmuhsTerminalStuff_MoonsPlusHistory", travelHistory, GameNetworkManager.Instance.currentSaveFileName);
+    }
+
+    internal static void AddToTravelHistory(MoonInfo moon)
+    {
+        //networking disabled
+        if (!ConfigSettings.ModNetworking.Value)
+            return;
+
+        if (GameNetworkManager.Instance.localPlayerController == null)
+            return;
+
+        if (!MoonsVisited.Contains(moon.LevelName))
+            MoonsVisited.Add(moon.LevelName);
+
+        if (GameNetworkManager.Instance.localPlayerController.IsHost)
+            SaveTravelHistory(MoonsVisited);
+
+        NetHandler.Instance.TravelHistoryServerRpc(moon.LevelName);
     }
 }

@@ -4,136 +4,136 @@ using OpenLib.CoreMethods;
 using OpenLib.Menus;
 using System.Collections.Generic;
 using TerminalStuff.Configs;
+using TerminalStuff.PluginCore;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.Menus.MenuBuild;
 
-namespace TerminalStuff
+namespace TerminalStuff;
+
+
+internal class MenuBuild
 {
-
-    internal class MenuBuild
+    internal static List<TerminalMenuCategory> myMenuCategories = [];
+    internal static List<TerminalMenuItem> myMenuItems = [];
+    internal static TerminalMenu myMenu;
+    internal static void CategoryList()
     {
-        internal static List<TerminalMenuCategory> myMenuCategories = [];
-        internal static List<TerminalMenuItem> myMenuItems = [];
-        internal static TerminalMenu myMenu;
-        internal static void CategoryList()
+        Dictionary<string, string> myCategories = [];
+        myMenuItems.Clear();
+        myMenuItems = TerminalMenuItems(defaultManaged);
+        AddMenuItems(Commands.TerminalStuffBools, myMenuItems);
+        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "COMFORT"))
+            myCategories.Add("COMFORT", "Improves the terminal user experience.");
+        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "EXTRAS"))
+            myCategories.Add("EXTRAS", "Adds extra functionality to the ship terminal.");
+        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "CONTROLS"))
+            myCategories.Add("CONTROLS", "Gives terminal more control of the ship's systems.");
+        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "FUN"))
+            myCategories.Add("FUN", "Type \"fun\" for a list of these [FUN]ctional commands.");
+
+        if (myCategories.Count == 0)
         {
-            Dictionary<string, string> myCategories = [];
-            myMenuItems.Clear();
-            myMenuItems = TerminalMenuItems(defaultManaged);
-            AddMenuItems(Commands.TerminalStuffBools, myMenuItems);
-            if (ShouldAddCategoryNameToMainMenu(myMenuItems, "COMFORT"))
-                myCategories.Add("COMFORT", "Improves the terminal user experience.");
-            if (ShouldAddCategoryNameToMainMenu(myMenuItems, "EXTRAS"))
-                myCategories.Add("EXTRAS", "Adds extra functionality to the ship terminal.");
-            if (ShouldAddCategoryNameToMainMenu(myMenuItems, "CONTROLS"))
-                myCategories.Add("CONTROLS", "Gives terminal more control of the ship's systems.");
-            if (ShouldAddCategoryNameToMainMenu(myMenuItems, "FUN"))
-                myCategories.Add("FUN", "Type \"fun\" for a list of these [FUN]ctional commands.");
-
-            if (myCategories.Count == 0)
-            {
-                Plugin.WARNING("No enabled commands? ending menu creation");
-            }
-            myMenuCategories = InitCategories(myCategories);
-
-            //CatName = item.Key,
-            //CatDescription = item.Value
-            CreateDarmuhsTerminalStuffMenus();
+            Loggers.WARNING("No enabled commands? ending menu creation");
         }
+        myMenuCategories = InitCategories(myCategories);
 
-        internal static void CreateDarmuhsTerminalStuffMenus()
+        //CatName = item.Key,
+        //CatDescription = item.Value
+        CreateDarmuhsTerminalStuffMenus();
+    }
+
+    internal static void CreateDarmuhsTerminalStuffMenus()
+    {
+        Loggers.LogDebug("START CreateDarmuhsTerminalStuffMenus");
+        EventSub.TerminalStart.InitiateTerminalStuff();
+        if (!QoLConfig.CreateMoreMenus.Value)
         {
-            Plugin.Spam("START CreateDarmuhsTerminalStuffMenus");
-            EventSub.TerminalStart.InitiateTerminalStuff();
-            if (!QoLConfig.CreateMoreMenus.Value)
-            {
-                if (!DynamicBools.TryGetKeyword("other", out TerminalKeyword otherWord))
-                    return;
+            if (!DynamicBools.TryGetKeyword("other", out TerminalKeyword otherWord))
+                return;
 
-                foreach (TerminalMenuItem item in myMenuItems)
+            foreach (TerminalMenuItem item in myMenuItems)
+            {
+                if (item.itemKeywords.Count == 0)
                 {
-                    if (item.itemKeywords.Count == 0)
-                    {
-                        Plugin.WARNING($"{item.ItemName} has no keywords!!");
-                        continue;
-                    }
-
-                    if (item == null)
-                    {
-                        Plugin.WARNING($"NULL ITEM IN myMenuItems!!!");
-                        continue;
-                    }
-
-                    AddingThings.AddToExistingNodeText($"\n>{CommonStringStuff.GetKeywordsForMenuItem(item.itemKeywords).ToUpper()}\n{item.itemDescription}", ref otherWord.specialKeywordResult);
-                    Plugin.Spam($"{item.ItemName} keywords added to other menu");
+                    Loggers.WARNING($"{item.ItemName} has no keywords!!");
+                    continue;
                 }
-                return;
-            }
-            myMenu = AssembleMainMenu("darmuhsTerminalStuff", "more", CustomizeConfig.MoreMenuText.Value, myMenuCategories, myMenuItems);
-            AddingThings.AddToHelpCommand(CustomizeConfig.MoreHintText.Value);
-            if (LogicHandling.TryGetFromAllNodes("OtherCommands", out TerminalNode otherNode))
-                AddingThings.AddToExistingNodeText($"\n{CustomizeConfig.MoreHintText.Value}", ref otherNode);
 
-            Plugin.Spam($"myMenu info:\nMenuName: {myMenu.MenuName}\nmyMenu.Categories.Count: {myMenu.Categories.Count}\n");
-
-
-            if (QoLConfig.FauxMoreMenu.Value)
-                CreateCategoryFauxCommands(myMenu, defaultListing);
-            else
-                CreateCategoryCommands(myMenu, ConfigSettings.TerminalStuffMain);
-
-            Plugin.Spam("END CreateDarmuhsTerminalStuffMenus");
-
-        }
-
-        internal static void AddMenuItems(List<ManagedConfig> managedItems, TerminalMenu myMenu)
-        {
-            if (myMenu.menuItems.Count == 0)
-                return;
-
-            foreach (ManagedConfig item in managedItems)
-            {
-                if (item.menuItem == null)
+                if (item == null)
+                {
+                    Loggers.WARNING($"NULL ITEM IN myMenuItems!!!");
                     continue;
+                }
 
-                if (!myMenu.menuItems.Contains(item.menuItem))
-                    myMenu.menuItems.Add(item.menuItem);
+                AddingThings.AddToExistingNodeText($"\n>{CommonStringStuff.GetKeywordsForMenuItem(item.itemKeywords).ToUpper()}\n{item.itemDescription}", ref otherWord.specialKeywordResult);
+                Loggers.LogDebug($"{item.ItemName} keywords added to other menu");
             }
+            return;
         }
+        myMenu = AssembleMainMenu("darmuhsTerminalStuff", "more", CustomizeConfig.MoreMenuText.Value, myMenuCategories, myMenuItems);
+        AddingThings.AddToHelpCommand(CustomizeConfig.MoreHintText.Value);
+        if (LogicHandling.TryGetFromAllNodes("OtherCommands", out TerminalNode otherNode))
+            AddingThings.AddToExistingNodeText($"\n{CustomizeConfig.MoreHintText.Value}", ref otherNode);
 
-        internal static void AddMenuItems(List<ManagedConfig> managedItems, List<TerminalMenuItem> myMenuItems)
+        Loggers.LogDebug($"myMenu info:\nMenuName: {myMenu.MenuName}\nmyMenu.Categories.Count: {myMenu.Categories.Count}\n");
+
+
+        if (QoLConfig.FauxMoreMenu.Value)
+            CreateCategoryFauxCommands(myMenu, defaultListing);
+        else
+            CreateCategoryCommands(myMenu, ConfigSettings.TerminalStuffMain);
+
+        Loggers.LogDebug("END CreateDarmuhsTerminalStuffMenus");
+
+    }
+
+    internal static void AddMenuItems(List<ManagedConfig> managedItems, TerminalMenu myMenu)
+    {
+        if (myMenu.menuItems.Count == 0)
+            return;
+
+        foreach (ManagedConfig item in managedItems)
         {
-            if (myMenuItems.Count == 0)
-                return;
+            if (item.menuItem == null)
+                continue;
 
-            foreach (ManagedConfig item in managedItems)
-            {
-                if (item.menuItem == null)
-                    continue;
-
-                if (!myMenuItems.Contains(item.menuItem))
-                    myMenuItems.Add(item.menuItem);
-            }
+            if (!myMenu.menuItems.Contains(item.menuItem))
+                myMenu.menuItems.Add(item.menuItem);
         }
+    }
 
-        internal static void RefreshMyMenu()
+    internal static void AddMenuItems(List<ManagedConfig> managedItems, List<TerminalMenuItem> myMenuItems)
+    {
+        if (myMenuItems.Count == 0)
+            return;
+
+        foreach (ManagedConfig item in managedItems)
         {
-            if (myMenu == null)
-                return;
+            if (item.menuItem == null)
+                continue;
 
-            myMenu.menuItems.Clear();
-            myMenuItems.Clear();
-            myMenuItems = TerminalMenuItems(defaultManaged);
-            myMenu.menuItems = myMenuItems;
-            AddMenuItems(Commands.TerminalStuffBools, myMenu);
-            UpdateCategories(myMenu);
+            if (!myMenuItems.Contains(item.menuItem))
+                myMenuItems.Add(item.menuItem);
         }
+    }
 
-        internal static void ClearMyMenustuff()
-        {
-            myMenu?.Delete();
-            myMenuItems.Clear();
-            myMenuCategories.Clear();
-        }
+    internal static void RefreshMyMenu()
+    {
+        if (myMenu == null)
+            return;
+
+        myMenu.menuItems.Clear();
+        myMenuItems.Clear();
+        myMenuItems = TerminalMenuItems(defaultManaged);
+        myMenu.menuItems = myMenuItems;
+        AddMenuItems(Commands.TerminalStuffBools, myMenu);
+        UpdateCategories(myMenu);
+    }
+
+    internal static void ClearMyMenustuff()
+    {
+        myMenu?.Delete();
+        myMenuItems.Clear();
+        myMenuCategories.Clear();
     }
 }

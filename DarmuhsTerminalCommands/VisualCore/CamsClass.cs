@@ -2,12 +2,11 @@
 
 using UnityEngine;
 
-namespace TerminalStuff.VisualCore
+namespace TerminalStuff.VisualCore;
+
+public class CamsClass
 {
-    public class CamsClass
-    {
-        public string Mode = "";
-        public Texture radarTexture;
-        public Texture camsTexture;
-    }
+    public string Mode = "";
+    public Texture radarTexture;
+    public Texture camsTexture;
 }

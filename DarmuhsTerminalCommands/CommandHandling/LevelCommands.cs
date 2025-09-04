@@ -1,73 +1,73 @@
 ﻿using System.Collections.Generic;
+using TerminalStuff.PluginCore;
 using static TerminalStuff.StringStuff;
 using Random = System.Random;
 
-namespace TerminalStuff
+namespace TerminalStuff;
+
+internal class LevelCommands
 {
-    internal class LevelCommands
+    internal static List<string> bannedWeather = [];
+    internal static List<string> bannedWeatherConfig = [];
+    //ChangeLevelServerRpc
+    internal static string RouteRandomCommand()
     {
-        internal static List<string> bannedWeather = [];
-        internal static List<string> bannedWeatherConfig = [];
-        //ChangeLevelServerRpc
-        internal static string RouteRandomCommand()
+        string displayText;
+
+        if (Plugin.instance.Terminal.groupCredits < ConfigSettings.RouteRandomCost.Value)
         {
-            string displayText;
+            displayText = $"You cannot afford to run the 'route random' command.\r\n\r\n\tRoute Random Cost: [{ConfigSettings.RouteRandomCost.Value}]\r\n\tYour credits: <color=#BD3131>[{Plugin.instance.Terminal.groupCredits}]</color>\r\n\r\n\r\n";
+            return displayText;
+        }
 
-            if (Plugin.instance.Terminal.groupCredits < ConfigSettings.RouteRandomCost.Value)
+        bannedWeatherConfig = GetKeywordsPerConfigItem(ConfigSettings.RouteRandomBannedWeather.Value);
+        bannedWeather = GetListToLower(bannedWeatherConfig);
+
+        List<SelectableLevel> validLevels = [];
+        //StartOfRound.Instance.levels
+        //Plugin.instance.Terminal.moonsCatalogueList
+
+        foreach (SelectableLevel level in Plugin.instance.Terminal.moonsCatalogueList)
+        {
+            if (bannedWeather.Contains(level.currentWeather.ToString().ToLower()))
             {
-                displayText = $"You cannot afford to run the 'route random' command.\r\n\r\n\tRoute Random Cost: [{ConfigSettings.RouteRandomCost.Value}]\r\n\tYour credits: <color=#BD3131>[{Plugin.instance.Terminal.groupCredits}]</color>\r\n\r\n\r\n";
-                return displayText;
+                Loggers.LogInfo($"{level.PlanetName} has banned weather: {level.currentWeather}");
             }
-
-            bannedWeatherConfig = GetKeywordsPerConfigItem(ConfigSettings.RouteRandomBannedWeather.Value);
-            bannedWeather = GetListToLower(bannedWeatherConfig);
-
-            List<SelectableLevel> validLevels = [];
-            //StartOfRound.Instance.levels
-            //Plugin.instance.Terminal.moonsCatalogueList
-
-            foreach (SelectableLevel level in Plugin.instance.Terminal.moonsCatalogueList)
+            else
             {
-                if (bannedWeather.Contains(level.currentWeather.ToString().ToLower()))
+                if (ConfigSettings.RouteOnlyInCurrentConstellation.Value && Plugin.instance.Constellations)
                 {
-                    Plugin.MoreLogs($"{level.PlanetName} has banned weather: {level.currentWeather}");
+                    if (Compatibility.ConstellationsCompat.IsLevelInConstellation(level))
+                    {
+                        validLevels.Add(level);
+                        Loggers.LogInfo($"Added {level.PlanetName} to valid random planets within the current constellation!");
+                    }
+                    else
+                        continue;
                 }
                 else
                 {
-                    if (ConfigSettings.RouteOnlyInCurrentConstellation.Value && Plugin.instance.Constellations)
-                    {
-                        if (Compatibility.ConstellationsCompat.IsLevelInConstellation(level))
-                        {
-                            validLevels.Add(level);
-                            Plugin.MoreLogs($"Added {level.PlanetName} to valid random planets within the current constellation!");
-                        }
-                        else
-                            continue;
-                    }
-                    else
-                    {
-                        validLevels.Add(level);
-                        Plugin.MoreLogs($"Added {level.PlanetName} to valid random planets");
-                    }
+                    validLevels.Add(level);
+                    Loggers.LogInfo($"Added {level.PlanetName} to valid random planets");
                 }
             }
+        }
 
-            if (validLevels.Count < 1)
-            {
-                displayText = $"Route Random was unable to select a valid moon and you have not been charged.\r\n\r\nThis may be due to all moons have banned weather attributes...\r\n\r\n\r\n";
-                return displayText;
-            }
-            Random rand = new();
-            int randomIndex = rand.Next(0, validLevels.Count);
-            Plugin.MoreLogs($"{validLevels[randomIndex].PlanetName} has been chosen!");
-
-            StartOfRound.Instance.ChangeLevelServerRpc(validLevels[randomIndex].levelID, Plugin.instance.Terminal.groupCredits);
-            StartOfRound.Instance.SetMapScreenInfoToCurrentLevel();
-
-            int newCreds = CostCommands.CalculateNewCredits(Plugin.instance.Terminal.groupCredits, ConfigSettings.RouteRandomCost.Value, Plugin.instance.Terminal);
-
-            displayText = $"Your new balance is ■{newCreds} Credits.\r\n\r\nRoute Random has chosen {validLevels[randomIndex].PlanetName}!\r\n\r\n\tEnjoy!\r\n\r\n";
+        if (validLevels.Count < 1)
+        {
+            displayText = $"Route Random was unable to select a valid moon and you have not been charged.\r\n\r\nThis may be due to all moons have banned weather attributes...\r\n\r\n\r\n";
             return displayText;
         }
+        Random rand = new();
+        int randomIndex = rand.Next(0, validLevels.Count);
+        Loggers.LogInfo($"{validLevels[randomIndex].PlanetName} has been chosen!");
+
+        StartOfRound.Instance.ChangeLevelServerRpc(validLevels[randomIndex].levelID, Plugin.instance.Terminal.groupCredits);
+        StartOfRound.Instance.SetMapScreenInfoToCurrentLevel();
+
+        int newCreds = CostCommands.CalculateNewCredits(Plugin.instance.Terminal.groupCredits, ConfigSettings.RouteRandomCost.Value, Plugin.instance.Terminal);
+
+        displayText = $"Your new balance is ■{newCreds} Credits.\r\n\r\nRoute Random has chosen {validLevels[randomIndex].PlanetName}!\r\n\r\n\tEnjoy!\r\n\r\n";
+        return displayText;
     }
 }

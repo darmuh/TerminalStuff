@@ -1,16 +1,15 @@
 ﻿using static GeneralImprovements.Plugin;
 
-namespace TerminalStuff.Compatibility
+namespace TerminalStuff.Compatibility;
+
+internal class GenImproves
 {
-    internal class GenImproves
+    internal static int GetMaxItems()
     {
-        internal static int GetMaxItems()
-        {
-            if (!Plugin.instance.GenImprovements)
-                return 18;
+        if (!Plugin.instance.GenImprovements)
+            return 18;
 
-            return DropShipItemLimit.Value;
+        return DropShipItemLimit.Value;
 
-        }
     }
 }

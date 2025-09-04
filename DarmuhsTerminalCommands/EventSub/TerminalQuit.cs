@@ -1,66 +1,66 @@
 ﻿using OpenLib.Common;
 using TerminalStuff.Configs;
+using TerminalStuff.PluginCore;
 using static TerminalStuff.AlwaysOnStuff;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.TerminalEvents;
 
-namespace TerminalStuff.EventSub
+namespace TerminalStuff.EventSub;
+
+internal class TerminalQuit
 {
-    internal class TerminalQuit
+    internal static void OnTerminalQuit()
     {
-        internal static void OnTerminalQuit()
+        if (QoLConfig.SaveLastInput.Value && Plugin.instance.Terminal.currentNode != null && Plugin.instance.Terminal.currentNode.name != "TerminalQuit")
         {
-            if (QoLConfig.SaveLastInput.Value && Plugin.instance.Terminal.currentNode != null && Plugin.instance.Terminal.currentNode.name != "TerminalQuit")
-            {
-                lastText = CommonStringStuff.GetCleanedScreenText(Plugin.instance.Terminal);
-                Plugin.Spam("grabbed lastText");
-            }
-
-            if (StartOfRound.Instance.localPlayerController != null)
-                ShouldLockPlayerCamera(true, StartOfRound.Instance.localPlayerController);
-
-            //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}");
-            if (!alwaysOnDisplay || screenSettings.inUse)
-            {
-                HandleRegularQuit();
-            }
+            lastText = CommonStringStuff.GetCleanedScreenText(Plugin.instance.Terminal);
+            Loggers.LogDebug("grabbed lastText");
         }
 
-        internal static void OBCTerminalCameraStatus(bool status)
+        if (StartOfRound.Instance.localPlayerController != null)
+            ShouldLockPlayerCamera(true, StartOfRound.Instance.localPlayerController);
+
+        //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}");
+        if (!alwaysOnDisplay || screenSettings.inUse)
         {
-            if (status == false)
+            HandleRegularQuit();
+        }
+    }
+
+    internal static void OBCTerminalCameraStatus(bool status)
+    {
+        if (status == false)
+        {
+            if (Plugin.instance.suitsTerminal)
             {
-                if (Plugin.instance.suitsTerminal)
-                {
-                    if (SuitsTerminalCompatibility.CheckForSuitsMenu())
-                        OpenLib.Compat.OpenBodyCamFuncs.TerminalCameraStatus(status);
-                    else
-                    {
-                        OpenLib.Compat.OpenBodyCamFuncs.TerminalMirrorStatus(status);
-                        OpenLib.Compat.OpenBodyCamFuncs.TerminalCameraStatus(status);
-                    }
-                }
+                if (SuitsTerminalCompatibility.CheckForSuitsMenu())
+                    OpenLib.Compat.OpenBodyCamFuncs.TerminalCameraStatus(status);
                 else
                 {
                     OpenLib.Compat.OpenBodyCamFuncs.TerminalMirrorStatus(status);
                     OpenLib.Compat.OpenBodyCamFuncs.TerminalCameraStatus(status);
                 }
             }
-            else if (Plugin.instance.isOnMirror)
+            else
             {
                 OpenLib.Compat.OpenBodyCamFuncs.TerminalMirrorStatus(status);
-            }
-            else
                 OpenLib.Compat.OpenBodyCamFuncs.TerminalCameraStatus(status);
-        }
-
-        private static void HandleRegularQuit()
-        {
-            if (ViewCommands.AnyActiveMonitoring() || Plugin.instance.isOnMirror)
-            {
-                Plugin.MoreLogs("Leaving terminal and disabling any active cameras");
-                SplitViewChecks.ShowCameraView(false);
             }
+        }
+        else if (Plugin.instance.isOnMirror)
+        {
+            OpenLib.Compat.OpenBodyCamFuncs.TerminalMirrorStatus(status);
+        }
+        else
+            OpenLib.Compat.OpenBodyCamFuncs.TerminalCameraStatus(status);
+    }
+
+    private static void HandleRegularQuit()
+    {
+        if (ViewCommands.AnyActiveMonitoring() || Plugin.instance.isOnMirror)
+        {
+            Loggers.LogInfo("Leaving terminal and disabling any active cameras");
+            SplitViewChecks.ShowCameraView(false);
         }
     }
 }

@@ -1,12 +1,11 @@
 ﻿using LethalConstellations.PluginCore;
 
-namespace TerminalStuff.Compatibility
+namespace TerminalStuff.Compatibility;
+
+internal class ConstellationsCompat
 {
-    internal class ConstellationsCompat
+    internal static bool IsLevelInConstellation(SelectableLevel level)
     {
-        internal static bool IsLevelInConstellation(SelectableLevel level)
-        {
-            return ClassMapper.IsLevelInConstellation(level);
-        }
+        return ClassMapper.IsLevelInConstellation(level);
     }
 }

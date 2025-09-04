@@ -3,6 +3,7 @@ using OpenLib.Common;
 using System.Collections.Generic;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
+using TerminalStuff.PluginCore;
 using UnityEngine;
 using static TerminalStuff.AllMyTerminalPatches;
 using static TerminalStuff.ViewCommands;
@@ -64,7 +65,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
             FixVideoPatch.OnVideoEnd(Plugin.instance.Terminal);
             isVideoPlaying = false;
             //Plugin.Log.LogInfo("isVideoPlaying set to FALSE");
-            Plugin.MoreLogs("disabling video");
+            Loggers.LogInfo("disabling video");
         }
     }
 
@@ -73,7 +74,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         if (!excludedNames.Contains(nodeName) && HideCams())
         {
             SplitViewChecks.DisableSplitView("neither");
-            Plugin.MoreLogs("disabling ANY cams views");
+            Loggers.LogInfo("disabling ANY cams views");
         }
         else if (nodeName == "ViewInsideShipCam 1" && node != null)
         {
@@ -93,7 +94,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
                 return true;
         }
 
-        Plugin.Spam("this node is not a managed node, resetting instance variables");
+        Loggers.LogDebug("this node is not a managed node, resetting instance variables");
         return false;
     }
 
@@ -106,19 +107,19 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
     {
         if (Plugin.instance.OpenBodyCamsMod)
         {
-            Plugin.Spam("Sending to OBC for camera info");
+            Loggers.LogDebug("Sending to OBC for camera info");
             OpenLib.Compat.OpenBodyCamFuncs.UpdateCamsTarget(ConfigSettings.ObcResolutionBodyCam.Value);
             return OpenLib.Compat.OpenBodyCamFuncs.GetTexture(OpenLib.Compat.OpenBodyCamFuncs.TerminalBodyCam);
         }
         else if (Plugin.instance.SolosBodyCamsMod || Plugin.instance.HelmetCamsMod)
         {
-            Plugin.Spam("Grabbing monitor texture for other external bodycams mods");
+            Loggers.LogDebug("Grabbing monitor texture for other external bodycams mods");
             return PlayerCamsCompatibility.PlayerCamTexture();
         }
         else
         {
-            Plugin.Spam("No external mods detected, defaulting to internal cams system.");
-                return UpdateCamsTarget(newTarget);
+            Loggers.LogDebug("No external mods detected, defaulting to internal cams system.");
+            return UpdateCamsTarget(newTarget);
         }
     }
 
@@ -139,12 +140,12 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
 
         if (!GameStuff.TerminalMapRenderer.radarTargets[targetNum].isNonPlayer)
         {
-            Plugin.Spam($"Using internal mod camera on valid player - {targetNum}");
+            Loggers.LogDebug($"Using internal mod camera on valid player - {targetNum}");
             return PlayerCamTexture(targetNum);
         }
         else
         {
-            Plugin.Spam("Using internal mod camera on valid non-player");
+            Loggers.LogDebug("Using internal mod camera on valid non-player");
             return RadarCamTexture(targetNum);
         }
     }
@@ -154,7 +155,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
 
         if (playerCam == null)
         {
-            Plugin.MoreLogs("Creating home-brew PlayerCam");
+            Loggers.LogInfo("Creating home-brew PlayerCam");
             playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref CamStuff.MyCameraHolder);
         }
 
@@ -167,12 +168,12 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         if (targetedPlayer != null)
         {
             camTransform = targetedPlayer.gameplayCamera.transform;
-            Plugin.MoreLogs($"Valid player for cams update {targetedPlayer.playerUsername}");
+            Loggers.LogInfo($"Valid player for cams update {targetedPlayer.playerUsername}");
         }
         else
         {
             camTransform = GameStuff.TerminalMapRenderer.radarTargets[targetPlayer].transform;
-            Plugin.MoreLogs($"Invalid player{targetPlayer} for cams update, sending to backup trasnsform");
+            Loggers.LogInfo($"Invalid player{targetPlayer} for cams update, sending to backup trasnsform");
         }
 
         playerCam.transform.rotation = camTransform.rotation;
@@ -191,7 +192,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
 
         if (playerCam == null)
         {
-            Plugin.MoreLogs("Creating home-brew PlayerCam");
+            Loggers.LogInfo("Creating home-brew PlayerCam");
             playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref CamStuff.MyCameraHolder);
         }
 
@@ -227,14 +228,14 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
     {
         int count = targets.Count;
         int nextTarget = initialIndex;
-        Plugin.Spam($"Count: {targets.Count}");
-        Plugin.Spam($"initialIndex: {initialIndex}");
+        Loggers.LogDebug($"Count: {targets.Count}");
+        Loggers.LogDebug($"initialIndex: {initialIndex}");
 
         // Handle the case when initialIndex is zero
         if (initialIndex == 0)
         {
             nextTarget = count;
-            Plugin.Spam($"initialIndex is 0, setting nextTarget to {nextTarget}");
+            Loggers.LogDebug($"initialIndex is 0, setting nextTarget to {nextTarget}");
         }
 
         // Iterate through the list of targets
@@ -243,11 +244,11 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
             // Calculate the index of the previous target
             int num = (nextTarget - i) % count;
 
-            Plugin.Spam($"{num} = {nextTarget} - {i} % {count}");
-            Plugin.Spam($"{num} + {count} % {count}");
+            Loggers.LogDebug($"{num} = {nextTarget} - {i} % {count}");
+            Loggers.LogDebug($"{num} + {count} % {count}");
             // Ensure num is non-negative
             num = (num + count) % count;
-            Plugin.Spam($"= {num}");
+            Loggers.LogDebug($"= {num}");
             // Check if the target at the calculated index is valid
             if (TargetIsValid(targets[num]))
                 return num;
@@ -258,36 +259,36 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
     }
     internal static bool TargetIsValid(TransformAndName target) //copied from TwoRadarMaps, added log statements just to see how it works
     {
-        if(target == null) return false;
+        if (target == null) return false;
 
         var targetTransform = target.transform;
 
         if (targetTransform == null)
         {
-            Plugin.MoreLogs("not a valid target");
+            Loggers.LogInfo("not a valid target");
             return false;
         }
 
         PlayerControllerB component = targetTransform.transform.GetComponent<PlayerControllerB>();
         if (component == null)
         {
-            Plugin.MoreLogs("Null player component, must be radar (returning true)");
+            Loggers.LogInfo("Null player component, must be radar (returning true)");
             return true;
         }
 
         if (!component.isPlayerControlled && !component.isPlayerDead)
         {
-            Plugin.MoreLogs($"player is not player controlled and is not dead, redirect to enemy: {component.redirectToEnemy != null}");
+            Loggers.LogInfo($"player is not player controlled and is not dead, redirect to enemy: {component.redirectToEnemy != null}");
             return component.redirectToEnemy != null;
         }
 
-        Plugin.MoreLogs("TargetIsValid, no specific conditions met");
+        Loggers.LogInfo("TargetIsValid, no specific conditions met");
         return true;
     }
 
     internal static void OnTargetSwitch(int newTarget)
     {
-        Plugin.Spam("Target Switch Event!");
+        Loggers.LogDebug("Target Switch Event!");
 
         if (!AnyActiveMonitoring())
             return;
@@ -297,14 +298,14 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
 
         if (!IsExternalCamsPresent())
         {
-            Plugin.MoreLogs("Updating homebrew target");
+            Loggers.LogInfo("Updating homebrew target");
             UpdateCamsTarget(newTarget);
             return;
         }
         else
         {
             if (Plugin.instance.OpenBodyCamsMod && !OpenLib.Compat.OpenBodyCamFuncs.ShowingBodyCam)
-                Plugin.MoreLogs("OBC Terminal Body Cam is NOT active");
+                Loggers.LogInfo("OBC Terminal Body Cam is NOT active");
             else
                 GetPlayerCamsFromExternalMod(newTarget);
         }

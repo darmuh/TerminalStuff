@@ -65,16 +65,26 @@ public class MoonsPlus
         if (DynamicBools.TryGetKeyword("moons", out TerminalKeyword Moons))
         {
             Moons.specialKeywordResult = OriginalMoonsPage;
-            Plugin.Spam("Moons keyword set back to original");
+            Loggers.LogDebug("Moons keyword set back to original");
         }
     }
 
     internal static void LoadAssets()
     {
-        if(hiddenAsset == null)
-            hiddenAsset = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("TerminalStuff.Assets.hidden169"));
-        
-        if(HiddenClip == null)
+        string fileName = Assembly.GetExecutingAssembly().GetManifestResourceNames().Single(str => str.EndsWith("hidden169"));
+
+        if (string.IsNullOrEmpty(fileName))
+        {
+            Loggers.WARNING("Unable to get embedded resource, hidden169!");
+            return;
+        }
+        else
+            Loggers.LogDebug($"Found hidden169 @ {fileName}");
+
+        if (hiddenAsset == null)
+            hiddenAsset = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(fileName));
+
+        if (HiddenClip == null)
             HiddenClip = (VideoClip)hiddenAsset.LoadAsset("hidden169.mp4");
 
     }
@@ -114,7 +124,7 @@ public class MoonsPlus
 
         for (int i = 0; i < StartOfRound.Instance.levels.Length; i++)
         {
-            Plugin.Spam($"MoonsPlusSetup - {StartOfRound.Instance.levels[i].name}");
+            Loggers.LogDebug($"MoonsPlusSetup - {StartOfRound.Instance.levels[i].name}");
             if (StartOfRound.Instance.levels[i].name == "LiquidationLevel")
                 continue;
 
@@ -140,13 +150,13 @@ public class MoonsPlus
             SetToVanilla();
             return;
         }
-            
-        if (StartOfRound.Instance.levels.Length == 0) 
+
+        if (StartOfRound.Instance.levels.Length == 0)
             return;
 
         LoadAssets();
         SetupBetterMenu();
-        
+
         MoonsPlusMenu.IsMenuEnabled = true;
         MoonsPlusMenu.ActiveSelection = 0;
         MoonsPlusMenu.CurrentPage = 1;
@@ -171,7 +181,7 @@ public class MoonsPlus
             Plugin.Log.LogMessage("Moons page replaced with MoonsPlus page!");
         }
         else
-            Plugin.ERROR("UNABLE TO GET MOONS KEYWORD FOR MENU!\nUNABLE TO GET MOONS KEYWORD FOR MENU!\nUNABLE TO GET MOONS KEYWORD FOR MENU!");
+            Loggers.ERROR("UNABLE TO GET MOONS KEYWORD FOR MENU!\nUNABLE TO GET MOONS KEYWORD FOR MENU!\nUNABLE TO GET MOONS KEYWORD FOR MENU!");
     }
 
     internal static string GetFilterFooter()
@@ -280,11 +290,11 @@ public class MoonsPlus
         MenuItem activeMenu = MoonsPlusMenu.AllMenuItemsOfType.FirstOrDefault(x => x.IsActive);
         if (activeMenu == null)
         {
-            Plugin.ERROR("Unable to get activeMenu!");
+            Loggers.ERROR("Unable to get activeMenu!");
             return;
         }
 
-        if(activeMenu != ShowMoons)
+        if (activeMenu != ShowMoons)
         {
             ShowReel(false);
             return;
@@ -297,7 +307,7 @@ public class MoonsPlus
 
         if (current == null)
         {
-            Plugin.WARNING($"Could not get current moon from active index [{MoonsPlusMenu.ActiveSelection}]");
+            Loggers.WARNING($"Could not get current moon from active index [{MoonsPlusMenu.ActiveSelection}]");
             return;
         }
 
@@ -314,14 +324,14 @@ public class MoonsPlus
 
         if (!MoonsPlusConfig.ShowVideoReels.Value)
         {
-            Plugin.Spam($"Video Reels Disabled! (ShowVideoReels is {MoonsPlusConfig.ShowVideoReels.Value})");
+            Loggers.LogDebug($"Video Reels Disabled! (ShowVideoReels is {MoonsPlusConfig.ShowVideoReels.Value})");
             HideReel();
             return;
         }
 
-        if(MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count)
+        if (MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count)
         {
-            Plugin.Spam($"Video Reel Disabled! ActiveSelection is greater than or equal to the display items count!");
+            Loggers.LogDebug($"Video Reel Disabled! ActiveSelection is greater than or equal to the display items count!");
             HideReel();
             return;
         }
@@ -334,7 +344,7 @@ public class MoonsPlus
 
             if (currentMoon != null)
             {
-                if(currentMoon.IsHidden && MoonsPlusConfig.ObscureHiddenInfo.Value)
+                if (currentMoon.IsHidden && MoonsPlusConfig.ObscureHiddenInfo.Value)
                 {
                     if (HiddenClip != null)
                     {
@@ -374,7 +384,7 @@ public class MoonsPlus
 
         if (!currentMoon.IsHidden)
             return;
-        
+
         StartOfRound.Instance.screenLevelVideoReel.enabled = false;
         StartOfRound.Instance.screenLevelVideoReel.gameObject.SetActive(value: false);
         StartOfRound.Instance.screenLevelDescription.text = "\t????????";
@@ -408,7 +418,7 @@ public class MoonsPlus
 
     internal static void UpdateMoonTravelHistory(string levelName)
     {
-        if(TryGetMoon(levelName, out MoonInfo moon))
+        if (TryGetMoon(levelName, out MoonInfo moon))
         {
             if (MoonsPlusConfig.OneTimePurchase.Value)
                 moon.OTP = true;
@@ -418,7 +428,7 @@ public class MoonsPlus
 
     internal static List<string> GetTravelHistory()
     {
-        Plugin.Spam("GetTravelHistory");
+        Loggers.LogDebug("GetTravelHistory");
         MoonInfo currentMoon = MoonListing.FirstOrDefault(x => x.IsCurrent);
 
         if (currentMoon != null)
@@ -450,14 +460,14 @@ public class MoonsPlus
     public static bool TryGetMoon(SelectableLevel level, out MoonInfo moon)
     {
         moon = null!;
-        if(MoonListing.Count == 0)
+        if (MoonListing.Count == 0)
             return false;
 
         moon = MoonListing.FirstOrDefault(x => x.Level == level);
-        if(moon == null) 
+        if (moon == null)
             return false;
 
-        return true;   
+        return true;
     }
 
     //Try to get a selectable level from the currently displayed moons

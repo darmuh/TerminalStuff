@@ -1,5 +1,7 @@
 ﻿using BepInEx.Configuration;
 using OpenLib.ConfigManager;
+using OpenLib.CoreMethods;
+using System;
 using System.Collections.Generic;
 using TerminalStuff.EventSub;
 using TerminalStuff.PluginCore;
@@ -8,290 +10,368 @@ using static OpenLib.Common.CommonTerminal;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static TerminalStuff.Configs.KeywordConfigs;
 
-namespace TerminalStuff.Configs
+namespace TerminalStuff.Configs;
+
+public class Commands
 {
-    public class Commands
+    //NEW SYSTEM
+    public static List<CommandManager> AllCommands = [];
+
+    //OLD SYSTEM
+    public static List<ManagedConfig> ViewConfig = [];
+    public static List<ManagedConfig> TerminalStuffBools = [];
+
+    //command booleans
+    public static ConfigEntry<bool> TerminalPurchasePacks { get; internal set; } = null!;
+    public static ConfigEntry<bool> TerminalShortcutCommands { get; internal set; } = null!;
+    public static ConfigEntry<bool> TerminalLobby { get; internal set; } = null!; //lobby name command
+    public static ConfigEntry<bool> TerminalCams { get; internal set; } = null!; //cams command
+    public static ConfigEntry<bool> TerminalQuit { get; internal set; } = null!; //quit command
+    public static ConfigEntry<bool> TerminalClear { get; internal set; } = null!; //clear command
+    public static ConfigEntry<bool> TerminalLoot { get; internal set; } = null!; //loot command
+    public static ConfigEntry<bool> TerminalVideo { get; internal set; } = null!; //video command
+    public static ConfigEntry<bool> TerminalHeal { get; internal set; } = null!; //heal command
+    public static ConfigEntry<bool> TerminalFov { get; internal set; } = null!; //Fov command
+    public static ConfigEntry<bool> TerminalGamble { get; internal set; } = null!; //Gamble command
+    public static ConfigEntry<bool> TerminalLever { get; internal set; } = null!; //Lever command
+    public static ConfigEntry<bool> TerminalDanger { get; internal set; } = null!; //Danger command
+    public static ConfigEntry<bool> TerminalVitals { get; internal set; } = null!; //Vitals command
+    public static ConfigEntry<bool> TerminalBioScan { get; internal set; } = null!; //BioScan command
+    public static ConfigEntry<bool> TerminalBioScanPatch { get; internal set; } = null!; //BioScan Upgrade command
+    public static ConfigEntry<bool> TerminalVitalsUpgrade { get; internal set; } = null!; //Vitals Upgrade command
+    public static ConfigEntry<bool> TerminalTP { get; internal set; } = null!; //Teleporter command
+    public static ConfigEntry<bool> TerminalITP { get; internal set; } = null!; //Inverse Teleporter command
+    public static ConfigEntry<bool> TerminalMods { get; internal set; } = null!; //Modlist command
+    public static ConfigEntry<bool> TerminalKick { get; internal set; } = null!; //Kick command (host only)
+    public static ConfigEntry<bool> TerminalFcolor { get; internal set; } = null!; //Flashlight color command
+    public static ConfigEntry<bool> TerminalMap { get; internal set; } = null!; //Map shortcut
+    public static ConfigEntry<bool> TerminalMinimap { get; internal set; } = null!; //Minimap command
+    public static ConfigEntry<bool> TerminalMinicams { get; internal set; } = null!; //Minicams command
+    public static ConfigEntry<bool> TerminalOverlay { get; internal set; } = null!; //Overlay cams command
+    public static ConfigEntry<bool> TerminalDoor { get; internal set; } = null!; //Door Toggle command
+    public static ConfigEntry<bool> TerminalLights { get; internal set; } = null!; //Light Toggle command
+    public static ConfigEntry<bool> TerminalScolor { get; internal set; } = null!; //Light colors command
+    public static ConfigEntry<bool> TerminalAlwaysOnCommand { get; internal set; } = null!; //AlwaysOn command
+    public static ConfigEntry<bool> TerminalLink { get; internal set; } = null!; //Link command
+    public static ConfigEntry<bool> TerminalLink2 { get; internal set; } = null!; //Link2 command
+    public static ConfigEntry<bool> TerminalRandomSuit { get; internal set; } = null!; //RandomSuit command
+    public static ConfigEntry<bool> TerminalClockCommand { get; internal set; } = null!; //toggle clock command
+    public static ConfigEntry<bool> TerminalListItems { get; internal set; } = null!; //List Items Command
+    public static ConfigEntry<bool> TerminalLootDetail { get; internal set; } = null!; //List Scrap Command
+    public static ConfigEntry<bool> TerminalMirror { get; internal set; } = null!; //mirror command
+    public static ConfigEntry<bool> TerminalRefund { get; internal set; } = null!; //refund command
+    public static ConfigEntry<bool> TerminalRestart { get; internal set; } = null!; //restart command
+    public static ConfigEntry<bool> TerminalPrevious { get; internal set; } = null!; //previous switch command
+    public static ConfigEntry<bool> TerminalRouteRandom { get; internal set; } = null!; // route random command
+    public static ConfigEntry<bool> TerminalRefreshCustomization { get; internal set; } = null!; //refresh customization command
+    public static ConfigEntry<bool> TerminalRadarZoom { get; internal set; } = null!;
+    public static ConfigEntry<bool> TerminalMoonsPlus { get; internal set; } = null!; //MoonsPlus enable/disable
+    public static ConfigEntry<bool> TerminalStorePlus { get; internal set; } = null!; //StorePlus enable/disable
+
+    //overrides
+    public static ConfigEntry<bool> LeverConfirmOverride { get; internal set; } = null!; //disable confirmation check for lever
+    public static ConfigEntry<bool> RestartConfirmOverride { get; internal set; } = null!; //disable confirmation check for lever
+
+    //Cost configs
+    public static ConfigEntry<int> VitalsCost { get; internal set; } = null!; //Cost of Vitals Command
+    public static ConfigEntry<int> VitalsUpgradeCost { get; internal set; } = null!; //Cost of Vitals Upgrade Command
+    public static ConfigEntry<int> BioScanUpgradeCost { get; internal set; } = null!; //Cost of Enemy Scan Upgrade Command
+    public static ConfigEntry<int> BioScanCost { get; internal set; } = null!; //Cost of Enemy Scan Command
+
+
+    public static void Init()
     {
-        public static List<ManagedConfig> ViewConfig = [];
-        public static List<ManagedConfig> TerminalStuffBools = [];
-
-        //command booleans
-        public static ConfigEntry<bool> TerminalPurchasePacks { get; internal set; } = null!;
-        public static ConfigEntry<bool> TerminalShortcutCommands { get; internal set; } = null!;
-        public static ConfigEntry<bool> TerminalLobby { get; internal set; } = null!; //lobby name command
-        public static ConfigEntry<bool> TerminalCams { get; internal set; } = null!; //cams command
-        public static ConfigEntry<bool> TerminalQuit { get; internal set; } = null!; //quit command
-        public static ConfigEntry<bool> TerminalClear { get; internal set; } = null!; //clear command
-        public static ConfigEntry<bool> TerminalLoot { get; internal set; } = null!; //loot command
-        public static ConfigEntry<bool> TerminalVideo { get; internal set; } = null!; //video command
-        public static ConfigEntry<bool> TerminalHeal { get; internal set; } = null!; //heal command
-        public static ConfigEntry<bool> TerminalFov { get; internal set; } = null!; //Fov command
-        public static ConfigEntry<bool> TerminalGamble { get; internal set; } = null!; //Gamble command
-        public static ConfigEntry<bool> TerminalLever { get; internal set; } = null!; //Lever command
-        public static ConfigEntry<bool> TerminalDanger { get; internal set; } = null!; //Danger command
-        public static ConfigEntry<bool> TerminalVitals { get; internal set; } = null!; //Vitals command
-        public static ConfigEntry<bool> TerminalBioScan { get; internal set; } = null!; //BioScan command
-        public static ConfigEntry<bool> TerminalBioScanPatch { get; internal set; } = null!; //BioScan Upgrade command
-        public static ConfigEntry<bool> TerminalVitalsUpgrade { get; internal set; } = null!; //Vitals Upgrade command
-        public static ConfigEntry<bool> TerminalTP { get; internal set; } = null!; //Teleporter command
-        public static ConfigEntry<bool> TerminalITP { get; internal set; } = null!; //Inverse Teleporter command
-        public static ConfigEntry<bool> TerminalMods { get; internal set; } = null!; //Modlist command
-        public static ConfigEntry<bool> TerminalKick { get; internal set; } = null!; //Kick command (host only)
-        public static ConfigEntry<bool> TerminalFcolor { get; internal set; } = null!; //Flashlight color command
-        public static ConfigEntry<bool> TerminalMap { get; internal set; } = null!; //Map shortcut
-        public static ConfigEntry<bool> TerminalMinimap { get; internal set; } = null!; //Minimap command
-        public static ConfigEntry<bool> TerminalMinicams { get; internal set; } = null!; //Minicams command
-        public static ConfigEntry<bool> TerminalOverlay { get; internal set; } = null!; //Overlay cams command
-        public static ConfigEntry<bool> TerminalDoor { get; internal set; } = null!; //Door Toggle command
-        public static ConfigEntry<bool> TerminalLights { get; internal set; } = null!; //Light Toggle command
-        public static ConfigEntry<bool> TerminalScolor { get; internal set; } = null!; //Light colors command
-        public static ConfigEntry<bool> TerminalAlwaysOnCommand { get; internal set; } = null!; //AlwaysOn command
-        public static ConfigEntry<bool> TerminalLink { get; internal set; } = null!; //Link command
-        public static ConfigEntry<bool> TerminalLink2 { get; internal set; } = null!; //Link2 command
-        public static ConfigEntry<bool> TerminalRandomSuit { get; internal set; } = null!; //RandomSuit command
-        public static ConfigEntry<bool> TerminalClockCommand { get; internal set; } = null!; //toggle clock command
-        public static ConfigEntry<bool> TerminalListItems { get; internal set; } = null!; //List Items Command
-        public static ConfigEntry<bool> TerminalLootDetail { get; internal set; } = null!; //List Scrap Command
-        public static ConfigEntry<bool> TerminalMirror { get; internal set; } = null!; //mirror command
-        public static ConfigEntry<bool> TerminalRefund { get; internal set; } = null!; //refund command
-        public static ConfigEntry<bool> TerminalRestart { get; internal set; } = null!; //restart command
-        public static ConfigEntry<bool> TerminalPrevious { get; internal set; } = null!; //previous switch command
-        public static ConfigEntry<bool> TerminalRouteRandom { get; internal set; } = null!; // route random command
-        public static ConfigEntry<bool> TerminalRefreshCustomization { get; internal set; } = null!; //refresh customization command
-        public static ConfigEntry<bool> TerminalRadarZoom { get; internal set; } = null!;
-        public static ConfigEntry<bool> TerminalMoonsPlus { get; internal set; } = null!; //MoonsPlus enable/disable
-        public static ConfigEntry<bool> TerminalStorePlus { get; internal set; } = null!; //StorePlus enable/disable
-
-        //overrides
-        public static ConfigEntry<bool> LeverConfirmOverride { get; internal set; } = null!; //disable confirmation check for lever
-        public static ConfigEntry<bool> RestartConfirmOverride { get; internal set; } = null!; //disable confirmation check for lever
+        //override configs
+        LeverConfirmOverride = MakeGeneric(Plugin.instance.Config, "Controls Configuration", "LeverConfirmOverride", false, "Setting this to true will disable the confirmation check for the <lever> command.");
+        RestartConfirmOverride = MakeGeneric(Plugin.instance.Config, "Controls Configuration", "RestartConfirmOverride", false, "Setting this to true will disable the confirmation check for the <restart> command.");
 
         //Cost configs
-        public static ConfigEntry<int> VitalsCost { get; internal set; } = null!; //Cost of Vitals Command
-        public static ConfigEntry<int> VitalsUpgradeCost { get; internal set; } = null!; //Cost of Vitals Upgrade Command
-        public static ConfigEntry<int> BioScanUpgradeCost { get; internal set; } = null!; //Cost of Enemy Scan Upgrade Command
-        public static ConfigEntry<int> BioScanCost { get; internal set; } = null!; //Cost of Enemy Scan Command
+        VitalsCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "VitalsCost", 10, "Credits cost to run Vitals Command each time it's run.");
+        VitalsUpgradeCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "VitalsUpgradeCost", 200, "Credits cost to upgrade Vitals command to not cost credits anymore.");
+        BioScanUpgradeCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "BioScanUpgradeCost", 300, "Credits cost to upgrade Bioscan command to provide detailed information on scanned enemies.");
+        BioScanCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "BioScanCost", 15, "Credits cost to run Bioscan command each time it's run. (scans for enemy information)");
+
+        //------------------------------------------------MANAGED BOOLS START------------------------------------------------//
+
+        TerminalShortcutCommands = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalShortcutCommands", false, "Enable or disable shortCut commands (dependent on TerminalShortcuts)");
+
+        TerminalLobby = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalLobby", false, "Check for the current lobby name");
+
+        AddLocalCommmand("TerminalLobby", "Comfort", TerminalLobby, LobbyKeywords, MoreCommands.GetLobbyName);
+        //AddManagedBool(TerminalLobby, defaultManaged, false, "COMFORT", LobbyKeywords, MoreCommands.GetLobbyName);
+
+        TerminalQuit = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalQuit", true, "Command to quit terminal");
+
+        AddLocalCommmand("TerminalQuit", "Comfort", TerminalQuit, QuitKeywords, TerminalEvents.QuitTerminalCommand);
+
+        TerminalClear = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalClear", true, "Command to clear terminal text");
+
+        AddLocalCommmand("TerminalClear", "Comfort", TerminalClear, ClearKeywords, ClearText);
+
+        TerminalLoot = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLoot", true, "Command to show total onboard loot value");
+        //AddManagedBool(TerminalLoot, defaultManaged, false, "EXTRAS", LootKeywords, AllTheLootStuff.GetLootSimple, 0, false);
+        AddLocalCommmand("TerminalLoot", "Extras", TerminalLoot, LootKeywords, AllTheLootStuff.GetLootSimple, false);
+
+        TerminalHeal = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalHeal", false, "Command to heal yourself");
+        //AddManagedBool(TerminalHeal, defaultManaged, false, "COMFORT", HealKeywords, MoreCommands.HealCommand);
+        AddLocalCommmand("Heal", "Comfort", TerminalHeal, HealKeywords, MoreCommands.HealCommand);
+
+        TerminalFov = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalFov", false, "Command to change your FOV");
+        //AddManagedBool(TerminalFov, defaultManaged, false, "COMFORT", FovKeywords, DynamicCommands.FovPrompt, 1, true, DynamicCommands.FovConfirm, DynamicCommands.FovDeny, "", "", "fov");
+        AddConfirmationCommand(AddLocalCommmand("Fov", "Comfort", TerminalFov, FovKeywords, DynamicCommands.FovPrompt), DynamicCommands.FovConfirm, DynamicCommands.FovDeny);
+
+        TerminalGamble = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalGamble", false, "Command to gamble your credits, by percentage");
+        //AddManagedBool(TerminalGamble, defaultManaged, true, "FUN", GambleKeywords, GambaCommands.Ask2Gamble, 1, true, GambaCommands.GambleConfirm, GambaCommands.GambleDeny, "", "", GambleKeywords.Value);
+        AddConfirmationCommand(AddNetworkedCommmand("Gamble", "Fun", TerminalGamble, GambleKeywords, GambaCommands.Ask2Gamble), GambaCommands.GambleConfirm, GambaCommands.GambleDeny);
 
 
-        public static void Init()
-        {
-            //override configs
-            LeverConfirmOverride = MakeGeneric(Plugin.instance.Config, "Controls Configuration", "LeverConfirmOverride", false, "Setting this to true will disable the confirmation check for the <lever> command.");
-            RestartConfirmOverride = MakeGeneric(Plugin.instance.Config, "Controls Configuration", "RestartConfirmOverride", false, "Setting this to true will disable the confirmation check for the <restart> command.");
+        TerminalLever = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalLever", true, "Pull the lever from terminal");
+        //AddManagedBool(TerminalLever, defaultManaged, false, "CONTROLS", LeverKeywords, ShipControls.AskLever, 1, true, ShipControls.LeverControlCommand, ShipControls.DenyLever);
+        AddConfirmationCommand(AddLocalCommmand("Lever", "CONTROLS", TerminalLever, LeverKeywords, ShipControls.AskLever), ShipControls.LeverControlCommand, ShipControls.DenyLever);
 
-            //Cost configs
-            VitalsCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "VitalsCost", 10, "Credits cost to run Vitals Command each time it's run.");
-            VitalsUpgradeCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "VitalsUpgradeCost", 200, "Credits cost to upgrade Vitals command to not cost credits anymore.");
-            BioScanUpgradeCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "BioScanUpgradeCost", 300, "Credits cost to upgrade Bioscan command to provide detailed information on scanned enemies.");
-            BioScanCost = MakeGeneric(Plugin.instance.Config, "Upgrades", "BioScanCost", 15, "Credits cost to run Bioscan command each time it's run. (scans for enemy information)");
+        TerminalRestart = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalRestart", true, "Command to restart the lobby (skips firing sequence)");
+        AddConfirmationCommand(AddNetworkedCommmand("Restart", "CONTROLS", TerminalRestart, RestartKeywords, ShipControls.RestartAsk), ShipControls.RestartAction, ShipControls.RestartDeny);
 
-            //------------------------------------------------MANAGED BOOLS START------------------------------------------------//
+        TerminalDanger = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalDanger", false, "Check moon danger level");
+        //AddManagedBool(TerminalDanger, defaultManaged, false, "CONTROLS", DangerKeywords, MoreCommands.DangerCommand);
+        AddLocalCommmand("Danger", "Controls", TerminalDanger, DangerKeywords, MoreCommands.DangerCommand);
 
-            TerminalShortcutCommands = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalShortcutCommands", false, "Enable or disable shortCut commands (dependent on TerminalShortcuts)");
+        TerminalVitals = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalVitals", false, "Scan player being monitored for their vitals");
+        //AddManagedBool(TerminalVitals, defaultManaged, true, "EXTRAS", "vitals", CostCommands.VitalsCommand);
+        AddNetworkedCommmand("Vitals", "Extras", TerminalVitals, VitalsKWs, CostCommands.VitalsCommand);
 
-            TerminalLobby = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalLobby", false, "Check for the current lobby name");
-            AddManagedBool(TerminalLobby, defaultManaged, false, "COMFORT", LobbyKeywords, MoreCommands.GetLobbyName);
+        TerminalBioScan = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalBioScan", false, "Scan for \"non-employee\" lifeforms.");
+        //AddManagedBool(TerminalBioScan, defaultManaged, true, "EXTRAS", "bioscan", CostCommands.BioscanCommand);
+        AddNetworkedCommmand("BioScan", "Extras", TerminalBioScan, BioScanKWs, CostCommands.BioscanCommand);
 
-            TerminalQuit = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalQuit", true, "Command to quit terminal");
+        //----------------------------------upgrade managed bools----------------------------------//
 
-            AddManagedBool(TerminalQuit, defaultManaged, false, "COMFORT", QuitKeywords, TerminalEvents.QuitTerminalCommand);
+        TerminalBioScanPatch = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalBioScanPatch", false, "Purchase-able upgrade patch to bioscan command. The command will provide more precise information after the upgrade.");
+        //AddManagedBool(TerminalBioScanPatch, defaultManaged, true, "EXTRAS", "bioscanpatch", CostCommands.AskBioscanUpgrade, 2, true, CostCommands.PerformBioscanUpgrade, null, "", "You have opted out of purchasing the BioScanner 2.0 Upgrade Patch.\n\n", "", -1, "", "", BioScanUpgradeCost.Value, "BioscanPatch", true, 1);
+        AddStoreCommand(AddNetworkedCommmandManualWords("Bioscan Patch", "Extras", TerminalBioScanPatch, ["bioscanpatch"], CostCommands.AskBioscanUpgrade), "Bioscan Patch", BioScanUpgradeCost, CostCommands.PerformBioscanUpgrade, () => "You have opted out of purchasing the BioScanner 2.0 Upgrade Patch.\n\n", 1, true);
+        
+        TerminalVitalsUpgrade = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalVitalsUpgrade", false, "Purchase-able upgrade to vitals command to make the cost of each vitals scan free!");
+        //AddManagedBool(TerminalVitalsUpgrade, defaultManaged, true, "EXTRAS", "vitalspatch", CostCommands.AskVitalsUpgrade, 2, true, CostCommands.PerformVitalsUpgrade, null, "", "You have opted out of purchasing the Vitals Scanner Upgrade.\n\n", "", -1, "VitalsPatch", "", VitalsUpgradeCost.Value, "VitalsPatch", true, 1);
+        AddStoreCommand(AddNetworkedCommmandManualWords("Vitals Patch", "Extras", TerminalVitalsUpgrade, ["vitalspatch"], CostCommands.AskVitalsUpgrade), "Vitals Patch", VitalsUpgradeCost, CostCommands.PerformVitalsUpgrade, () => "You have opted out of purchasing the Vitals Scanner Upgrade.\n\n", 1, true);
 
-            TerminalClear = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalClear", true, "Command to clear terminal text");
-
-            AddManagedBool(TerminalClear, defaultManaged, false, "COMFORT", ClearKeywords, ClearText);
-
-            TerminalLoot = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLoot", true, "Command to show total onboard loot value");
-            AddManagedBool(TerminalLoot, defaultManaged, false, "EXTRAS", LootKeywords, AllTheLootStuff.GetLootSimple, 0, false);
-
-            TerminalHeal = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalHeal", false, "Command to heal yourself");
-            AddManagedBool(TerminalHeal, defaultManaged, false, "COMFORT", HealKeywords, MoreCommands.HealCommand);
-
-            TerminalFov = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalFov", false, "Command to change your FOV");
-            AddManagedBool(TerminalFov, defaultManaged, false, "COMFORT", FovKeywords, DynamicCommands.FovPrompt, 1, true, DynamicCommands.FovConfirm, DynamicCommands.FovDeny, "", "", "fov");
-
-            TerminalGamble = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalGamble", false, "Command to gamble your credits, by percentage");
-            AddManagedBool(TerminalGamble, defaultManaged, true, "FUN", GambleKeywords, GambaCommands.Ask2Gamble, 1, true, GambaCommands.GambleConfirm, GambaCommands.GambleDeny, "", "", GambleKeywords.Value);
-
-            if (LeverConfirmOverride.Value)
-            {
-                TerminalLever = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalLever", true, "Pull the lever from terminal");
-                AddManagedBool(TerminalLever, defaultManaged, false, "CONTROLS", LeverKeywords, ShipControls.LeverControlCommand);
-            }
-            else
-            {
-                TerminalLever = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalLever", true, "Pull the lever from terminal");
-                AddManagedBool(TerminalLever, defaultManaged, false, "CONTROLS", LeverKeywords, ShipControls.AskLever, 1, true, ShipControls.LeverControlCommand, ShipControls.DenyLever);
-            }
-
-            if (RestartConfirmOverride.Value)
-            {
-                TerminalRestart = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalRestart", true, "Command to restart the lobby (skips firing sequence)");
-                AddManagedBool(TerminalRestart, defaultManaged, true, "CONTROLS", RestartKeywords, ShipControls.RestartAction);
-            }
-            else
-            {
-                TerminalRestart = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalRestart", true, "Command to restart the lobby (skips firing sequence)");
-                AddManagedBool(TerminalRestart, defaultManaged, true, "CONTROLS", RestartKeywords, ShipControls.RestartAsk, 1, true, ShipControls.RestartAction, ShipControls.RestartDeny);
-            }
-
-            TerminalDanger = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalDanger", false, "Check moon danger level");
-            AddManagedBool(TerminalDanger, defaultManaged, false, "CONTROLS", DangerKeywords, MoreCommands.DangerCommand);
-
-            TerminalVitals = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalVitals", false, "Scan player being monitored for their vitals");
-            AddManagedBool(TerminalVitals, defaultManaged, true, "EXTRAS", "vitals", CostCommands.VitalsCommand);
-
-            TerminalBioScan = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalBioScan", false, "Scan for \"non-employee\" lifeforms.");
-            AddManagedBool(TerminalBioScan, defaultManaged, true, "EXTRAS", "bioscan", CostCommands.BioscanCommand);
-
-            //----------------------------------upgrade managed bools----------------------------------//
-
-            TerminalBioScanPatch = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalBioScanPatch", false, "Purchase-able upgrade patch to bioscan command. The command will provide more precise information after the upgrade.");
-            AddManagedBool(TerminalBioScanPatch, defaultManaged, true, "EXTRAS", "bioscanpatch", CostCommands.AskBioscanUpgrade, 2, true, CostCommands.PerformBioscanUpgrade, null, "", "You have opted out of purchasing the BioScanner 2.0 Upgrade Patch.\n\n", "", -1, "", "", BioScanUpgradeCost.Value, "BioscanPatch", true, 1);
-
-            TerminalVitalsUpgrade = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalVitalsUpgrade", false, "Purchase-able upgrade to vitals command to make the cost of each vitals scan free!");
-            AddManagedBool(TerminalVitalsUpgrade, defaultManaged, true, "EXTRAS", "vitalspatch", CostCommands.AskVitalsUpgrade, 2, true, CostCommands.PerformVitalsUpgrade, null, "", "You have opted out of purchasing the Vitals Scanner Upgrade.\n\n", "", -1, "VitalsPatch", "", VitalsUpgradeCost.Value, "VitalsPatch", true, 1);
-
-            //----------------------------------upgrade managed bools----------------------------------//
+        //----------------------------------upgrade managed bools----------------------------------//
 
 
-            TerminalMods = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalMods", false, "Command to see your active mods");
-            AddManagedBool(TerminalMods, defaultManaged, false, "COMFORT", ModsKeywords, MoreCommands.ModListCommand);
+        TerminalMods = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalMods", false, "Command to see your active mods");
+        AddManagedBool(TerminalMods, defaultManaged, false, "COMFORT", ModsKeywords, MoreCommands.ModListCommand);
 
-            TerminalKick = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalKick", false, "Enables kick command for host.");
-            AddManagedBool(TerminalKick, defaultManaged, false, "COMFORT", KickKeywords, AdminCommands.KickPlayersAsk, 1, true, AdminCommands.KickPlayerConfirm, AdminCommands.KickPlayerDeny);
+        TerminalKick = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalKick", false, "Enables kick command for host.");
+        AddManagedBool(TerminalKick, defaultManaged, false, "COMFORT", KickKeywords, AdminCommands.KickPlayersAsk, 1, true, AdminCommands.KickPlayerConfirm, AdminCommands.KickPlayerDeny);
 
-            TerminalFcolor = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalFcolor", false, "Command to change flashlight color.");
-            ManagedConfig fcolor = AddManagedBool(TerminalFcolor, defaultManaged, true, "FUN", FcolorKeywords, ColorCommands.FlashColorBase, 0, true, null, null, "", "", FcolorKeywords.Value);
-            fcolor.InfoAction = ColorCommands.FlashColorList;
+        TerminalFcolor = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalFcolor", false, "Command to change flashlight color.");
+        ManagedConfig fcolor = AddManagedBool(TerminalFcolor, defaultManaged, true, "FUN", FcolorKeywords, ColorCommands.FlashColorBase, 0, true, null, null, "", "", FcolorKeywords.Value);
+        fcolor.InfoAction = ColorCommands.FlashColorList;
 
-            TerminalScolor = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalScolor", false, "Command to change ship lights colors.");
-            ManagedConfig scolor = AddManagedBool(TerminalScolor, defaultManaged, true, "FUN", ScolorKeywords, ColorCommands.ShipColorBase, 0, true, null, null, "", "", ScolorKeywords.Value);
-            scolor.InfoAction = ColorCommands.ShipColorList;
+        TerminalScolor = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalScolor", false, "Command to change ship lights colors.");
+        ManagedConfig scolor = AddManagedBool(TerminalScolor, defaultManaged, true, "FUN", ScolorKeywords, ColorCommands.ShipColorBase, 0, true, null, null, "", "", ScolorKeywords.Value);
+        scolor.InfoAction = ColorCommands.ShipColorList;
 
 
-            TerminalDoor = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalDoor", true, "Command to open/close the ship door.");
-            AddManagedBool(TerminalDoor, defaultManaged, false, "CONTROLS", DoorKeywords, ShipControls.BasicDoorCommand);
+        TerminalDoor = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalDoor", true, "Command to open/close the ship door.");
+        AddManagedBool(TerminalDoor, defaultManaged, false, "CONTROLS", DoorKeywords, ShipControls.BasicDoorCommand);
 
-            TerminalLights = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalLights", true, "Command to toggle the ship lights");
-            AddManagedBool(TerminalLights, defaultManaged, false, "CONTROLS", LightsKeywords, ShipControls.BasicLightsCommand);
+        TerminalLights = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalLights", true, "Command to toggle the ship lights");
+        AddManagedBool(TerminalLights, defaultManaged, false, "CONTROLS", LightsKeywords, ShipControls.BasicLightsCommand);
 
-            //----------------------------------termview managed bools----------------------------------//
+        //----------------------------------termview managed bools----------------------------------//
 
-            TerminalCams = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalCams", true, "Command to toggle displaying cameras in terminal");
-            ManagedConfig cams = AddManagedBool(TerminalCams, TerminalStuffBools, false, "EXTRAS", CamsKeywords, ViewCommands.TermCamsEvent, 0, true, null, null, "", "", "cams", 1, "ViewInsideShipCam 1");
-            ViewConfig.Add(cams);
+        TerminalCams = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalCams", true, "Command to toggle displaying cameras in terminal");
+        ManagedConfig cams = AddManagedBool(TerminalCams, TerminalStuffBools, false, "EXTRAS", CamsKeywords, ViewCommands.TermCamsEvent, 0, true, null, null, "", "", "cams", 1, "ViewInsideShipCam 1");
+        ViewConfig.Add(cams);
 
-            TerminalVideo = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalVideo", false, "Play a video from the VideoFolderPath folder <video>");
-            AddManagedBool(TerminalVideo, TerminalStuffBools, false, "FUN", VideoKeywords, ViewCommands.LolVideoPlayerEvent, 0, true, null, null, "", "", "lol", 0, "darmuh's videoPlayer");
+        TerminalVideo = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalVideo", false, "Play a video from the VideoFolderPath folder <video>");
+        AddManagedBool(TerminalVideo, TerminalStuffBools, false, "FUN", VideoKeywords, ViewCommands.LolVideoPlayerEvent, 0, true, null, null, "", "", "lol", 0, "darmuh's videoPlayer");
 
-            TerminalMap = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMap", true, "Command to toggle displaying radar in the terminal");
-            ManagedConfig map = AddManagedBool(TerminalMap, TerminalStuffBools, false, "EXTRAS", MapKeywords, ViewCommands.TermMapEvent, 0, true, null, null, "", "", "map", 5, "ViewInsideShipCam 1");
-            ViewConfig.Add(map);
+        TerminalMap = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMap", true, "Command to toggle displaying radar in the terminal");
+        ManagedConfig map = AddManagedBool(TerminalMap, TerminalStuffBools, false, "EXTRAS", MapKeywords, ViewCommands.TermMapEvent, 0, true, null, null, "", "", "map", 5, "ViewInsideShipCam 1");
+        ViewConfig.Add(map);
 
-            TerminalMinimap = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMinimap", false, "Command to toggle displaying radar/cam minimap view in the terminal");
-            ManagedConfig minimap = AddManagedBool(TerminalMinimap, TerminalStuffBools, false, "EXTRAS", MinimapKeywords, ViewCommands.MiniMapTermEvent, 0, true, null, null, "", "", "minimap", 3, "ViewInsideShipCam 1");
-            ViewConfig.Add(minimap);
+        TerminalMinimap = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMinimap", false, "Command to toggle displaying radar/cam minimap view in the terminal");
+        ManagedConfig minimap = AddManagedBool(TerminalMinimap, TerminalStuffBools, false, "EXTRAS", MinimapKeywords, ViewCommands.MiniMapTermEvent, 0, true, null, null, "", "", "minimap", 3, "ViewInsideShipCam 1");
+        ViewConfig.Add(minimap);
 
-            TerminalMinicams = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMinicams", true, "Command to toggle displaying radar/cam minicams view in the terminal");
-            ManagedConfig minicams = AddManagedBool(TerminalMinicams, TerminalStuffBools, false, "EXTRAS", MinicamsKeywords, ViewCommands.MiniCamsTermEvent, 0, true, null, null, "", "", "minicams", 4, "ViewInsideShipCam 1");
-            ViewConfig.Add(minicams);
+        TerminalMinicams = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMinicams", true, "Command to toggle displaying radar/cam minicams view in the terminal");
+        ManagedConfig minicams = AddManagedBool(TerminalMinicams, TerminalStuffBools, false, "EXTRAS", MinicamsKeywords, ViewCommands.MiniCamsTermEvent, 0, true, null, null, "", "", "minicams", 4, "ViewInsideShipCam 1");
+        ViewConfig.Add(minicams);
 
-            TerminalOverlay = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalOverlay", false, "Command to toggle displaying radar/cam overlay view in the terminal");
-            ManagedConfig overlay = AddManagedBool(TerminalOverlay, TerminalStuffBools, false, "EXTRAS", OverlayKeywords, ViewCommands.OverlayTermEvent, 0, true, null, null, "", "", "overlay", 2, "ViewInsideShipCam 1");
-            ViewConfig.Add(overlay);
+        TerminalOverlay = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalOverlay", false, "Command to toggle displaying radar/cam overlay view in the terminal");
+        ManagedConfig overlay = AddManagedBool(TerminalOverlay, TerminalStuffBools, false, "EXTRAS", OverlayKeywords, ViewCommands.OverlayTermEvent, 0, true, null, null, "", "", "overlay", 2, "ViewInsideShipCam 1");
+        ViewConfig.Add(overlay);
 
-            TerminalMirror = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMirror", true, "Command to toggle displaying a Mirror Cam in the terminal");
-            AddManagedBool(TerminalMirror, TerminalStuffBools, false, "EXTRAS", MirrorKeywords, ViewCommands.MirrorEvent, 0, true, null, null, "", "", "mirror", 6, "terminalStuff Mirror");
+        TerminalMirror = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalMirror", true, "Command to toggle displaying a Mirror Cam in the terminal");
+        AddManagedBool(TerminalMirror, TerminalStuffBools, false, "EXTRAS", MirrorKeywords, ViewCommands.MirrorEvent, 0, true, null, null, "", "", "mirror", 6, "terminalStuff Mirror");
 
-            //----------------------------------termview managed bools----------------------------------//
+        //----------------------------------termview managed bools----------------------------------//
 
-            TerminalAlwaysOnCommand = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalAlwaysOnCommand", false, $"Command to toggle Always-On Display");
-            AddManagedBool(TerminalAlwaysOnCommand, defaultManaged, false, "COMFORT", AlwaysOnKeywords, MoreCommands.AlwaysOnDisplay);
+        TerminalAlwaysOnCommand = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalAlwaysOnCommand", false, $"Command to toggle Always-On Display");
+        AddManagedBool(TerminalAlwaysOnCommand, defaultManaged, false, "COMFORT", AlwaysOnKeywords, MoreCommands.AlwaysOnDisplay);
 
-            TerminalLink = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLink", true, "Command to link to an external web-page");
-            AddManagedBool(TerminalLink, defaultManaged, false, "EXTRAS", LinkKeywords, MoreCommands.FirstLinkAsk, 1, true, MoreCommands.FirstLinkDo, MoreCommands.FirstLinkDeny);
+        TerminalLink = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLink", true, "Command to link to an external web-page");
+        AddManagedBool(TerminalLink, defaultManaged, false, "EXTRAS", LinkKeywords, MoreCommands.FirstLinkAsk, 1, true, MoreCommands.FirstLinkDo, MoreCommands.FirstLinkDeny);
 
-            TerminalLink2 = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLink2", false, "Command to link to a second external web-page");
-            AddManagedBool(TerminalLink2, defaultManaged, false, "EXTRAS", Link2Keywords, MoreCommands.SecondLinkAsk, 1, true, MoreCommands.SecondLinkDo, MoreCommands.SecondLinkDeny);
+        TerminalLink2 = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLink2", false, "Command to link to a second external web-page");
+        AddManagedBool(TerminalLink2, defaultManaged, false, "EXTRAS", Link2Keywords, MoreCommands.SecondLinkAsk, 1, true, MoreCommands.SecondLinkDo, MoreCommands.SecondLinkDeny);
 
-            TerminalRandomSuit = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalRandomSuit", true, "Command to switch your suit from a random one off the rack");
-            AddManagedBool(TerminalRandomSuit, defaultManaged, false, "FUN", RandomSuitKeywords, TerminalEvents.RandomSuit);
+        TerminalRandomSuit = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalRandomSuit", true, "Command to switch your suit from a random one off the rack");
+        AddManagedBool(TerminalRandomSuit, defaultManaged, false, "FUN", RandomSuitKeywords, TerminalEvents.RandomSuit);
 
-            TerminalClockCommand = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalClockCommand", false, "Command to toggle the Terminal Clock off/on");
-            AddManagedBool(TerminalClockCommand, defaultManaged, false, "CONTROLS", ClockKeywords, TerminalEvents.ClockToggle);
+        TerminalClockCommand = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalClockCommand", false, "Command to toggle the Terminal Clock off/on");
+        AddManagedBool(TerminalClockCommand, defaultManaged, false, "CONTROLS", ClockKeywords, TerminalEvents.ClockToggle);
 
-            TerminalListItems = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalListItems", true, "Command to list all non-scrap & not currently held items on the ship");
-            AddManagedBool(TerminalListItems, defaultManaged, false, "EXTRAS", ListItemsKeywords, MoreCommands.GetItemsOnShip);
+        TerminalListItems = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalListItems", true, "Command to list all non-scrap & not currently held items on the ship");
+        AddManagedBool(TerminalListItems, defaultManaged, false, "EXTRAS", ListItemsKeywords, MoreCommands.GetItemsOnShip);
 
-            TerminalLootDetail = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLootDetail", true, "Command to display an extensive list of all scrap on the ship");
-            AddManagedBool(TerminalLootDetail, defaultManaged, false, "EXTRAS", ListScrapKeywords, AllTheLootStuff.DetailedLootCommand);
+        TerminalLootDetail = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalLootDetail", true, "Command to display an extensive list of all scrap on the ship");
+        AddManagedBool(TerminalLootDetail, defaultManaged, false, "EXTRAS", ListScrapKeywords, AllTheLootStuff.DetailedLootCommand);
 
-            TerminalRefund = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalRefund", true, "Command to cancel an undelivered order and get your credits back");
-            AddManagedBool(TerminalRefund, defaultManaged, true, "EXTRAS", RefundKeywords, CostCommands.GetRefund);
+        TerminalRefund = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalRefund", true, "Command to cancel an undelivered order and get your credits back");
+        AddManagedBool(TerminalRefund, defaultManaged, true, "EXTRAS", RefundKeywords, CostCommands.GetRefund);
 
-            TerminalPrevious = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalPrevious", true, "Command to switch back to previous radar target");
-            AddManagedBool(TerminalPrevious, defaultManaged, false, "EXTRAS", PreviousKeywords, ViewCommands.HandlePreviousSwitchEvent);
+        TerminalPrevious = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalPrevious", true, "Command to switch back to previous radar target");
+        AddManagedBool(TerminalPrevious, defaultManaged, false, "EXTRAS", PreviousKeywords, ViewCommands.HandlePreviousSwitchEvent);
 
-            TerminalRouteRandom = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalRouteRandom", true, "Command to route to a random planet");
-            AddManagedBool(TerminalRouteRandom, defaultManaged, true, "FUN", RandomRouteKeywords, LevelCommands.RouteRandomCommand);
+        TerminalRouteRandom = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalRouteRandom", true, "Command to route to a random planet");
+        AddManagedBool(TerminalRouteRandom, defaultManaged, true, "FUN", RandomRouteKeywords, LevelCommands.RouteRandomCommand);
 
-            TerminalRefreshCustomization = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalRefreshCustomization", false, "Command to reload the Terminal Customization settings (this will not disable any already applied customizations)");
-            AddManagedBool(TerminalRefreshCustomization, defaultManaged, false, "FUN", RefreshcustomizationKWs, TerminalEvents.RefreshCustomizationCommand);
-            TerminalRadarZoom = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalRadarZoom", false, "Command to cycle through various radar zoom levels.");
-            AddManagedBool(TerminalRadarZoom, defaultManaged, false, "CONTROLS", RadarZoomKWs, ViewCommands.RadarZoomEvent, 0, true, null, null, "", "", "radarZoom");
+        TerminalRefreshCustomization = MakeGeneric(Plugin.instance.Config, "Fun Commands (On/Off)", "TerminalRefreshCustomization", false, "Command to reload the Terminal Customization settings (this will not disable any already applied customizations)");
+        AddManagedBool(TerminalRefreshCustomization, defaultManaged, false, "FUN", RefreshcustomizationKWs, TerminalEvents.RefreshCustomizationCommand);
+        TerminalRadarZoom = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalRadarZoom", false, "Command to cycle through various radar zoom levels.");
+        AddManagedBool(TerminalRadarZoom, defaultManaged, false, "CONTROLS", RadarZoomKWs, ViewCommands.RadarZoomEvent, 0, true, null, null, "", "", "radarZoom");
 
-            //------------------------------------------------MANAGED BOOLS END------------------------------------------------//
+        //------------------------------------------------MANAGED BOOLS END------------------------------------------------//
 
-            //NOT MANAGED BOOLS THAT ARE COMMANDS, DEFINE THESE COMMANDS LATER THAN TERMINAL AWAKE
-            TerminalTP = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalTP", true, "Command to Activate Teleporter <TP>");
-            TerminalITP = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalITP", true, "Command to Activate Inverse Teleporter <ITP>");
-            TerminalPurchasePacks = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalPurchasePacks", false, "Use [PurchasePackCommands] to create purchase packs that contain multiple store items in one run of the command");
-            TerminalMoonsPlus = MakeGeneric(Plugin.instance.Config, "MoonsPlus", "TerminalMoonsPlus", false, "Enable/Disable the Moons Plus page for an interactive menu to select moons from.\nWARNING: This feature has limited compatibility testing with other mods that modify the vanilla moons page and mods that affect where you can route.");
-            TerminalStorePlus = MakeGeneric(Plugin.instance.Config, "StorePlus", "TerminalStorePlus", false, "Enable/Disable the Store Plus page for an interactive menu to select shop items from.\nWARNING: This feature has limited compatibility testing with other mods that modify the vanilla store page and mods that affect what you can buy.");
-            //NOT MANAGED BOOLS THAT ARE COMMANDS, DEFINE THESE COMMANDS LATER THAN TERMINAL AWAKE
-        }
-
-        internal static void CommandDefinitions()
-        {
-            MoonsPlus.MoonsCommand = new("MoonsPlus", TerminalMoonsPlus, MoonsPlusConfig.MoonsPlusKeywords, MoonsPlus.EnterMoonsMenu)
-            {
-                AddAtAwake = false
-            };
-
-            StorePlus.StoreCommand = new("StorePlus", TerminalStorePlus, StorePlusConfig.StorePlusKeywords, StorePlus.EnterStoreMenu)
-            {
-                AddAtAwake = false
-            };
-
-            Teleporters.Inverse = new("Use Inverse Teleporter", TerminalITP, ItpKeywords, ShipControls.InverseTeleporterCommand)
-            {
-                AddAtAwake = false
-            };
-
-            Teleporters.Regular = new("Use Teleporter", TerminalTP, TpKeywords, ShipControls.RegularTeleporterCommand)
-            {
-                AddAtAwake = false,
-                AcceptAdditionalText = true,
-            };
-
-            StuffForLibrary.Switch = new("SwitchedCam", SwitchKeywords, ViewCommands.SwitchCommandHandler)
-            {
-                AddAtAwake = false,
-                AcceptAdditionalText = true
-            };
-
-            StuffForLibrary.Bind = new("bindCommand", TerminalShortcutCommands, ["bind"], DynamicCommands.BindKeyToCommand)
-            {
-                
-                AddAtAwake = false,
-                AcceptAdditionalText = true
-            };
-
-            StuffForLibrary.Unbind = new("SwitchedCam", SwitchKeywords, ViewCommands.SwitchCommandHandler)
-            {
-                AddAtAwake = false,
-                AcceptAdditionalText = true
-            };
-        }
+        //NOT MANAGED BOOLS THAT ARE COMMANDS, DEFINE THESE COMMANDS LATER THAN TERMINAL AWAKE
+        TerminalTP = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalTP", true, "Command to Activate Teleporter <TP>");
+        TerminalITP = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalITP", true, "Command to Activate Inverse Teleporter <ITP>");
+        TerminalPurchasePacks = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalPurchasePacks", false, "Use [PurchasePackCommands] to create purchase packs that contain multiple store items in one run of the command");
+        TerminalMoonsPlus = MakeGeneric(Plugin.instance.Config, "MoonsPlus", "TerminalMoonsPlus", false, "Enable/Disable the Moons Plus page for an interactive menu to select moons from.\nWARNING: This feature has limited compatibility testing with other mods that modify the vanilla moons page and mods that affect where you can route.");
+        TerminalStorePlus = MakeGeneric(Plugin.instance.Config, "StorePlus", "TerminalStorePlus", false, "Enable/Disable the Store Plus page for an interactive menu to select shop items from.\nWARNING: This feature has limited compatibility testing with other mods that modify the vanilla store page and mods that affect what you can buy.");
+        //NOT MANAGED BOOLS THAT ARE COMMANDS, DEFINE THESE COMMANDS LATER THAN TERMINAL AWAKE
     }
+
+    internal static void CommandDefinitions()
+    {
+        //--- Menus
+        MoonsPlus.MoonsCommand = AddLocalCommmand("MoonsPlus", "Menus", TerminalMoonsPlus, MoonsPlusConfig.MoonsPlusKeywords, MoonsPlus.EnterMoonsMenu, true, false);
+        StorePlus.StoreCommand = AddLocalCommmand("StorePlus", "Menus", TerminalStorePlus, StorePlusConfig.StorePlusKeywords, StorePlus.EnterStoreMenu, true, false);
+        //---
+
+        //--- Teleporters
+        Teleporters.Inverse = AddLocalCommmand("Use Inverse Teleporter", "Controls", TerminalITP, ItpKeywords, ShipControls.InverseTeleporterCommand, true, false);
+        Teleporters.Regular = AddLocalCommmand("Use Teleporter", "Controls", TerminalTP, TpKeywords, ShipControls.RegularTeleporterCommand, true, false, true);
+        //---
+
+
+        //--- Shortcuts
+        StuffForLibrary.Bind = AddLocalCommmandManualWords("bindCommand", TerminalShortcutCommands, ["bind"], DynamicCommands.BindKeyToCommand, "Comfort", true, false, true);
+        StuffForLibrary.Unbind = AddLocalCommmandManualWords("Unbind", TerminalShortcutCommands, ["unbind"], DynamicCommands.UnBindKeyToCommand, "Comfort", true, false, true);
+        //---
+        
+        //--- Misc
+        StuffForLibrary.Switch = AddReplacementCommand("SwitchedCam", SwitchKeywords, ViewCommands.SwitchCommandHandler, string.Empty, false, true);
+        //---
+    }
+
+    //For use with replacing existing commands
+    public static CommandManager AddReplacementCommand(string name, ConfigEntry<string> keywordConfig, Func<string> commandFunc, string category = "", bool addAtAwake = true, bool acceptAdditionalText = false)
+    {
+        CommandManager command = new(name, keywordConfig, commandFunc)
+        {
+            AddAtAwake = addAtAwake,
+            AcceptAdditionalText = acceptAdditionalText,
+            Category = category
+        };
+
+        AllCommands.Add(command);
+        return command;
+    }
+
+    public static CommandManager AddLocalCommmand(string name, string category, ConfigEntry<bool> toggle, ConfigEntry<string> keywordConfig, Func<string> commandFunc, bool clearText = true, bool addAtAwake = true, bool acceptAdditionalText = false)
+    {
+        CommandManager command = new(name, toggle, keywordConfig, commandFunc)
+        {
+            AddAtAwake = addAtAwake,
+            AcceptAdditionalText = acceptAdditionalText,
+            Category = category,
+            ClearText = clearText,
+        };
+
+        AllCommands.Add(command);
+        return command;
+    }
+
+    public static CommandManager AddNetworkedCommmand(string name, string category, ConfigEntry<bool> toggle, ConfigEntry<string> keywordConfig, Func<string> commandFunc, bool clearText = true, bool addAtAwake = true, bool acceptAdditionalText = false)
+    {
+        CommandManager command = new(name, toggle, keywordConfig, commandFunc)
+        {
+            AddAtAwake = addAtAwake,
+            AcceptAdditionalText = acceptAdditionalText,
+            Category = category,
+            ClearText = clearText,
+        };
+
+        command.IsEnabled.NetworkingReq = true;
+        command.IsEnabled.networkingConfig = ConfigSettings.ModNetworking;
+
+        AllCommands.Add(command);
+        return command;
+    }
+
+    public static CommandManager AddNetworkedCommmandManualWords(string name, string category, ConfigEntry<bool> toggle, List<string> manualKeywords, Func<string> commandFunc, bool clearText = true, bool addAtAwake = true, bool acceptAdditionalText = false)
+    {
+        CommandManager command = new(name, toggle, manualKeywords, commandFunc)
+        {
+            AddAtAwake = addAtAwake,
+            AcceptAdditionalText = acceptAdditionalText,
+            Category = category,
+            ClearText = clearText,
+        };
+
+        command.IsEnabled.NetworkingReq = true;
+        command.IsEnabled.networkingConfig = ConfigSettings.ModNetworking;
+
+        AllCommands.Add(command);
+        return command;
+    }
+
+    //video managed command
+
+    //for use with commands that do not have keyword configurations
+    public static CommandManager AddLocalCommmandManualWords(string name, ConfigEntry<bool> toggle, List<string> manualKeywords, Func<string> commandFunc, string cateogy = "", bool clearText = true, bool addAtAwake = true, bool acceptAdditionalText = false)
+    {
+        CommandManager command = new(name, toggle, manualKeywords, commandFunc)
+        {
+            AddAtAwake = addAtAwake,
+            AcceptAdditionalText = acceptAdditionalText,
+            Category = cateogy,
+            ClearText = clearText
+        };
+
+        AllCommands.Add(command);
+        return command;
+    }
+
+    public static void AddConfirmationCommand(CommandManager command, Func<string> confirm, Func<string> deny, int commandType = 1)
+    {
+        command.CommandType = commandType;
+        command.SetupConfirmation(confirm, deny);
+    }
+
+    public static void AddStoreCommand(CommandManager command, string displayName, ConfigEntry<int> priceConfig, Func<string> confirm, Func<string> deny, int maxStock = 0, bool alwaysInStock = false)
+    {
+        AddConfirmationCommand(command, confirm, deny, 2);
+        command.SetupStore(displayName, priceConfig, maxStock, alwaysInStock);
+    }
+
+    public static void AddStoreCommand(CommandManager command, string displayName, int manualPrice, Func<string> confirm, Func<string> deny, int maxStock = 0, bool alwaysInStock = false)
+    {
+        AddConfirmationCommand(command, confirm, deny, 2);
+        command.SetupStore(displayName, manualPrice, maxStock, alwaysInStock);
+    }
+
 }

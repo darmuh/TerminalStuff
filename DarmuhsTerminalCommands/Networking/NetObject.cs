@@ -1,9 +1,10 @@
 ﻿using HarmonyLib;
 using System.Reflection;
-using TerminalStuff;
 using Unity.Netcode;
 using UnityEngine;
 using GameObject = UnityEngine.GameObject;
+
+namespace TerminalStuff;
 
 [HarmonyPatch]
 public class NetObject
@@ -39,5 +40,5 @@ public class NetObject
         }
     }
 
-    static GameObject networkPrefab;
+    static GameObject networkPrefab = null!;
 }

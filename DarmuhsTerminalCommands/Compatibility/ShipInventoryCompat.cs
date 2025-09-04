@@ -23,7 +23,7 @@ internal class ShipInventoryCompat
         foreach (ItemData item in allItems)
         {
             Item? thisItem = LethalLib.GetItem(item.ID);
-            if(thisItem != null)
+            if (thisItem != null)
                 itemsInventory.Add(thisItem);
         }
     }

@@ -6,81 +6,80 @@ using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.CoreMethods.CommandRegistry;
 using static TerminalStuff.EventSub.TerminalStart;
 
-namespace TerminalStuff.PluginCore
+namespace TerminalStuff.PluginCore;
+
+internal class StuffForLibrary
 {
-    internal class StuffForLibrary
+    internal static CommandManager Switch = null!;
+    internal static CommandManager Bind = null!;
+    internal static CommandManager Unbind = null!;
+    internal static void Init()
     {
-        internal static CommandManager Switch;
-        internal static CommandManager Bind;
-        internal static CommandManager Unbind;
-        internal static void Init()
-        {
-            Commands.TerminalStuffBools = [];
-            ConfigSettings.TerminalStuffMain = new();
+        Commands.TerminalStuffBools = [];
+        ConfigSettings.TerminalStuffMain = new();
 
-            InitListing(ref ConfigSettings.TerminalStuffMain);
-            Plugin.Log.LogInfo("TerminalStuffMain listing initialized");
+        InitListing(ref ConfigSettings.TerminalStuffMain);
+        Plugin.Log.LogInfo("TerminalStuffMain listing initialized");
+    }
+
+    internal static void AddCommands()
+    {
+        Plugin.Log.LogInfo("AddCommands called for TerminalStuffMain listing");
+        GetCommandsToAdd(Commands.TerminalStuffBools, ConfigSettings.TerminalStuffMain);
+        SwitchCommand();
+    }
+
+    internal static void SwitchCommand()
+    {
+        if (Plugin.instance.Terminal == null)
+            return;
+
+        //switch command
+        if (!Switch.KeywordsConfig.Value.Contains("switch"))
+        {
+            Switch.KeywordsConfig.Value += ", switch";
+            Loggers.WARNING("SwitchKeywords MUST contain \"switch\"");
         }
 
-        internal static void AddCommands()
+        if (!DynamicBools.TryGetKeyword("switch", out TerminalKeyword switchKeyword))
+            Loggers.WARNING("Unable to get original switch keyword!!!");
+
+        Switch.RegisterCommand(false);
+        switchKeyword.specialKeywordResult = Switch.terminalNode;
+        switchNodeVanilla = Plugin.instance.Terminal.terminalNodes.specialNodes[20];
+        Plugin.instance.Terminal.terminalNodes.specialNodes[20] = Switch.terminalNode;
+    }
+
+    internal static void BindCommands()
+    {
+        if (!QoLConfig.TerminalShortcuts.Value && Commands.TerminalShortcutCommands.Value)
         {
-            Plugin.Log.LogInfo("AddCommands called for TerminalStuffMain listing");
-            GetCommandsToAdd(Commands.TerminalStuffBools, ConfigSettings.TerminalStuffMain);
-            SwitchCommand();
+            Commands.TerminalShortcutCommands.Value = false;
+            Loggers.WARNING("TerminalShortcutCommands was enabled while feature, TerminalShortcuts, was disabled. Setting to FALSE");
+            Plugin.instance.Config.Save();
         }
 
-        internal static void SwitchCommand()
+        Loggers.LogDebug($"TerminalShortcutCommands Value: {Commands.TerminalShortcutCommands.Value}");
+    }
+
+    internal static void ManualManagedBools() //for any commands that can be added before awake that are not managed by one config item per command
+    {
+        if (!QoLConfig.TerminalShortcuts.Value && Commands.TerminalShortcutCommands.Value)
         {
-            if (Plugin.instance.Terminal == null)
-                return;
-
-            //switch command
-            if (!Switch.KeywordsConfig.Value.Contains("switch"))
-            {
-                Switch.KeywordsConfig.Value += ", switch";
-                Plugin.WARNING("SwitchKeywords MUST contain \"switch\"");
-            }
-
-            if (!DynamicBools.TryGetKeyword("switch", out TerminalKeyword switchKeyword))
-                Plugin.WARNING("Unable to get original switch keyword!!!");
-
-            Switch.RegisterCommand(false);
-            switchKeyword.specialKeywordResult = Switch.terminalNode;
-            switchNodeVanilla = Plugin.instance.Terminal.terminalNodes.specialNodes[20];
-            Plugin.instance.Terminal.terminalNodes.specialNodes[20] = Switch.terminalNode;
+            Commands.TerminalShortcutCommands.Value = false;
+            Loggers.WARNING("TerminalShortcutCommands was enabled while feature, TerminalShortcuts, was disabled. Setting to FALSE");
+            Plugin.instance.Config.Save();
         }
 
-        internal static void BindCommands()
+        Loggers.LogDebug($"TerminalShortcutCommands Value: {Commands.TerminalShortcutCommands.Value}");
+
+        NewManagedBool(ref defaultManaged, "bindCommand", Commands.TerminalShortcutCommands.Value, "Use this command to bind new shortcuts", false, "COMFORT", GetKeywordsPerConfigItem("bind"), DynamicCommands.BindKeyToCommand, 0, true, null, null, "", "", "bind");
+        NewManagedBool(ref defaultManaged, "unbindCommand", Commands.TerminalShortcutCommands.Value, "Use this command to unbind a terminal shortcut from a key", false, "COMFORT", GetKeywordsPerConfigItem("unbind"), DynamicCommands.UnBindKeyToCommand, 0, true, null, null, "", "", "unbind");
+
+        if (QoLConfig.TerminalRunDelay.Value)
         {
-            if (!QoLConfig.TerminalShortcuts.Value && Commands.TerminalShortcutCommands.Value)
-            {
-                Commands.TerminalShortcutCommands.Value = false;
-                Plugin.WARNING("TerminalShortcutCommands was enabled while feature, TerminalShortcuts, was disabled. Setting to FALSE");
-                Plugin.instance.Config.Save();
-            }
-
-            Plugin.Spam($"TerminalShortcutCommands Value: {Commands.TerminalShortcutCommands.Value}");
-        }
-
-        internal static void ManualManagedBools() //for any commands that can be added before awake that are not managed by one config item per command
-        {
-            if (!QoLConfig.TerminalShortcuts.Value && Commands.TerminalShortcutCommands.Value)
-            {
-                Commands.TerminalShortcutCommands.Value = false;
-                Plugin.WARNING("TerminalShortcutCommands was enabled while feature, TerminalShortcuts, was disabled. Setting to FALSE");
-                Plugin.instance.Config.Save();
-            }
-
-            Plugin.Spam($"TerminalShortcutCommands Value: {Commands.TerminalShortcutCommands.Value}");
-
-            NewManagedBool(ref defaultManaged, "bindCommand", Commands.TerminalShortcutCommands.Value, "Use this command to bind new shortcuts", false, "COMFORT", GetKeywordsPerConfigItem("bind"), DynamicCommands.BindKeyToCommand, 0, true, null, null, "", "", "bind");
-            NewManagedBool(ref defaultManaged, "unbindCommand", Commands.TerminalShortcutCommands.Value, "Use this command to unbind a terminal shortcut from a key", false, "COMFORT", GetKeywordsPerConfigItem("unbind"), DynamicCommands.UnBindKeyToCommand, 0, true, null, null, "", "", "unbind");
-
-            if (QoLConfig.TerminalRunDelay.Value)
-            {
-                NewManagedBool(ref defaultManaged, "delayStart", QoLConfig.TerminalRunDelay.Value, "Use this command to run another command on a delay of up to 900 seconds!", false, "COMFORT", GetKeywordsPerConfigItem(KeywordConfigs.DelayKWs.Value), HandleDelayRun.HandleCommandDelay, 0, true, null, null, "", "", "delayStart");
-                NewManagedBool(ref defaultManaged, "stopDelay", QoLConfig.TerminalRunDelay.Value, "Use this command to stop any delayed commands!", false, "COMFORT", GetKeywordsPerConfigItem(KeywordConfigs.StopDelayKWs.Value), HandleDelayRun.StopCommandDelay, 0, true, null, null, "", "", "stopDelay");
-            }
+            NewManagedBool(ref defaultManaged, "delayStart", QoLConfig.TerminalRunDelay.Value, "Use this command to run another command on a delay of up to 900 seconds!", false, "COMFORT", GetKeywordsPerConfigItem(KeywordConfigs.DelayKWs.Value), HandleDelayRun.HandleCommandDelay, 0, true, null, null, "", "", "delayStart");
+            NewManagedBool(ref defaultManaged, "stopDelay", QoLConfig.TerminalRunDelay.Value, "Use this command to stop any delayed commands!", false, "COMFORT", GetKeywordsPerConfigItem(KeywordConfigs.StopDelayKWs.Value), HandleDelayRun.StopCommandDelay, 0, true, null, null, "", "", "stopDelay");
         }
     }
 }

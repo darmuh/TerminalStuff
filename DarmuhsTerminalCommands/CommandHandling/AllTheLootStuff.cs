@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TerminalStuff.PluginCore;
 using UnityEngine;
 
 namespace TerminalStuff;
@@ -11,7 +11,7 @@ internal class AllTheLootStuff
     internal static string GetLootSimple()
     {
         string displayText;
-        Plugin.Spam("calculating loot value next");
+        Loggers.LogDebug("calculating loot value next");
         float lootValue = CalculateLootValue();
         string totalvalue;
         if (Plugin.instance.ShipInventory)
@@ -24,7 +24,7 @@ internal class AllTheLootStuff
             totalvalue = $"Total Value on Ship: ${lootValue}";
         }
 
-        Plugin.Spam("loot calculated");
+        Loggers.LogDebug("loot calculated");
         displayText = $"{totalvalue}\n\n";
         return displayText;
     }
@@ -47,7 +47,7 @@ internal class AllTheLootStuff
             {
                 // Concatenate the itemName and scrapWorth to form the line
                 string line = $"{itemName} ({scrapWorth} credits)";
-                Plugin.Spam(line + "added to output");
+                Loggers.LogDebug(line + "added to output");
                 totalCredsWorth += scrapWorth;
 
                 lineOccurrences[line] = lineOccurrences.TryGetValue(line, out int count) ? count + 1 : 1;
@@ -92,7 +92,7 @@ internal class AllTheLootStuff
 
             // Concatenate the itemName and scrapWorth to form the line
             string line = $"{itemName} ({scrapWorth} credits)";
-            Plugin.Spam(line + "added to output");
+            Loggers.LogDebug(line + "added to output");
             totalCredsWorth += scrapWorth;
 
             lineOccurrences[line] = lineOccurrences.TryGetValue(line, out int count) ? count + 1 : 1;

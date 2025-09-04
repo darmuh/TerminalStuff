@@ -1,26 +1,25 @@
 ﻿using System.Collections.Generic;
 
-namespace TerminalStuff.SpecialStuff.Store
+namespace TerminalStuff.SpecialStuff.Store;
+
+internal class StoreRefundList
 {
-    internal class StoreRefundList
+    internal static List<StoreRefundItem> storeRefundItems = [];
+}
+internal class StoreRefundItem
+{
+    internal Item item;
+    internal int count;
+    internal int value;
+
+    internal StoreRefundItem(Item thing, int number)
     {
-        internal static List<StoreRefundItem> storeRefundItems = [];
+        item = thing;
+        count = number;
     }
-    internal class StoreRefundItem
+
+    internal void GetValue(Item[] buyables, int num)
     {
-        internal Item item;
-        internal int count;
-        internal int value;
-
-        internal StoreRefundItem(Item thing, int number)
-        {
-            item = thing;
-            count = number;
-        }
-
-        internal void GetValue(Item[] buyables, int num)
-        {
-            value = StorePlus.GetSalesPrice(buyables[num].creditsWorth, num);
-        }
+        value = StorePlus.GetSalesPrice(buyables[num].creditsWorth, num);
     }
 }

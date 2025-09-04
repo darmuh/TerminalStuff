@@ -11,6 +11,8 @@ using static OpenLib.CoreMethods.AddingThings;
 using static OpenLib.CoreMethods.LogicHandling;
 using static TerminalStuff.EventSub.TerminalStart;
 
+#pragma warning disable CA1822
+
 namespace TerminalStuff;
 
 public class NetHandler : NetworkBehaviour
@@ -31,25 +33,25 @@ public class NetHandler : NetworkBehaviour
         NetworkManager networkManager = base.NetworkManager;
         if (netNodeSet && (networkManager.IsHost || networkManager.IsServer))
         {
-            Plugin.MoreLogs("RPC called from host, sending to client RPC ");
+            Loggers.LogInfo("RPC called from host, sending to client RPC ");
             NodeLoadClientRpc(topRightText, nodeName, nodeText, true, nodeNumber);
             return;
         }
-        else if (!netNodeSet && networkManager.IsHost || networkManager.IsServer)
+        else if ((!netNodeSet && networkManager.IsHost) || networkManager.IsServer)
         {
             //if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
             //return;
 
-            Plugin.MoreLogs($"Host: attempting to sync node {nodeName}/{nodeNumber}");
+            Loggers.LogInfo($"Host: attempting to sync node {nodeName}/{nodeNumber}");
             SyncNodes(topRightText, nodeName, nodeText, nodeNumber);
         }
         else
         {
-            Plugin.MoreLogs($"Server: This should only be coming from clients");
+            Loggers.LogInfo($"Server: This should only be coming from clients");
             NodeLoadClientRpc(topRightText, nodeName, nodeText, true, nodeNumber);
         }
 
-        Plugin.MoreLogs("Server: Attempting to sync nodes between clients.");
+        Loggers.LogInfo("Server: Attempting to sync nodes between clients.");
     }
 
     [ClientRpc]
@@ -62,18 +64,18 @@ public class NetHandler : NetworkBehaviour
         if (fromHost && (networkManager.IsHost || networkManager.IsServer))
         {
             NetNodeReset(false);
-            Plugin.MoreLogs("Node detected coming from host, resetting nNS and ending RPC");
+            Loggers.LogInfo("Node detected coming from host, resetting nNS and ending RPC");
             return;
         }
 
         if (!netNodeSet)
         {
-            Plugin.MoreLogs($"Client: attempting to sync node, {nodeName}/{nodeNumber}");
+            Loggers.LogInfo($"Client: attempting to sync node, {nodeName}/{nodeNumber}");
             SyncNodes(topRightText, nodeName, nodeText, nodeNumber);
         }
         else
         {
-            Plugin.MoreLogs("Client: netNodeSet is true, no sync required.");
+            Loggers.LogInfo("Client: netNodeSet is true, no sync required.");
             NetNodeReset(false);
             return;
         }
@@ -91,7 +93,7 @@ public class NetHandler : NetworkBehaviour
         if (!TryGetFromAllNodes(nodeName, out TerminalNode node))
         {
             DefaultSync(nodeName, nodeText);
-            Plugin.MoreLogs($"{nodeName} not matching known nodes. Only displaying text:\n{nodeText}");
+            Loggers.LogInfo($"{nodeName} not matching known nodes. Only displaying text:\n{nodeText}");
             return;
         }
         else
@@ -112,20 +114,20 @@ public class NetHandler : NetworkBehaviour
 
                 Plugin.instance.Terminal.LoadNewNode(viewNode);
                 //Plugin.instance.Terminal.currentNode.displayText = viewNode.displayText;
-                Plugin.MoreLogs($"Non terminal user: Attempting to load {nodeName}, ViewNode: {nodeNumber}\n {viewNode.displayText}");
+                Loggers.LogInfo($"Non terminal user: Attempting to load {nodeName}, ViewNode: {nodeNumber}\n {viewNode.displayText}");
             }
-            else if(nodeNumber == 100 && nodeName == "ViewInsideShipCam 1")
+            else if (nodeNumber == 100 && nodeName == "ViewInsideShipCam 1")
             {
                 if (viewMonitorVanilla == null)
                     return;
 
                 Plugin.instance.Terminal.LoadNewNode(viewMonitorVanilla);
-                Plugin.MoreLogs($"Non terminal user: Attempting to load vanilla viewMonitor: {nodeName}");
+                Loggers.LogInfo($"Non terminal user: Attempting to load vanilla viewMonitor: {nodeName}");
             }
             else
             {
                 DefaultSync(nodeName, nodeText, node);
-                Plugin.MoreLogs($"Non terminal user: Attempting to load {nodeName}'s displayText:\n {nodeText}");
+                Loggers.LogInfo($"Non terminal user: Attempting to load {nodeName}'s displayText:\n {nodeText}");
             }
 
 
@@ -149,13 +151,13 @@ public class NetHandler : NetworkBehaviour
         netNode.displayText = nodeText;
         Plugin.instance.Terminal.LoadNewNode(netNode);
 
-        Plugin.MoreLogs($"Only displaying {nodeName} text.");
+        Loggers.LogInfo($"Only displaying {nodeName} text.");
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void SyncDropShipServerRpc(bool isRefund = false)
     {
-        Plugin.MoreLogs($"Server: Attempting to sync dropship between players...");
+        Loggers.LogInfo($"Server: Attempting to sync dropship between players...");
         SyncDropShipClientRpc(isRefund);
     }
 
@@ -167,13 +169,13 @@ public class NetHandler : NetworkBehaviour
         {
             if (isRefund)
             {
-                Plugin.MoreLogs("Host received refund command, clearing orderedItems list");
+                Loggers.LogInfo("Host received refund command, clearing orderedItems list");
                 Plugin.instance.Terminal.orderedItemsFromTerminal.Clear();
                 CostCommands.storeCart.Clear();
                 return;
             }
 
-            Plugin.MoreLogs("Host syncing dropship to storeCart after purchase");
+            Loggers.LogInfo("Host syncing dropship to storeCart after purchase");
             int[] itemsOrdered = [.. Plugin.instance.Terminal.orderedItemsFromTerminal];
             CostCommands.storeCart = Plugin.instance.Terminal.orderedItemsFromTerminal;
             SendItemsToAllServerRpc(itemsOrdered);
@@ -191,14 +193,14 @@ public class NetHandler : NetworkBehaviour
         if (Instance == null || StartOfRound.Instance == null || StartOfRound.Instance.localPlayerController == null)
             return;
 
-        Plugin.MoreLogs($"Sending {videoPlaying} as videoPlaying to other clients with active screens");
-        Instance.SyncVideoChoiceServerRpc(((int)StartOfRound.Instance.localPlayerController.playerClientId), videoPlaying);
+        Loggers.LogInfo($"Sending {videoPlaying} as videoPlaying to other clients with active screens");
+        Instance.SyncVideoChoiceServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, videoPlaying);
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void SyncVideoChoiceServerRpc(int fromClient, string videoPlaying)
     {
-        Plugin.Spam($"Server: Attempting to sync video choice: {videoPlaying}");
+        Loggers.LogDebug($"Server: Attempting to sync video choice: {videoPlaying}");
         SyncVideoChoiceClientRpc(fromClient, videoPlaying);
     }
 
@@ -213,18 +215,18 @@ public class NetHandler : NetworkBehaviour
 
         if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
         {
-            Plugin.MoreLogs($"This is the client sending the video name {videoPlaying}");
+            Loggers.LogInfo($"This is the client sending the video name {videoPlaying}");
             return;
         }
         else if (VideoManager.currentlyPlaying == videoPlaying)
         {
-            Plugin.MoreLogs($"video already set to {videoPlaying}");
+            Loggers.LogInfo($"video already set to {videoPlaying}");
             return;
         }
         else
         {
             VideoManager.currentlyPlaying = videoPlaying;
-            Plugin.MoreLogs($"currentlyPlaying set to {videoPlaying}");
+            Loggers.LogInfo($"currentlyPlaying set to {videoPlaying}");
             return;
         }
 
@@ -244,14 +246,14 @@ public class NetHandler : NetworkBehaviour
         if (Plugin.instance.activeCam == myCams)
             return;
 
-        Instance.SyncActiveCamsBoolServerRpc(((int)StartOfRound.Instance.localPlayerController.playerClientId), myCams);
+        Instance.SyncActiveCamsBoolServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, myCams);
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void SyncActiveCamsBoolServerRpc(int fromClient, bool value)
     {
 
-        Plugin.MoreLogs($"Server: Attempting to sync active cams bool...");
+        Loggers.LogInfo($"Server: Attempting to sync active cams bool...");
         SyncActiveCamsClientRpc(fromClient, value);
     }
 
@@ -266,19 +268,19 @@ public class NetHandler : NetworkBehaviour
 
         if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
         {
-            Plugin.MoreLogs($"This is the client syncing the bool");
+            Loggers.LogInfo($"This is the client syncing the bool");
             return;
         }
         else if (Plugin.instance.activeCam == value)
         {
-            Plugin.MoreLogs("Catching extra sync and returning");
+            Loggers.LogInfo("Catching extra sync and returning");
             return;
         }
 
         else
         {
             Plugin.instance.activeCam = value;
-            Plugin.MoreLogs($"activeCam set to {value}");
+            Loggers.LogInfo($"activeCam set to {value}");
             return;
         }
 
@@ -289,11 +291,11 @@ public class NetHandler : NetworkBehaviour
     {
         if (fromClient == -1 || otherClient == -1)
         {
-            Plugin.ERROR($"SyncTerminalServerRpc FATAL ERROR: Invalid client ID detected.\nfromClient: {fromClient}\notherClient: {otherClient}");
+            Loggers.ERROR($"SyncTerminalServerRpc FATAL ERROR: Invalid client ID detected.\nfromClient: {fromClient}\notherClient: {otherClient}");
             return;
         }
 
-        Plugin.MoreLogs($"Server: Client [{fromClient}] requesting terminalNode from: [{otherClient}]");
+        Loggers.LogInfo($"Server: Client [{fromClient}] requesting terminalNode from: [{otherClient}]");
         SyncTerminalClientRpc(fromClient, otherClient);
     }
 
@@ -305,19 +307,19 @@ public class NetHandler : NetworkBehaviour
 
         if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
         {
-            Plugin.MoreLogs($"This is the client requesting the node");
+            Loggers.LogInfo($"This is the client requesting the node");
             return;
         }
         else if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == otherClient)
         {
-            Plugin.MoreLogs($"This is the client the node is being requested from");
+            Loggers.LogInfo($"This is the client the node is being requested from");
             //NetHandler.Instance.SyncActiveCamsBoolServerRpc(otherClient, netCamStatus);
             StartofHandling.SyncTerminal(Plugin.instance.Terminal.currentNode);
             return;
         }
         else
         {
-            Plugin.MoreLogs("This client is neither the client requesting node status or the client being requested to provide it.");
+            Loggers.LogInfo("This client is neither the client requesting node status or the client being requested to provide it.");
             return;
         }
     }
@@ -325,7 +327,7 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void AskUpgradeStatusServerRpc()
     {
-        Plugin.MoreLogs($"Server: Client requesting Update of upgrades status for all clients");
+        Loggers.LogInfo($"Server: Client requesting Update of upgrades status for all clients");
         AskUpgradeStatusClientRpc();
     }
 
@@ -343,7 +345,7 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void GetTravelHistoryServerRpc()
     {
-        Plugin.MoreLogs($"Server: Client requesting Travel History status update for all clients");
+        Loggers.LogInfo($"Server: Client requesting Travel History status update for all clients");
         GetTravelHistoryClientRpc();
     }
 
@@ -361,7 +363,7 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void TravelHistoryServerRpc(string moonName)
     {
-        Plugin.MoreLogs($"Server: Adding {moonName} to travel history for all clients");
+        Loggers.LogInfo($"Server: Adding {moonName} to travel history for all clients");
         TravelHistoryClientRpc(moonName);
     }
 
@@ -376,31 +378,31 @@ public class NetHandler : NetworkBehaviour
         if (GameNetworkManager.Instance.localPlayerController.IsHost)
             SaveManager.SaveTravelHistory(MoonsPlus.MoonsVisited);
 
-        Plugin.MoreLogs($"Client: Adding {moonName} to travel history for all clients");
+        Loggers.LogInfo($"Client: Adding {moonName} to travel history for all clients");
         MoonsPlus.UpdateMoonTravelHistory(moonName);
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void UpgradeStatusServerRpc(string upgradeName)
     {
-        Plugin.MoreLogs($"Server: Updating {upgradeName} upgrade status for all clients");
+        Loggers.LogInfo($"Server: Updating {upgradeName} upgrade status for all clients");
         UpgradeStatusClientRpc(upgradeName);
     }
 
     [ClientRpc]
     internal void UpgradeStatusClientRpc(string upgradeName)
     {
-        if(!SaveManager.AllUpgradesUnlocked.Contains(upgradeName))
+        if (!SaveManager.AllUpgradesUnlocked.Contains(upgradeName))
             SaveManager.AllUpgradesUnlocked.Add(upgradeName);
 
-        Plugin.MoreLogs($"Client: Updating {upgradeName} upgrade status for all clients");
+        Loggers.LogInfo($"Client: Updating {upgradeName} upgrade status for all clients");
         CostCommands.UpdateUnlockStatus();
     }
 
     [ServerRpc(RequireOwnership = true)]
     internal void SendItemsToAllServerRpc(int[] itemsOrdered)
     {
-        Plugin.MoreLogs("Server: Sending itemsOrdered to clients...");
+        Loggers.LogInfo("Server: Sending itemsOrdered to clients...");
         SendItemsToAllClientRpc(itemsOrdered);
     }
     [ClientRpc]
@@ -409,7 +411,7 @@ public class NetHandler : NetworkBehaviour
         NetworkManager networkManager = base.NetworkManager;
         if (!networkManager.IsHost || !networkManager.IsServer)
         {
-            Plugin.MoreLogs("Client: Setting storeCart value to host's orderedItemsFromTerminal list");
+            Loggers.LogInfo("Client: Setting storeCart value to host's orderedItemsFromTerminal list");
             List<int> receivedList = [.. itemsOrdered];
             CostCommands.storeCart = receivedList;
         }
@@ -418,7 +420,7 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void SyncCreditsServerRpc(int newCreds, int items)
     {
-        Plugin.MoreLogs("Server: syncing credits and items...");
+        Loggers.LogInfo("Server: syncing credits and items...");
         SyncCreditsClientRpc(newCreds, items);
     }
     [ClientRpc]
@@ -436,7 +438,7 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void SyncRadarZoomServerRpc(float zoom)
     {
-        Plugin.MoreLogs("Server: syncing radar zoom level...");
+        Loggers.LogInfo("Server: syncing radar zoom level...");
         SyncRadarZoomClientRpc(zoom);
     }
     [ClientRpc]
@@ -448,13 +450,13 @@ public class NetHandler : NetworkBehaviour
         ViewCommands.radarZoom = zoom;
 
         GameStuff.TerminalMapRenderer.cam.orthographicSize = ViewCommands.radarZoom;
-        Plugin.MoreLogs($"Radar Zoom set to {ViewCommands.radarZoom}");
+        Loggers.LogInfo($"Radar Zoom set to {ViewCommands.radarZoom}");
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void SyncRadarMapServerRpc(int fromClient, int newTarget)
     {
-        Plugin.Spam($"Server: Client ({fromClient}) attempting to sync radarmap target to {newTarget}");
+        Loggers.LogDebug($"Server: Client ({fromClient}) attempting to sync radarmap target to {newTarget}");
         SyncRadarMapClientRpc(fromClient, newTarget);
     }
 
@@ -466,13 +468,13 @@ public class NetHandler : NetworkBehaviour
 
         if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
         {
-            Plugin.Spam($"This is the client updating target to {newTarget}");
+            Loggers.LogDebug($"This is the client updating target to {newTarget}");
             return;
         }
         else
         {
 
-            Plugin.Spam("SyncRadarMapClientRpc called from another client");
+            Loggers.LogDebug("SyncRadarMapClientRpc called from another client");
             GameStuff.TerminalMapRenderer.StartCoroutine(GameStuff.TerminalMapRenderer.updateMapTarget(newTarget, true));
         }
 
@@ -481,20 +483,20 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void StartAoDServerRpc(bool aod)
     {
-        Plugin.MoreLogs($"Server: syncing alwaysondisplay to {aod}");
+        Loggers.LogInfo($"Server: syncing alwaysondisplay to {aod}");
         AoDClientRpc(aod);
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void AoDServerRpc(bool aod)
     {
-        Plugin.MoreLogs($"Server: syncing alwaysondisplay to {aod}");
+        Loggers.LogInfo($"Server: syncing alwaysondisplay to {aod}");
         AoDClientRpc(aod);
     }
     [ClientRpc]
     internal void AoDClientRpc(bool aod)
     {
-        Plugin.MoreLogs($"Client: setting alwaysondisplay to {aod}");
+        Loggers.LogInfo($"Client: setting alwaysondisplay to {aod}");
         alwaysOnDisplay = aod;
         if (Plugin.instance.Terminal.terminalInUse == false)
             ToggleScreen(aod);
@@ -514,7 +516,7 @@ public class NetHandler : NetworkBehaviour
         GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
         GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
         GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-        Plugin.MoreLogs($"Client: Ship Color change for all lights received. Color: {newColor} Name: {target} ");
+        Loggers.LogInfo($"Client: Ship Color change for all lights received. Color: {newColor} Name: {target} ");
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -527,13 +529,13 @@ public class NetHandler : NetworkBehaviour
     internal void ShipColorFRONTClientRpc(Color newColor, string target)
     {
         GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-        Plugin.MoreLogs($"Client: Ship Color change received for front lights. Color: {newColor} Name: {target} ");
+        Loggers.LogInfo($"Client: Ship Color change received for front lights. Color: {newColor} Name: {target} ");
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void ShipColorMIDServerRpc(Color newColor, string target)
     {
-        Plugin.MoreLogs("serverRpc called");
+        Loggers.LogInfo("serverRpc called");
         ShipColorMIDClientRpc(newColor, target);
     }
 
@@ -541,13 +543,13 @@ public class NetHandler : NetworkBehaviour
     internal void ShipColorMIDClientRpc(Color newColor, string target)
     {
         GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-        Plugin.MoreLogs($"Client: Ship Color change received for middle lights. Color: {newColor} Name: {target} ");
+        Loggers.LogInfo($"Client: Ship Color change received for middle lights. Color: {newColor} Name: {target} ");
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void ShipColorBACKServerRpc(Color newColor, string target)
     {
-        Plugin.MoreLogs("serverRpc called");
+        Loggers.LogInfo("serverRpc called");
         ShipColorBACKClientRpc(newColor, target);
     }
 
@@ -555,7 +557,7 @@ public class NetHandler : NetworkBehaviour
     internal void ShipColorBACKClientRpc(Color newColor, string target)
     {
         GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-        Plugin.MoreLogs($"Client: Ship Color change received for back lights. Color: {newColor} Name: {target} ");
+        Loggers.LogInfo($"Client: Ship Color change received for back lights. Color: {newColor} Name: {target} ");
     }
 
 
@@ -564,7 +566,7 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void FlashColorServerRpc(Color newColor, ulong playerID, string playerName)
     {
-        //Plugin.MoreLogs("Fcolor serverRpc called");
+        //Loggers.LogInfo("Fcolor serverRpc called");
         FlashColorClientRpc(newColor, playerID, playerName);
         HelmetLightColorClientRpc(newColor, playerID);
     }
@@ -575,21 +577,21 @@ public class NetHandler : NetworkBehaviour
         if (StartOfRound.Instance.localPlayerController.playerClientId == playerID)
             return;
 
-        //Plugin.MoreLogs("Fcolor clientRpc called");
+        //Loggers.LogInfo("Fcolor clientRpc called");
         FlashlightItem getFlash = FindFlashlightObject(playerName);
         if (getFlash != null)
         {
             SetFlash(ref getFlash, newColor);
         }
-            
+
         else
-            Plugin.WARNING($"Unable to find flashlight of player [ {playerName} ] to set custom color [ {newColor} ]");
+            Loggers.WARNING($"Unable to find flashlight of player [ {playerName} ] to set custom color [ {newColor} ]");
     }
 
     [ServerRpc(RequireOwnership = false)]
     internal void HelmetLightColorServerRpc(Color newColor, ulong playerID)
     {
-        //Plugin.MoreLogs("Fcolor serverRpc called");
+        //Loggers.LogInfo("Fcolor serverRpc called");
         HelmetLightColorClientRpc(newColor, playerID);
     }
 
@@ -604,7 +606,7 @@ public class NetHandler : NetworkBehaviour
 
     private FlashlightItem FindFlashlightObject(string playerName)
     {
-        List<FlashlightItem> allflashlights = [.. FindObjectsByType<FlashlightItem>(sortMode:FindObjectsSortMode.None)];
+        List<FlashlightItem> allflashlights = [.. FindObjectsByType<FlashlightItem>(sortMode: FindObjectsSortMode.None)];
         FlashlightItem flashlightItem = null!;
 
         if (allflashlights.Count == 0)
@@ -639,7 +641,7 @@ public class NetHandler : NetworkBehaviour
         }
         else
         {
-            Plugin.WARNING($"flashlightBulb or flashlightBulbGlow is null");
+            Loggers.WARNING($"flashlightBulb or flashlightBulbGlow is null");
         }
     }
 
@@ -666,7 +668,7 @@ public class NetHandler : NetworkBehaviour
 
         endFlashRainbow = false;
         StartCoroutine(RainbowFlashCoroutine(playerName, playerID, getPlayer));
-        Plugin.MoreLogs($"{playerName} trying to set flashlight to rainbow mode!");
+        Loggers.LogInfo($"{playerName} trying to set flashlight to rainbow mode!");
 
     }
 
@@ -676,7 +678,7 @@ public class NetHandler : NetworkBehaviour
             yield break;
 
         rainbowFlashEnum = true;
-        Plugin.Spam("RainbowFlashCoroutine!");
+        Loggers.LogDebug("RainbowFlashCoroutine!");
 
         FlashlightItem flashlight = FindFlashlightObject(playerName);
         if (flashlight != null)
@@ -698,7 +700,7 @@ public class NetHandler : NetworkBehaviour
 
                 if (StartOfRound.Instance.allPlayersDead || flashlight.insertedBattery.empty || !flashlight.isHeld || !flashlight.flashlightBulb.enabled || !ColorCommands.RainbowFlash)
                 {
-                    Plugin.MoreLogs("ending flashy rainbow");
+                    Loggers.LogInfo("ending flashy rainbow");
                     flashlight.itemProperties.itemName = flashlight.itemProperties.itemName.Replace("(Rainbow)", "");
                     endFlashRainbow = true;
                 }
@@ -721,7 +723,7 @@ public class NetHandler : NetworkBehaviour
     internal void QuickRestartClientRpc()
     {
         GameNetworkManager.Instance.localPlayerController.DropAllHeldItemsAndSync();
-        if(GameNetworkManager.Instance.localPlayerController.currentTriggerInAnimationWith == Plugin.instance.Terminal.terminalTrigger)
+        if (GameNetworkManager.Instance.localPlayerController.currentTriggerInAnimationWith == Plugin.instance.Terminal.terminalTrigger)
             Plugin.instance.Terminal.QuitTerminal(); //quit terminal for terminal user
 
         //DeleteInventory();
@@ -766,6 +768,8 @@ public class NetHandler : NetworkBehaviour
         Plugin.Log.LogInfo("Nethandler Spawned!");
 
     }
+
+#pragma warning restore CA1822
 
 }
 

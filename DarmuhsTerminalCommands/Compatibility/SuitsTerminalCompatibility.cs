@@ -1,29 +1,29 @@
-﻿using UnityEngine;
+﻿using TerminalStuff.PluginCore;
+using UnityEngine;
 using static suitsTerminal.AdvancedMenu;
 
-namespace TerminalStuff
+namespace TerminalStuff;
+
+internal class SuitsTerminalCompatibility
 {
-    internal class SuitsTerminalCompatibility
+    internal static bool CheckForSuitsMenu()
     {
-        internal static bool CheckForSuitsMenu()
-        {
-            if (!Plugin.instance.suitsTerminal)
-                return false;
+        if (!Plugin.instance.suitsTerminal)
+            return false;
 
-            if (specialMenusActive)
-            {
-                Plugin.MoreLogs("In suitsTerminal menu");
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        internal static void SetCaretColor(Color color)
+        if (specialMenusActive)
         {
-            CaretOriginal = color;
+            Loggers.LogInfo("In suitsTerminal menu");
+            return true;
         }
+        else
+        {
+            return false;
+        }
+    }
+
+    internal static void SetCaretColor(Color color)
+    {
+        CaretOriginal = color;
     }
 }

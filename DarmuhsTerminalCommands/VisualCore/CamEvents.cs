@@ -1,5 +1,6 @@
 ﻿using OpenLib.Common;
 using TerminalStuff.EventSub;
+using TerminalStuff.PluginCore;
 using UnityEngine;
 using UnityEngine.UI;
 using static TerminalStuff.MoreCamStuff;
@@ -45,7 +46,7 @@ public class CamEvents
 
     internal static void OnUpdateCamsEvent(string mode)
     {
-        Plugin.Spam("UpdateCams Event!");
+        Loggers.LogDebug("UpdateCams Event!");
 
         CamsThings.Mode = mode;
         if (mode == "map")
@@ -103,7 +104,7 @@ public class CamEvents
         }
         else
         {
-            Plugin.WARNING($"Unexpected mode - [ {mode} ] OnUpdateCamsEvent");
+            Loggers.WARNING($"Unexpected mode - [ {mode} ] OnUpdateCamsEvent");
         }
     }
 
@@ -116,7 +117,7 @@ public class CamEvents
     private static Texture UpdateCamsTexture()
     {
 
-        Plugin.Spam("Updating Cams");
+        Loggers.LogDebug("Updating Cams");
         if (IsExternalCamsPresent())
             return GetPlayerCamsFromExternalMod(GameStuff.TerminalMapRenderer.targetTransformIndex);
         else
@@ -151,7 +152,7 @@ public class CamEvents
     {
         if (Plugin.instance.OpenBodyCamsMod && ConfigSettings.CamsUseDetectedMods.Value)
         {
-            Plugin.Spam("Sending to OBC for camera info");
+            Loggers.LogDebug("Sending to OBC for camera info");
             OpenLib.Compat.OpenBodyCamFuncs.OpenBodyCamsMirrorStatus(true, ConfigSettings.ObcResolutionMirror.Value, ConfigSettings.MirrorZoom.Value, ConfigSettings.Mirror2DStyle.Value, ref CamStuff.ObcCameraHolder);
             return OpenLib.Compat.OpenBodyCamFuncs.GetTexture(OpenLib.Compat.OpenBodyCamFuncs.TerminalMirrorCam);
         }
@@ -165,7 +166,7 @@ public class CamEvents
     {
         if (playerCam == null)
         {
-            Plugin.MoreLogs("Creating home-brew PlayerCam");
+            Loggers.LogInfo("Creating home-brew PlayerCam");
             playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref CamStuff.MyCameraHolder);
         }
 

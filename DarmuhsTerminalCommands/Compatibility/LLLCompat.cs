@@ -1,90 +1,90 @@
 ﻿using LethalLevelLoader;
 using System.Linq;
+using TerminalStuff.PluginCore;
 
-namespace TerminalStuff.Compatibility
+namespace TerminalStuff.Compatibility;
+
+internal class LLLCompat
 {
-    internal class LLLCompat
+    internal static void UpdateLLLFontSize(float fontSize)
     {
-        internal static void UpdateLLLFontSize(float fontSize)
-        {
-            if (!Plugin.instance.LethalLevelLoader)
-                return;
+        if (!Plugin.instance.LethalLevelLoader)
+            return;
 
-            TerminalManager.defaultTerminalFontSize = fontSize;
-            Plugin.instance.Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
-            Plugin.Spam($"TerminalManager.defaultTerminalFontSize set to {fontSize}!");
-        }
+        TerminalManager.defaultTerminalFontSize = fontSize;
+        Plugin.instance.Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
+        Loggers.LogDebug($"TerminalManager.defaultTerminalFontSize set to {fontSize}!");
+    }
 
-        internal static int GetPrice(SelectableLevel level)
-        {
-            if (!Plugin.instance.LethalLevelLoader)
-                return 0;
-
-            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-            {
-                return extendedLevel.RoutePrice;
-            }
+    internal static int GetPrice(SelectableLevel level)
+    {
+        if (!Plugin.instance.LethalLevelLoader)
             return 0;
-        }
 
-        internal static bool IsLocked(SelectableLevel level)
+        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
         {
-            if (!Plugin.instance.LethalLevelLoader)
-                return false;
+            return extendedLevel.RoutePrice;
+        }
+        return 0;
+    }
 
-            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-                return extendedLevel.IsRouteLocked;
-            
+    internal static bool IsLocked(SelectableLevel level)
+    {
+        if (!Plugin.instance.LethalLevelLoader)
             return false;
-        }
 
-        internal static bool IsHidden(SelectableLevel level)
-        {
-            if (!Plugin.instance.LethalLevelLoader)
-                return false;
+        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+            return extendedLevel.IsRouteLocked;
 
-            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-                return extendedLevel.IsRouteHidden;
+        return false;
+    }
 
+    internal static bool IsHidden(SelectableLevel level)
+    {
+        if (!Plugin.instance.LethalLevelLoader)
             return false;
-        }
 
-        internal static bool IsDisabled(SelectableLevel level)
-        {
-            if (!Plugin.instance.LethalLevelLoader)
-                return false;
+        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+            return extendedLevel.IsRouteHidden;
 
-            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-            {
-                return !TerminalManager.routeKeyword.compatibleNouns.Any(x => x.result == extendedLevel.RouteNode);
-            }
+        return false;
+    }
 
+    internal static bool IsDisabled(SelectableLevel level)
+    {
+        if (!Plugin.instance.LethalLevelLoader)
             return false;
+
+        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+        {
+            return !TerminalManager.routeKeyword.compatibleNouns.Any(x => x.result == extendedLevel.RouteNode);
         }
 
-        internal static void UnlockUnhide(SelectableLevel level)
-        {
-            if (!Plugin.instance.LethalLevelLoader)
-                return;
+        return false;
+    }
 
-            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-            {
-                extendedLevel.IsRouteHidden = false;
-                extendedLevel.IsRouteLocked = false;
-                Plugin.Spam($"Unlocked/Unhidden - {extendedLevel.NumberlessPlanetName}");
-            }
+    internal static void UnlockUnhide(SelectableLevel level)
+    {
+        if (!Plugin.instance.LethalLevelLoader)
+            return;
+
+        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+        {
+            extendedLevel.IsRouteHidden = false;
+            extendedLevel.IsRouteLocked = false;
+            Loggers.LogDebug($"Unlocked/Unhidden - {extendedLevel.NumberlessPlanetName}");
         }
+    }
 
-        internal static void ChangeHiddenStatus(SelectableLevel level, bool shouldHide)
+    internal static void ChangeHiddenStatus(SelectableLevel level, bool shouldHide)
+    {
+        if (!Plugin.instance.LethalLevelLoader)
+            return;
+
+        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
         {
-            if (!Plugin.instance.LethalLevelLoader)
-                return;
-
-            if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-            {
-                extendedLevel.IsRouteHidden = shouldHide;
-                Plugin.Spam($"IsHidden {shouldHide} - {extendedLevel.NumberlessPlanetName}");
-            }
+            extendedLevel.IsRouteHidden = shouldHide;
+            Loggers.LogDebug($"IsHidden {shouldHide} - {extendedLevel.NumberlessPlanetName}");
         }
     }
 }
