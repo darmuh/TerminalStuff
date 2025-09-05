@@ -17,7 +17,6 @@ internal class TerminalGeneral
         //Plugin.instance.Config.Reload();
         Plugin.instance.Terminal.terminalNodes.specialNodes[20] = TerminalStart.switchNodeVanilla;
         MoonsPlus.LobbyClose();
-        MenuBuild.ClearMyMenustuff();
         //ConfigSettings.TerminalStuffMain.DeleteAll();
         lastText = "";
         //Plugin.ClearLists();

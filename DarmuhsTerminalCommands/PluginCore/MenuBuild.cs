@@ -1,13 +1,11 @@
 ﻿using OpenLib.Common;
 using OpenLib.ConfigManager;
 using OpenLib.CoreMethods;
-using OpenLib.InteractiveMenus;
 using OpenLib.Menus;
 using System.Collections.Generic;
 using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
 using static OpenLib.Menus.CommandsMenu;
-using static OpenLib.Menus.MenuBuild;
 
 namespace TerminalStuff;
 
@@ -75,8 +73,6 @@ internal class MenuBuild
             return;
         }
 
-
-
         var active = OpenLib.Plugin.GetActiveCommands();
         UpdateMenuListing(MoreMenu, MainMenuItem, active);
 
@@ -84,55 +80,5 @@ internal class MenuBuild
         CreateAndSetControlsFooter(MoreMenu, MoreMenu.GetMenuItemsOfType<CommandMenuItem<CommandsMenuBase>>());
         Loggers.LogDebug("END CreateDarmuhsTerminalStuffMenus");
 
-    }
-
-    internal static void AddMenuItems(List<ManagedConfig> managedItems, TerminalMenu myMenu)
-    {
-        if (myMenu.menuItems.Count == 0)
-            return;
-
-        foreach (ManagedConfig item in managedItems)
-        {
-            if (item.menuItem == null)
-                continue;
-
-            if (!myMenu.menuItems.Contains(item.menuItem))
-                myMenu.menuItems.Add(item.menuItem);
-        }
-    }
-
-    internal static void AddMenuItems(List<ManagedConfig> managedItems, List<TerminalMenuItem> myMenuItems)
-    {
-        if (myMenuItems.Count == 0)
-            return;
-
-        foreach (ManagedConfig item in managedItems)
-        {
-            if (item.menuItem == null)
-                continue;
-
-            if (!myMenuItems.Contains(item.menuItem))
-                myMenuItems.Add(item.menuItem);
-        }
-    }
-
-    internal static void RefreshMyMenu()
-    {
-        if (myMenu == null)
-            return;
-
-        myMenu.menuItems.Clear();
-        myMenuItems.Clear();
-        //myMenuItems = TerminalMenuItems(defaultManaged);
-        myMenu.menuItems = myMenuItems;
-        //AddMenuItems(Commands.TerminalStuffBools, myMenu);
-        UpdateCategories(myMenu);
-    }
-
-    internal static void ClearMyMenustuff()
-    {
-        myMenu?.Delete();
-        myMenuItems.Clear();
-        myMenuCategories.Clear();
     }
 }

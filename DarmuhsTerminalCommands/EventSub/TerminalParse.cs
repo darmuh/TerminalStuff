@@ -1,9 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
+﻿using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;
-using static OpenLib.Menus.MenuBuild;
 
 namespace TerminalStuff.EventSub;
 

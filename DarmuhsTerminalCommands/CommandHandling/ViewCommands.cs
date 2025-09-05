@@ -1,11 +1,8 @@
-﻿using OpenLib.Menus;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using TerminalStuff.PluginCore;
 using UnityEngine;
-using static OpenLib.Menus.MenuBuild;
 using static TerminalStuff.AllMyTerminalPatches;
 using static TerminalStuff.MoreCamStuff;
 using static TerminalStuff.StringStuff;
