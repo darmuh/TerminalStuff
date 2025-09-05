@@ -127,14 +127,14 @@ public class FlashLights_Color_Patch
 
         Color def;
 
-        if (OpenLib.Common.Misc.CompareStringsInvariant(__instance.itemProperties.itemName, "flashlight"))
+        if (OpenLib.Common.Misc.CompareStringsInvariant(__instance.itemProperties.itemName, "flashlight") && Flashlights_Start_Patch.DefaultRegColor != null)
             def = Flashlights_Start_Patch.DefaultRegColor.Value;
-        else if (OpenLib.Common.Misc.CompareStringsInvariant(__instance.itemProperties.itemName, "pro-flashlight"))
+        else if (OpenLib.Common.Misc.CompareStringsInvariant(__instance.itemProperties.itemName, "pro-flashlight") && Flashlights_Start_Patch.DefaultProColor != null)
             def = Flashlights_Start_Patch.DefaultProColor.Value;
         else
         {
             def = Color.white;
-            Loggers.LogDebug($"Unknown flashlight item [ {__instance.itemProperties.itemName} ]");
+            Loggers.LogDebug($"Null default values OR Unknown flashlight item [ {__instance.itemProperties.itemName} ]");
         }
 
         Loggers.LogDebug($"Color def: {def}\n{__instance.itemProperties.itemName} color: {__instance.flashlightBulb.color}");

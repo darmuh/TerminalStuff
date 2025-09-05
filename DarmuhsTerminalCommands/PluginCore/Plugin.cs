@@ -65,18 +65,18 @@ public class Plugin : BaseUnityPlugin
 
     internal Terminal Terminal = null!;
     internal static bool refreshNodes = false;
-    private static List<TerminalNode> allnodescached = [];
+    private static List<TerminalNode> _allnodescached = [];
     internal static List<TerminalNode> Allnodes
     {
         get
         {
-            if (allnodescached.Count == 0 || refreshNodes == true)
-                allnodescached = OpenLib.CoreMethods.LogicHandling.GetAllNodes();
+            if (_allnodescached.Count == 0 || refreshNodes == true)
+                _allnodescached = OpenLib.CoreMethods.LogicHandling.GetAllNodes();
 
             if (refreshNodes == true)
                 refreshNodes = false;
 
-            return allnodescached;
+            return _allnodescached;
         }
         set
         {
@@ -124,18 +124,19 @@ public class Plugin : BaseUnityPlugin
         if (settingChangedArg.ChangedSetting == null)
             return;
 
+        /*
         if (ConfigMisc.CheckChangedConfigSetting(defaultManaged, settingChangedArg.ChangedSetting) || ConfigMisc.CheckChangedConfigSetting(Configs.Commands.TerminalStuffBools, settingChangedArg.ChangedSetting))
         {
             Loggers.LogDebug("managed bools have been modified!!");
-        }
+        } */
     }
 
     internal void OnConfigReloaded(object sender, EventArgs e)
     {
         Loggers.LogDebug("Config has been reloaded!");
-        NetworkingCheck(ConfigSettings.ModNetworking.Value, instance.Config, defaultManaged);
-        ReadConfigAndAssignValues(instance.Config, defaultManaged);
-        ReadConfigAndAssignValues(instance.Config, Configs.Commands.TerminalStuffBools);
+        //NetworkingCheck(ConfigSettings.ModNetworking.Value, instance.Config, defaultManaged);
+        //ReadConfigAndAssignValues(instance.Config, defaultManaged);
+        //ReadConfigAndAssignValues(instance.Config, Configs.Commands.TerminalStuffBools);
     }
 
     //Keeping this here since transpilers can run before LogLevel is set

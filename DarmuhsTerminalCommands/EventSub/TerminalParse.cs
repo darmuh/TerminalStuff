@@ -16,14 +16,8 @@ public class TerminalParse
 
         StartofHandling.FirstCheck(node);
 
-        if (node.name.Equals("0_StoreHub") && ConfigSettings.TerminalStuffMain.storePacks.Count > 0)
+        if (node.name.Equals("0_StoreHub") && StorePacksInfo.AllPacks.Count > 0)
             GetDynamicCost();
-
-        if (QoLConfig.CreateMoreMenus.Value)
-        {
-            if (InMainMenu(node, MenuBuild.myMenu))
-                Loggers.LogDebug("got node from menus");
-        }
 
         StartofHandling.HandleParsed(node, ref node);
 
@@ -46,7 +40,7 @@ public class TerminalParse
         Loggers.LogInfo("Networked nodes enabled, sending result to server.");
         if (node != null)
         {
-            if (ConfigSettings.TerminalStuffMain.specialListNum.ContainsKey(node)) //should be the listing that contains the viewnodes
+            if (MoreCamStuff.IsViewNode(node)) //should be the listing that contains the viewnodes
             {
                 int nodeNum = StartofHandling.FindViewInt(node);
                 NetHandler.NetNodeReset(true);
@@ -75,14 +69,15 @@ public class TerminalParse
 
     internal static void GetDynamicCost()
     {
-        foreach (KeyValuePair<TerminalNode, string> item in ConfigSettings.TerminalStuffMain.storePacks)
+        /*
+        foreach (var item in StorePacksInfo.AllPacks)
         {
-            if (!item.Key.name.Contains("_confirm"))
+            if (!item.terminalNode .name.Contains("_confirm"))
             {
                 item.Key.itemCost = StorePacks.GetPriceFromNode(item.Key);
                 Loggers.LogDebug($"Updating price for {item.Key.name} to {item.Key.itemCost}");
             }
-        }
+        }*/
     }
 
     internal static TerminalNode OnNewDisplayText(ref TerminalNode node)
@@ -92,7 +87,7 @@ public class TerminalParse
         if (Plugin.instance.CruiserTerm)
             StartofHandling.ParseCruiserTerm(ref node);
 
-        if (ConfigSettings.TerminalStuffMain.storePacks.TryGetValue(node, out string value))
+        /*if (ConfigSettings.TerminalStuffMain.storePacks.TryGetValue(node, out string value))
         {
             node.itemCost = 0;
             Loggers.LogInfo("Updating currentPackList");
@@ -100,7 +95,7 @@ public class TerminalParse
             StorePacksInfo.Selected = StorePacksInfo.AllPacks.FirstOrDefault(x => x.terminalNode == refNode);
             if (node.creatureName != string.Empty)
                 StorePacksInfo.CurrentPackName = node.creatureName;
-        }
+        }*/
 
         return node;
     }

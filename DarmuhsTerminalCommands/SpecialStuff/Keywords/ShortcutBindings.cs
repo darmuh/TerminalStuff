@@ -274,15 +274,10 @@ public class ShortcutBindings
             if (keyword.word == input)
             {
                 Loggers.LogInfo("Loading node from Terminal Keywords");
-                List<MainListing> fullListings =
-                [
-                    defaultListing, ConfigSettings.TerminalStuffMain
-                ];
-
-                if (LogicHandling.TryGetFuncFromNode(fullListings, ref keyword.specialKeywordResult, out Func<string> displayTextSupplier))
+                if (LogicHandling.TryGetFuncFromTerminalNode(ref keyword.specialKeywordResult, out Func<string> supplier))
                 {
-                    Loggers.LogInfo("running function related to displaytext supplier");
-                    string displayText = displayTextSupplier();
+                    string displayText = supplier();
+                    Loggers.LogInfo("related function has started for terminal start page!");
                     keyword.specialKeywordResult.displayText = displayText;
                 }
 

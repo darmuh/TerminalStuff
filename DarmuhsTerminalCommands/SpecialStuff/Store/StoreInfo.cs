@@ -1,6 +1,9 @@
-﻿using OpenLib.ConfigManager;
+﻿using OpenBodyCams.API;
+using OpenLib.ConfigManager;
+using OpenLib.CoreMethods;
 using System;
 using System.Linq;
+using TerminalStuff.Configs;
 using static TerminalStuff.SpecialStuff.StorePlus;
 
 namespace TerminalStuff.SpecialStuff;
@@ -169,12 +172,12 @@ public class StoreInfo
 
     internal void PriceChecks()
     {
-        ManagedConfig thisItem = ConfigSetup.defaultManaged.FirstOrDefault(x => x.CommandType == 2 && x.TerminalNode == terminalNode);
-        if (thisItem != null)
-        {
-            price = thisItem.price;
-            return;
-        }
+        //CommandManager thisItem = Configs.Commands.GetEnabledCommands().FirstOrDefault(x => x.CommandType == 2 && x.terminalNode == terminalNode);
+        //if (thisItem != null)
+        //{
+         //   price = thisItem.StoreBase.ActualPrice;
+         //   return;
+        //}
 
         if (buyableItem == null)
             price = terminalNode.itemCost;
@@ -192,9 +195,9 @@ public class StoreInfo
             int original = price;
 
             if (!isVehicle)
-                price = StorePlus.GetSalesPrice(price, terminalNode.buyItemIndex);
+                price = GetSalesPrice(price, terminalNode.buyItemIndex);
             else
-                price = StorePlus.GetSalesPrice(price, terminalNode.buyVehicleIndex, true);
+                price = GetSalesPrice(price, terminalNode.buyVehicleIndex, true);
 
             onSale = price != original;
         }

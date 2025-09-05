@@ -10,8 +10,8 @@ namespace TerminalStuff.PluginCore;
 internal class TerminalCustomizer
 {
     internal static bool defaultsCached = false;
-    internal static Image terminalBackground;
-    internal static Image moneyBG;
+    internal static Image terminalBackground = null!;
+    internal static Image moneyBG = null!;
 
     private static void SetTerminalBodyColors()
     {

@@ -401,7 +401,7 @@ internal class StorePacks
 internal static class StorePacksInfo
 {
     internal static string CurrentPackName = "";
-    internal static StorePacks Selected = null;
+    internal static StorePacks Selected = null!;
     //internal static string PackContents = "";
     internal static List<StorePacks> AllPacks = [];
 

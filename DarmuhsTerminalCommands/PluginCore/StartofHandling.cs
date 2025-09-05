@@ -1,4 +1,5 @@
 ﻿using OpenLib.Common;
+using OpenLib.CoreMethods;
 using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Compatibility;
@@ -27,11 +28,12 @@ internal class StartofHandling
 
     internal static int FindViewInt(TerminalNode givenNode)
     {
-        foreach (KeyValuePair<TerminalNode, int> pairValue in ConfigSettings.TerminalStuffMain.specialListNum)
+        var viewNodes = Commands.GetSpecialCommands();
+        foreach (var item in viewNodes)
         {
-            if (pairValue.Key == givenNode)
+            if (item.terminalNode == givenNode)
             {
-                int nodeNum = pairValue.Value;
+                int nodeNum = item.VerySpecialNum;
                 return nodeNum;
             }
         }
@@ -108,17 +110,14 @@ internal class StartofHandling
 
     internal static TerminalNode FindViewNode(int givenInt)
     {
-        if (givenInt < 0 || !ConfigSettings.TerminalStuffMain.specialListNum.ContainsValue(givenInt))
-            return null;
-        foreach (KeyValuePair<TerminalNode, int> pairValue in ConfigSettings.TerminalStuffMain.specialListNum)
-        {
-            if (pairValue.Value == givenInt)
-            {
-                TerminalNode foundNode = pairValue.Key;
-                return foundNode;
-            }
-        }
-        return null;
+        if (givenInt < 0)
+            return null!;
+        
+        CommandManager result = Commands.GetSpecialCommands().FirstOrDefault(x => x.VerySpecialNum == givenInt);
+        if (result == null)
+            return null!;
+        else
+            return result.terminalNode;
     }
 
     internal static void SyncTerminal(TerminalNode resultNode)
@@ -137,7 +136,7 @@ internal class StartofHandling
         Loggers.LogInfo("Networked nodes enabled, sending result to server.");
         if (resultNode != null)
         {
-            if (ConfigSettings.TerminalStuffMain.specialListNum.ContainsKey(resultNode)) //should be the listing that contains the viewnodes
+            if (Commands.GetSpecialCommands().Any(x => x.terminalNode == resultNode)) 
             {
                 int nodeNum = FindViewInt(resultNode);
                 NetHandler.NetNodeReset(true);
@@ -164,7 +163,7 @@ internal class StartofHandling
 
     internal static TerminalNode HandleAnyNode(TerminalNode currentNode, ref TerminalNode resultNode)
     {
-        if (GetNewDisplayText(ConfigSettings.TerminalStuffMain, ref resultNode))
+        if (GetDisplayTextFromCommand(ref resultNode))
             Loggers.LogInfo("command found in TerminalStuffMain listing!");
 
         if (Plugin.instance.CruiserTerm)
@@ -175,7 +174,6 @@ internal class StartofHandling
                 resultNode = currentNode;
                 return currentNode;
             }
-
         }
 
         return resultNode;

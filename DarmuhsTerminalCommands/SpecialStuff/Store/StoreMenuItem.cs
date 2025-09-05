@@ -63,7 +63,7 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
         if (StorePlus.StorePlusMenu.AllMenuItemsOfType.Count == 0)
             return false;
 
-        if (StorePlus.StorePlusMenu.AllMenuItemsOfType.Any(x => (x as StoreMenuItem).keyword == keyword))
+        if (StorePlus.StorePlusMenu.AllMenuItemsOfType.ConvertAll(x => x as StoreMenuItem).Any(x => x?.keyword == keyword))
             return true;
 
         return false;
@@ -74,7 +74,7 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
         if (StorePlus.StorePlusMenu.AllMenuItemsOfType.Count == 0)
             return false;
 
-        if (StorePlus.StorePlusMenu.AllMenuItemsOfType.Any(x => (x as StoreMenuItem).storeItem == item))
+        if (StorePlus.StorePlusMenu.AllMenuItemsOfType.ConvertAll(x => x as StoreMenuItem).Any(x => x?.storeItem == item))
             return true;
 
         return false;

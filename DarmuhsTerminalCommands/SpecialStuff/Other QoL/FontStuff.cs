@@ -11,7 +11,7 @@ namespace TerminalStuff.SpecialStuff;
 
 internal static class FontStuff
 {
-    internal static TMP_FontAsset CachedDefault;
+    internal static TMP_FontAsset CachedDefault = null!;
 
     internal static void TestingFonts()
     {
@@ -64,7 +64,7 @@ internal static class FontStuff
                 return true;
             }
         }
-        CustomFontAsset = null;
+        CustomFontAsset = null!;
         return false;
     }
 
@@ -105,7 +105,7 @@ internal static class FontStuff
     {
         if (CustomizeConfig.CustomFontPath.Value.Length < 1)
         {
-            CustomFontAsset = null;
+            CustomFontAsset = null!;
             return false;
         }
 
@@ -126,15 +126,15 @@ internal static class FontStuff
                     return true;
                 }
                 Loggers.LogDebug("customFont is null returning false");
-                CustomFontAsset = null;
+                CustomFontAsset = null!;
                 return false;
             }
             Loggers.LogDebug("Font File could not be found");
-            CustomFontAsset = null;
+            CustomFontAsset = null!;
             return false;
         }
         Loggers.LogDebug("Custom Font Directory could not be found");
-        CustomFontAsset = null;
+        CustomFontAsset = null!;
         return false;
     }
 
@@ -157,11 +157,11 @@ internal static class FontStuff
                 return true;
             }
             Loggers.LogDebug("customFont is null returning false");
-            CustomFontAsset = null;
+            CustomFontAsset = null!;
             return false;
         }
         Loggers.LogDebug("Directory & file could not be found");
-        CustomFontAsset = null;
+        CustomFontAsset = null!;
         return false;
 
     }

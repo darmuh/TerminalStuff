@@ -10,7 +10,7 @@ namespace TerminalStuff;
 
 public static class ConfigSettings
 {
-    public static MainListing TerminalStuffMain = null!;
+    //public static MainListing TerminalStuffMain = null!;
 
     public static ConfigEntry<bool> TerminalCustomization
     {
@@ -95,7 +95,7 @@ public static class ConfigSettings
         ModNetworking = MakeGeneric(Plugin.instance.Config, "Networking", "ModNetworking", true, "Disable this if you want to disable networking and use this mod as a Client-sided mod");
         NetworkedNodes = MakeGeneric(Plugin.instance.Config, "Networking", "NetworkedNodes", true, "Enable networked Always-On Display & displaying synced terminal nodes");
 
-        AddManagedBool(NetworkedNodes, defaultManaged, true, "", "");
+        //AddManagedBool(NetworkedNodes, defaultManaged, true, "", "");
 
         LogLevel = MakeGeneric(Plugin.instance.Config, "Debug", "ExtensiveLogging", LoggingLevel.Message, "Set the logging level for DarmuhsTerminalStuff (this mod).");
 
@@ -176,13 +176,10 @@ public static class ConfigSettings
         MoonsPlusConfig.Init();
         StorePlusConfig.Init();
 
-
-        PluginCore.StuffForLibrary.ManualManagedBools(); //add more managedbools that dont come from a specific config item
-
         Loggers.LogInfo("end of config setup");
 
         RemoveOrphanedEntries(Plugin.instance.Config);
-        NetworkingCheck(ModNetworking.Value, Plugin.instance.Config, defaultManaged);
+        //NetworkingCheck(ModNetworking.Value, Plugin.instance.Config, defaultManaged);
         Loggers.LogDebug("Main config load COMPLETE");
         Commands.CommandDefinitions();
     }

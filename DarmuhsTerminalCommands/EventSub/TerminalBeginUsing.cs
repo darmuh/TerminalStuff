@@ -37,17 +37,21 @@ internal class TerminalBeginUsing
             Plugin.instance.Terminal.LoadNewNode(Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[1]);
         }
 
+        List<CommandManager> enabled = Commands.GetEnabledCommands();
 
-        if (ConfigSettings.TerminalStuffMain.specialListNum.ContainsKey(Plugin.instance.Terminal.currentNode))
+        if (enabled.Any(x => x.VerySpecialNum != -1 && Plugin.instance.Terminal.currentNode == x.terminalNode))
             return;
 
+        //if (ConfigSettings.TerminalStuffMain.specialListNum.ContainsKey(Plugin.instance.Terminal.currentNode))
+            //return;
+
         if (!ViewCommands.isVideoPlaying)
-            TerminalParse.NetSync(Plugin.instance.Terminal.currentNode);
+            TerminalParse.NetSync(Plugin.instance.Terminal.currentNode!);
     }
 
     internal static void StartUsingTerminalCheck(Terminal instance)
     {
-        TerminalNode nextNode = null;
+        TerminalNode nextNode = null!;
 
         if (QoLConfig.TerminalAutoComplete.Value)
         {
@@ -89,15 +93,11 @@ internal class TerminalBeginUsing
             SplitViewChecks.DisableSplitView("neither");
             ViewCommands.isVideoPlaying = false;
 
-            List<MainListing> fullListings =
-                [
-                    defaultListing, ConfigSettings.TerminalStuffMain
-                ];
 
-            if (LogicHandling.TryGetFuncFromNode(fullListings, ref terminalSettings.startPage, out Func<string> displayTextSupplier))
+            if (LogicHandling.TryGetFuncFromTerminalNode(ref terminalSettings.startPage, out Func<string> supplier))
             {
-                string displayText = displayTextSupplier();
-                Loggers.LogInfo("running function related to displaytext supplier");
+                string displayText = supplier();
+                Loggers.LogInfo("related function has started for terminal start page!");
                 terminalSettings.startPage.displayText = displayText;
             }
 

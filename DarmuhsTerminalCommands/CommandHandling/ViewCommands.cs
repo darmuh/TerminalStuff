@@ -553,14 +553,15 @@ internal class ViewCommands
     {
         StringBuilder message = new();
         message.AppendLine("\tThis command has been <color=#ff1a1a>replaced</color>!\n\nPlease use one of the following alternatives:\n");
-        List<TerminalMenuItem> menus = TerminalMenuItems(Commands.ViewConfig);
+        /*
+        List<TerminalMenuItem> menus = TerminalMenuItems()
 
         foreach (TerminalMenuItem menuItem in menus)
         {
             if (menuItem.itemKeywords.Count == 0)
                 continue;
             message.AppendLine($"> <color=#ffff66>{OpenLib.Common.CommonStringStuff.GetKeywordsForMenuItem(menuItem.itemKeywords)}</color>\r\n{menuItem.itemDescription}\r\n");
-        }
+        }*/
 
         return message.ToString();
     }
@@ -646,5 +647,4 @@ internal class ViewCommands
 
         return false;
     }
-
 }

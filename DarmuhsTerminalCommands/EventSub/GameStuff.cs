@@ -26,11 +26,12 @@ internal class GameStuff
 
     internal static List<string> otherModWords = [];
 
-    internal static bool oneTimeOnly = false;
+    internal static bool OneTimeOnly { get; set; } = false;
     internal static void OnGameStart()
     {
         CompatibilityCheck();
-        oneTimeOnly = false;
+        OneTimeOnly = false;
+        MenuBuild.MoreInit();
     }
 
     internal static void OnChangeLevel()

@@ -14,8 +14,8 @@ internal static class VideoManager //reworked this bit of code from TVLoader by 
 {
     public static List<string> Videos = [];
     private static int lastPlayedIndex = -1;
-    internal static string currentlyPlaying;
-    internal static TerminalNode videoPlayerNode;
+    internal static string currentlyPlaying = string.Empty;
+    internal static TerminalNode videoPlayerNode = null!;
     internal static bool uniqueShuffled = false;
 
     public static void Load()

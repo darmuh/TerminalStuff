@@ -23,18 +23,18 @@ public class WalkieTerm : MonoBehaviour
 
     public static WalkieTalkie GetWalkie(out WalkieTalkie walkie)
     {
-        walkie = null;
+        walkie = null!;
 
         for (int i = 0; i < GameNetworkManager.Instance.localPlayerController.ItemSlots.Length; i++)
         {
-            if (GameNetworkManager.Instance.localPlayerController.ItemSlots[i] is WalkieTalkie)
+            if (GameNetworkManager.Instance.localPlayerController.ItemSlots[i] is WalkieTalkie item)
             {
-                walkie = GameNetworkManager.Instance.localPlayerController.ItemSlots[i] as WalkieTalkie;
+                walkie = item;
                 break;
             }
         }
 
-        return walkie;
+        return walkie!;
     }
 
     public static Key GetUseWalkieKey()

@@ -1,11 +1,12 @@
 ﻿using OpenLib.Common;
 using OpenLib.ConfigManager;
 using OpenLib.CoreMethods;
+using OpenLib.InteractiveMenus;
 using OpenLib.Menus;
 using System.Collections.Generic;
 using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
-using static OpenLib.ConfigManager.ConfigSetup;
+using static OpenLib.Menus.CommandsMenu;
 using static OpenLib.Menus.MenuBuild;
 
 namespace TerminalStuff;
@@ -13,33 +14,36 @@ namespace TerminalStuff;
 
 internal class MenuBuild
 {
+    //NEW
+    internal static CommandsMenuBase MoreMenu = null!;
+    internal static CommandMenuItem<CommandsMenuBase> MainMenuItem = null!;
+    internal static CommandManager MoreMenuCommand = null!;
+
+    //OLD
     internal static List<TerminalMenuCategory> myMenuCategories = [];
     internal static List<TerminalMenuItem> myMenuItems = [];
-    internal static TerminalMenu myMenu;
-    internal static void CategoryList()
+    internal static TerminalMenu myMenu = null!;
+    
+    internal static void MoreInit()
     {
-        Dictionary<string, string> myCategories = [];
-        myMenuItems.Clear();
-        myMenuItems = TerminalMenuItems(defaultManaged);
-        AddMenuItems(Commands.TerminalStuffBools, myMenuItems);
-        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "COMFORT"))
-            myCategories.Add("COMFORT", "Improves the terminal user experience.");
-        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "EXTRAS"))
-            myCategories.Add("EXTRAS", "Adds extra functionality to the ship terminal.");
-        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "CONTROLS"))
-            myCategories.Add("CONTROLS", "Gives terminal more control of the ship's systems.");
-        if (ShouldAddCategoryNameToMainMenu(myMenuItems, "FUN"))
-            myCategories.Add("FUN", "Type \"fun\" for a list of these [FUN]ctional commands.");
-
-        if (myCategories.Count == 0)
+        MoreMenuCommand = Commands.AddLocalCommmandManualWords("More Menus", QoLConfig.CreateMoreMenus, ["more"], EnterCommandMenu);
+        MoreMenu = new("More Menu")
         {
-            Loggers.WARNING("No enabled commands? ending menu creation");
-        }
-        myMenuCategories = InitCategories(myCategories);
+            MainMenu = MainMenuItem,
+            PageSize = 10,
+            AdjustScrollInMenu = false
+        };
 
-        //CatName = item.Key,
-        //CatDescription = item.Value
-        CreateDarmuhsTerminalStuffMenus();
+        MainMenuItem = CreateMainMenu(MoreMenu, "More Commands Menu", () => "=== More Commands Menu ===\n\n");
+    }
+
+    internal static string EnterCommandMenu()
+    {
+        if (MainMenuItem == null)
+            return "This menu has not been created correctly";
+
+        MoreMenu.EnterAtPage(MainMenuItem);
+        return "";
     }
 
     internal static void CreateDarmuhsTerminalStuffMenus()
@@ -70,19 +74,14 @@ internal class MenuBuild
             }
             return;
         }
-        myMenu = AssembleMainMenu("darmuhsTerminalStuff", "more", CustomizeConfig.MoreMenuText.Value, myMenuCategories, myMenuItems);
-        AddingThings.AddToHelpCommand(CustomizeConfig.MoreHintText.Value);
-        if (LogicHandling.TryGetFromAllNodes("OtherCommands", out TerminalNode otherNode))
-            AddingThings.AddToExistingNodeText($"\n{CustomizeConfig.MoreHintText.Value}", ref otherNode);
-
-        Loggers.LogDebug($"myMenu info:\nMenuName: {myMenu.MenuName}\nmyMenu.Categories.Count: {myMenu.Categories.Count}\n");
 
 
-        if (QoLConfig.FauxMoreMenu.Value)
-            CreateCategoryFauxCommands(myMenu, defaultListing);
-        else
-            CreateCategoryCommands(myMenu, ConfigSettings.TerminalStuffMain);
 
+        var active = OpenLib.Plugin.GetActiveCommands();
+        UpdateMenuListing(MoreMenu, MainMenuItem, active);
+
+        MoreMenu.MenuNode = MoreMenuCommand.terminalNode;
+        CreateAndSetControlsFooter(MoreMenu, MoreMenu.GetMenuItemsOfType<CommandMenuItem<CommandsMenuBase>>());
         Loggers.LogDebug("END CreateDarmuhsTerminalStuffMenus");
 
     }
@@ -124,9 +123,9 @@ internal class MenuBuild
 
         myMenu.menuItems.Clear();
         myMenuItems.Clear();
-        myMenuItems = TerminalMenuItems(defaultManaged);
+        //myMenuItems = TerminalMenuItems(defaultManaged);
         myMenu.menuItems = myMenuItems;
-        AddMenuItems(Commands.TerminalStuffBools, myMenu);
+        //AddMenuItems(Commands.TerminalStuffBools, myMenu);
         UpdateCategories(myMenu);
     }
 

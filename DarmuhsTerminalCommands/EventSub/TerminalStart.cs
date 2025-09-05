@@ -41,7 +41,7 @@ public class TerminalStart
         TerminalClockStuff.MakeClock();
         ShortcutBindings.InitSavedShortcuts();
         TerminalCustomizer.TerminalCustomization();
-        MenuBuild.CategoryList();
+        MenuBuild.CreateDarmuhsTerminalStuffMenus();
         SaveManager.InitUnlocks(); // sync upgrades status for this save
     }
 
@@ -58,7 +58,7 @@ public class TerminalStart
         helpNode = Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[13];
         Plugin.instance.Terminal.terminalNodes.specialNodes[4].displayText = Plugin.instance.Terminal.terminalNodes.specialNodes[4].displayText.Replace("12", $"[GetMaxPossibleItems]");
 
-        if (!GameStuff.oneTimeOnly)
+        if (!GameStuff.OneTimeOnly)
         {
             string original = helpNode.displayText;
             //Loggers.LogDebug(original);
@@ -67,7 +67,7 @@ public class TerminalStart
 
             Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[13].displayText = replacement;
             Loggers.LogDebug("~~~~~~~~~~~~~~~~~~~~~~~~~~~~ HELP MODIFIED ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            GameStuff.oneTimeOnly = true;
+            GameStuff.OneTimeOnly = true;
         }
 
         OpenLib.CoreMethods.AddingThings.AddKeywordToExistingNode("home", Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[1], true); //startNode
@@ -218,11 +218,7 @@ public class TerminalStart
     {
         Loggers.LogDebug($"Terminal Keywords Count: {Plugin.instance.Terminal.terminalNodes.allKeywords.Length}");
         Loggers.LogDebug($"Plugin.Allnodes: {Plugin.Allnodes.Count}");
-        Loggers.LogDebug($"TerminalStuffBools.Count: {Commands.TerminalStuffBools.Count}");
-        Loggers.LogDebug($"TerminalStuffMain.Listing.Count: {ConfigSettings.TerminalStuffMain.Listing.Count}");
-        Loggers.LogDebug($"defaultListing.Listing.Count: {defaultListing.Listing.Count}");
-        Loggers.LogDebug($"defaultManaged.Count: {defaultManaged.Count}");
-
+        Loggers.LogDebug($"Commands.AllCommands: {Commands.AllCommands.Count}");
         Loggers.LogDebug("------------------------ end of darmuh's debug info ------------------------");
 
     }

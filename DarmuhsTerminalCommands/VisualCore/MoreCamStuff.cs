@@ -83,18 +83,19 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         }
     }
 
-    private static bool IsViewNode(TerminalNode node)
+    internal static bool IsViewNode(TerminalNode node)
     {
-        if (Commands.ViewConfig.Count == 0)
+        var viewCommands = Commands.GetSpecialCommands();
+        if (viewCommands.Count == 0)
             return false;
 
-        foreach (var item in Commands.ViewConfig)
+        foreach (var item in viewCommands)
         {
-            if (item.TerminalNode == node)
+            if (item.terminalNode == node)
                 return true;
         }
 
-        Loggers.LogDebug("this node is not a managed node, resetting instance variables");
+        Loggers.LogDebug("this node is not a view node, resetting instance variables");
         return false;
     }
 

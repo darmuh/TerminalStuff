@@ -7,7 +7,7 @@ namespace TerminalStuff;
 
 internal class TerminalClockStuff
 {
-    internal static TextMeshProUGUI textComponent;
+    internal static TextMeshProUGUI textComponent = null!;
 
     public static void ClockUpdate()
     {
@@ -17,7 +17,7 @@ internal class TerminalClockStuff
         if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf && !textComponent.gameObject.activeSelf)
             textComponent.gameObject.SetActive(true);
 
-        string clockTime = HUDManager.Instance?.clockNumber?.text;
+        string? clockTime = HUDManager.Instance?.clockNumber?.text;
         if (string.IsNullOrEmpty(clockTime))
             return;
 
@@ -109,7 +109,7 @@ internal class TerminalClockStuff
         else
         {
             Plugin.Log.LogError("CLOCK: Failed to find canvas.");
-            return null;
+            return null!;
         }
     }
 }

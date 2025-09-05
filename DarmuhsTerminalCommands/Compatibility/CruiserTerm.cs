@@ -7,10 +7,9 @@ namespace TerminalStuff.Compatibility;
 
 internal class CruiserTerm
 {
-    //private static CruiserTerminalScript cruiserTerminal;
     internal static List<string> WordList = [];
     internal static bool isDeny = false;
-    internal static TerminalNode NoAccess;
+    internal static TerminalNode NoAccess = null!;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     internal static void Quit()

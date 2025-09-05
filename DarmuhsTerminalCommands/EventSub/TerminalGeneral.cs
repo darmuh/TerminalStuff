@@ -9,7 +9,7 @@ namespace TerminalStuff.EventSub;
 
 internal class TerminalGeneral
 {
-    internal static TerminalNode lastNodeFormatted;
+    internal static TerminalNode lastNodeFormatted = null!;
     internal static bool CancelConfirmation = false;
     internal static TerminalNode GeneralDummy = OpenLib.CoreMethods.AddingThings.CreateDummyNode("", true, "");
     internal static void OnTerminalDisable()
@@ -18,7 +18,7 @@ internal class TerminalGeneral
         Plugin.instance.Terminal.terminalNodes.specialNodes[20] = TerminalStart.switchNodeVanilla;
         MoonsPlus.LobbyClose();
         MenuBuild.ClearMyMenustuff();
-        ConfigSettings.TerminalStuffMain.DeleteAll();
+        //ConfigSettings.TerminalStuffMain.DeleteAll();
         lastText = "";
         //Plugin.ClearLists();
         //Terminal disabled, disabling ESC key listener OnDisable
@@ -34,7 +34,7 @@ internal class TerminalGeneral
             GeneralDummy.displayText = node.displayText;
             Plugin.instance.Terminal.LoadNewNode(GeneralDummy);
             Loggers.LogDebug("Saving terminal user from unnecessary confirmation");
-            if (ConfigSettings.TerminalStuffMain.storePacks.Count > 0)
+            if (StorePacksInfo.AllPacks.Count > 0)
                 StorePacksInfo.CancelConfirmation();
         }
 

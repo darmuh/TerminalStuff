@@ -10,7 +10,7 @@ namespace TerminalStuff.EventSub;
 
 internal class Subscribers
 {
-    internal static string OriginalOtherText;
+    internal static string OriginalOtherText = string.Empty;
     internal static void Subscribe()
     {
         EventManager.TerminalAwake.AddListener(OnTerminalAwake);
@@ -71,7 +71,7 @@ internal class Subscribers
     {
         if (DynamicBools.TryGetKeyword("Other", out TerminalKeyword otherWord))
         {
-            if (GameStuff.oneTimeOnly)
+            if (GameStuff.OneTimeOnly)
                 otherWord.specialKeywordResult.displayText = OriginalOtherText;
             else
                 OriginalOtherText = otherWord.specialKeywordResult.displayText;

@@ -14,7 +14,7 @@ namespace TerminalStuff;
 internal class MoreCommands
 {
     private static Dictionary<string, PluginInfo> PluginsLoaded = [];
-    internal static string CurrentLobbyName { get; private set; }
+    internal static string? CurrentLobbyName { get; private set; }
     internal static bool keepAlwaysOnDisabled = false;
 
     internal static string GetItemsOnShip()
