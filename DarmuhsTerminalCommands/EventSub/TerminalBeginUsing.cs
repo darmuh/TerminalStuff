@@ -93,7 +93,6 @@ internal class TerminalBeginUsing
             SplitViewChecks.DisableSplitView("neither");
             ViewCommands.isVideoPlaying = false;
 
-
             if (LogicHandling.TryGetFuncFromTerminalNode(ref terminalSettings.startPage, out Func<string> supplier))
             {
                 string displayText = supplier();

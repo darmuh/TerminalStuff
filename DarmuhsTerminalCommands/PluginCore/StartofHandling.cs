@@ -163,8 +163,8 @@ internal class StartofHandling
 
     internal static TerminalNode HandleAnyNode(TerminalNode currentNode, ref TerminalNode resultNode)
     {
-        if (GetDisplayTextFromCommand(ref resultNode))
-            Loggers.LogInfo("command found in TerminalStuffMain listing!");
+        //if (GetDisplayTextFromCommand(ref resultNode))
+            //Loggers.LogInfo("command found in TerminalStuffMain listing!");
 
         if (Plugin.instance.CruiserTerm)
         {

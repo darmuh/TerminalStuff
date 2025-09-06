@@ -2,7 +2,6 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
-using OpenLib.ConfigManager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +9,6 @@ using System.Reflection;
 using TerminalStuff.EventSub;
 using TerminalStuff.PluginCore;
 using UnityEngine;
-using static OpenLib.ConfigManager.ConfigSetup;
 
 
 namespace TerminalStuff;
