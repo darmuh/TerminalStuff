@@ -191,7 +191,7 @@ internal class TerminalCustomizer
 
     internal static Color SetColorFor(string config, Color cachedColor)
     {
-        if ((config.Length < 1 || config.ToLower() == "default") && cachedColor != null)
+        if ((config.Length < 1 || OpenLib.Common.Misc.CompareStringsInvariant(config, "default")) && cachedColor != null)
         {
             Loggers.LogDebug("setting to cached default value");
             return cachedColor;
@@ -205,7 +205,7 @@ internal class TerminalCustomizer
 
     private static Color SetColorFor(string config, Color cachedColor, float newAlpha)
     {
-        if ((config.Length < 1 || config.ToLower() == "default") && cachedColor != null)
+        if ((config.Length < 1 || OpenLib.Common.Misc.CompareStringsInvariant(config, "default")) && cachedColor != null)
         {
             Loggers.LogDebug("setting to cached default value");
             return cachedColor;

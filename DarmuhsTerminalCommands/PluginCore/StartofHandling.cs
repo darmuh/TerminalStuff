@@ -1,6 +1,5 @@
 ﻿using OpenLib.Common;
 using OpenLib.CoreMethods;
-using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
@@ -112,7 +111,7 @@ internal class StartofHandling
     {
         if (givenInt < 0)
             return null!;
-        
+
         CommandManager result = Commands.GetSpecialCommands().FirstOrDefault(x => x.VerySpecialNum == givenInt);
         if (result == null)
             return null!;
@@ -136,7 +135,7 @@ internal class StartofHandling
         Loggers.LogInfo("Networked nodes enabled, sending result to server.");
         if (resultNode != null)
         {
-            if (Commands.GetSpecialCommands().Any(x => x.terminalNode == resultNode)) 
+            if (Commands.GetSpecialCommands().Any(x => x.terminalNode == resultNode))
             {
                 int nodeNum = FindViewInt(resultNode);
                 NetHandler.NetNodeReset(true);
@@ -164,7 +163,7 @@ internal class StartofHandling
     internal static TerminalNode HandleAnyNode(TerminalNode currentNode, ref TerminalNode resultNode)
     {
         //if (GetDisplayTextFromCommand(ref resultNode))
-            //Loggers.LogInfo("command found in TerminalStuffMain listing!");
+        //Loggers.LogInfo("command found in TerminalStuffMain listing!");
 
         if (Plugin.instance.CruiserTerm)
         {

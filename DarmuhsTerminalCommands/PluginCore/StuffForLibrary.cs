@@ -1,8 +1,5 @@
 ﻿using OpenLib.CoreMethods;
 using TerminalStuff.Configs;
-using TerminalStuff.SpecialStuff.Keywords;
-using static OpenLib.Common.CommonStringStuff;
-using static OpenLib.ConfigManager.ConfigSetup;
 using static TerminalStuff.EventSub.TerminalStart;
 
 namespace TerminalStuff.PluginCore;

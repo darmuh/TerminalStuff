@@ -1,5 +1,4 @@
 ﻿using BepInEx.Configuration;
-using OpenLib.ConfigManager;
 using OpenLib.CoreMethods;
 using System;
 using System.Collections.Generic;
@@ -165,7 +164,7 @@ public class Commands
         TerminalBioScanPatch = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalBioScanPatch", false, "Purchase-able upgrade patch to bioscan command. The command will provide more precise information after the upgrade.");
         //AddManagedBool(TerminalBioScanPatch, defaultManaged, true, "EXTRAS", "bioscanpatch", CostCommands.AskBioscanUpgrade, 2, true, CostCommands.PerformBioscanUpgrade, null, "", "You have opted out of purchasing the BioScanner 2.0 Upgrade Patch.\n\n", "", -1, "", "", BioScanUpgradeCost.Value, "BioscanPatch", true, 1);
         AddStoreCommand(AddNetworkedCommmandManualWords("Bioscan Patch", "Extras", TerminalBioScanPatch, ["bioscanpatch"], CostCommands.AskBioscanUpgrade), "Bioscan Patch", BioScanUpgradeCost, CostCommands.PerformBioscanUpgrade, () => "You have opted out of purchasing the BioScanner 2.0 Upgrade Patch.\n\n", 1, true);
-        
+
         TerminalVitalsUpgrade = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalVitalsUpgrade", false, "Purchase-able upgrade to vitals command to make the cost of each vitals scan free!");
         //AddManagedBool(TerminalVitalsUpgrade, defaultManaged, true, "EXTRAS", "vitalspatch", CostCommands.AskVitalsUpgrade, 2, true, CostCommands.PerformVitalsUpgrade, null, "", "You have opted out of purchasing the Vitals Scanner Upgrade.\n\n", "", -1, "VitalsPatch", "", VitalsUpgradeCost.Value, "VitalsPatch", true, 1);
         AddStoreCommand(AddNetworkedCommmandManualWords("Vitals Patch", "Extras", TerminalVitalsUpgrade, ["vitalspatch"], CostCommands.AskVitalsUpgrade), "Vitals Patch", VitalsUpgradeCost, CostCommands.PerformVitalsUpgrade, () => "You have opted out of purchasing the Vitals Scanner Upgrade.\n\n", 1, true);
@@ -174,7 +173,7 @@ public class Commands
 
 
         TerminalMods = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalMods", false, "Command to see your active mods");
-        
+
         //AddManagedBool(TerminalMods, defaultManaged, false, "COMFORT", ModsKeywords, MoreCommands.ModListCommand);
         AddLocalCommmand("Mod List", "Comfort", TerminalMods, ModsKeywords, MoreCommands.ModListCommand);
 
@@ -286,7 +285,7 @@ public class Commands
         TerminalRadarZoom = MakeGeneric(Plugin.instance.Config, "Controls Commands (On/Off)", "TerminalRadarZoom", false, "Command to cycle through various radar zoom levels.");
         //AddManagedBool(TerminalRadarZoom, defaultManaged, false, "CONTROLS", RadarZoomKWs, ViewCommands.RadarZoomEvent, 0, true, null, null, "", "", "radarZoom");
         AddLocalCommmand("Radar Zoom", "Controls", TerminalRadarZoom, RadarZoomKWs, ViewCommands.RadarZoomEvent, true, true, true);
-        
+
         //------------------------------------------------MANAGED BOOLS END------------------------------------------------//
 
         //NOT MANAGED BOOLS THAT ARE COMMANDS, DEFINE THESE COMMANDS LATER THAN TERMINAL AWAKE

@@ -1,9 +1,5 @@
-﻿using OpenBodyCams.API;
-using OpenLib.ConfigManager;
-using OpenLib.CoreMethods;
-using System;
+﻿using System;
 using System.Linq;
-using TerminalStuff.Configs;
 using static TerminalStuff.SpecialStuff.StorePlus;
 
 namespace TerminalStuff.SpecialStuff;
@@ -167,7 +163,7 @@ public class StoreInfo
             name = unlockable.unlockableName;
 
         name ??= $"Unknown Item";
-        name.Trim();
+        name = name.Trim();
     }
 
     internal void PriceChecks()
@@ -175,8 +171,8 @@ public class StoreInfo
         //CommandManager thisItem = Configs.Commands.GetEnabledCommands().FirstOrDefault(x => x.CommandType == 2 && x.terminalNode == terminalNode);
         //if (thisItem != null)
         //{
-         //   price = thisItem.StoreBase.ActualPrice;
-         //   return;
+        //   price = thisItem.StoreBase.ActualPrice;
+        //   return;
         //}
 
         if (buyableItem == null)
@@ -218,7 +214,7 @@ public class StoreInfo
         if (isPurchasePack)
             return true;
 
-        if (StorePlus.ManualUpgradeNames.Any(c => c.ToLower() == terminalNode.creatureName.ToLower()))
+        if (StorePlus.ManualUpgradeNames.Any(c => OpenLib.Common.Misc.CompareStringsInvariant(c, terminalNode.creatureName)))
             return true;
 
         if (!StorePacks.IsUnlockableBuyable(terminalNode.shipUnlockableID))

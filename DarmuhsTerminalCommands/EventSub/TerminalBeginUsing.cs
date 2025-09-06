@@ -5,7 +5,6 @@ using System.Linq;
 using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
 using UnityEngine.InputSystem;
-using static OpenLib.ConfigManager.ConfigSetup;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.TerminalEvents;
 
@@ -43,7 +42,7 @@ internal class TerminalBeginUsing
             return;
 
         //if (ConfigSettings.TerminalStuffMain.specialListNum.ContainsKey(Plugin.instance.Terminal.currentNode))
-            //return;
+        //return;
 
         if (!ViewCommands.isVideoPlaying)
             TerminalParse.NetSync(Plugin.instance.Terminal.currentNode!);

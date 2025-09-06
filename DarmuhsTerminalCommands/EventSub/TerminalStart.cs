@@ -5,7 +5,6 @@ using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;
 using UnityEngine;
-using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.CoreMethods.LogicHandling;
 using static TerminalStuff.TerminalEvents;
 

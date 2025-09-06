@@ -133,7 +133,7 @@ internal class CostCommands
 
     private static List<EnemyAI> GetLivingEnemiesList()
     {
-        return RoundManager.Instance.SpawnedEnemies.Where(enemy => !enemy.isEnemyDead).ToList();
+        return [.. RoundManager.Instance.SpawnedEnemies.Where(enemy => !enemy.isEnemyDead)];
     }
 
     private static string FilterLivingEnemies(List<EnemyAI> livingEnemies)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using OpenLib.Common;
 
 namespace TerminalStuff.Compatibility;
 
@@ -21,12 +22,12 @@ internal class CruiserTerm
     internal static void CreateDenyKeyword()
     {
         NoAccess = CreateNoAccess();
-        if (ConfigSettings.CruiserTerminalFilterType.Value.ToLower() == "deny")
+        if (OpenLib.Common.Misc.CompareStringsInvariant(ConfigSettings.CruiserTerminalFilterType.Value, "deny"))
             isDeny = true;
         else
             isDeny = false;
 
-        WordList = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.CruiserKeywordList.Value, ',');
+        WordList = CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.CruiserKeywordList.Value, ',');
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -49,14 +50,14 @@ internal class CruiserTerm
         {
             if (isDeny)
             {
-                if (WordList.Any(d => d.ToLower() == query.ToLower()))
+                if (WordList.Any(d => OpenLib.Common.Misc.CompareStringsInvariant(d, query)))
                     return false;
                 else
                     return true;
             }
             else
             {
-                if (WordList.Any(d => d.ToLower() == query.ToLower()))
+                if (WordList.Any(d => OpenLib.Common.Misc.CompareStringsInvariant(d, query)))
                     return true;
                 else
                     return false;

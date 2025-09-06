@@ -1,5 +1,4 @@
 ﻿using OpenLib.Common;
-using OpenLib.ConfigManager;
 using OpenLib.CoreMethods;
 using OpenLib.Menus;
 using System.Collections.Generic;
@@ -17,11 +16,6 @@ internal class MenuBuild
     internal static CommandMenuItem<CommandsMenuBase> MainMenuItem = null!;
     internal static CommandManager MoreMenuCommand = null!;
 
-    //OLD
-    internal static List<TerminalMenuCategory> myMenuCategories = [];
-    internal static List<TerminalMenuItem> myMenuItems = [];
-    internal static TerminalMenu myMenu = null!;
-    
     internal static void MoreInit()
     {
         MoreMenuCommand = Commands.AddLocalCommmandManualWords("More Menus", QoLConfig.CreateMoreMenus, ["more"], EnterCommandMenu);
@@ -53,22 +47,13 @@ internal class MenuBuild
             if (!DynamicBools.TryGetKeyword("other", out TerminalKeyword otherWord))
                 return;
 
-            foreach (TerminalMenuItem item in myMenuItems)
+            foreach (CommandManager item in Commands.GetEnabledCommands())
             {
-                if (item.itemKeywords.Count == 0)
-                {
-                    Loggers.WARNING($"{item.ItemName} has no keywords!!");
+                if (item.KeywordList.Count == 0 || item.IsEnabled == null)
                     continue;
-                }
 
-                if (item == null)
-                {
-                    Loggers.WARNING($"NULL ITEM IN myMenuItems!!!");
-                    continue;
-                }
-
-                AddingThings.AddToExistingNodeText($"\n>{CommonStringStuff.GetKeywordsForMenuItem(item.itemKeywords).ToUpper()}\n{item.itemDescription}", ref otherWord.specialKeywordResult);
-                Loggers.LogDebug($"{item.ItemName} keywords added to other menu");
+                AddingThings.AddToExistingNodeText($"\n>{CommonStringStuff.GetKeywordsForMenuItem(item.KeywordList).ToUpper()}\n{item.IsEnabled.ConfigItem.Description.Description}", ref otherWord.specialKeywordResult);
+                Loggers.LogDebug($"{item.Name} keywords added to other menu");
             }
             return;
         }

@@ -1,10 +1,8 @@
 ﻿using GameNetcodeStuff;
-using OpenBodyCams.API;
 using OpenLib.Events;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
 using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;

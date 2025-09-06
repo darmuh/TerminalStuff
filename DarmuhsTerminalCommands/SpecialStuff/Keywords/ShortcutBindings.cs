@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using TerminalStuff.Configs;
 using TerminalStuff.PluginCore;
-using static OpenLib.ConfigManager.ConfigSetup;
 using Key = UnityEngine.InputSystem.Key;
 
 namespace TerminalStuff;
