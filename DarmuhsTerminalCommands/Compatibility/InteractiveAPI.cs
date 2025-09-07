@@ -1,6 +1,6 @@
 ﻿using TerminalStuff.EventSub;
-using TerminalStuff.PluginCore;
-using TerminalStuff.SpecialStuff;
+using TerminalStuff.StoreTweaks;
+using TerminalStuff.Util;
 
 namespace TerminalStuff.Compatibility;
 

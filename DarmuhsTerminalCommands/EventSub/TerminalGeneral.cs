@@ -1,7 +1,10 @@
 ﻿using GameNetcodeStuff;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;
+using TerminalStuff.MoonsTweaks;
+using TerminalStuff.StoreTweaks;
+using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
 using static TerminalStuff.TerminalEvents;
 
 
@@ -159,14 +162,14 @@ internal class TerminalGeneral
         if (!Plugin.instance.Terminal.terminalInUse)
             return;
 
-        if (BoolStuff.AnyKeyIsPressed() && BoolStuff.ListenForShortCuts())
+        if (Bools.AnyKeyIsPressed() && Bools.ListenForShortCuts())
         {
             ShortcutBindings.HandleKeyPress(ShortcutBindings.keyBeingPressed);
         }
 
         if (QoLConfig.WalkieTerm.Value)
         {
-            WalkieTerm.WalkieTerminal();
+            WalkieInTerm.WalkieTerminal();
         }
     }
 }

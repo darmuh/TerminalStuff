@@ -1,5 +1,7 @@
-﻿using TerminalStuff.PluginCore;
-using TerminalStuff.SpecialStuff;
+﻿using TerminalStuff.CommandHandling;
+using TerminalStuff.StoreTweaks;
+using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
 
 namespace TerminalStuff.EventSub;
 

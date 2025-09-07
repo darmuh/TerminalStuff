@@ -1,9 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TerminalStuff.CommandHandling;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;
+using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
+using TerminalStuff.StoreTweaks;
+using TerminalStuff.MoonsTweaks;
 using UnityEngine;
 using static OpenLib.CoreMethods.LogicHandling;
 using static TerminalStuff.TerminalEvents;

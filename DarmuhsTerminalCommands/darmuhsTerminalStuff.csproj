@@ -4,18 +4,27 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 	<RootNamespace>TerminalStuff</RootNamespace>
 	<AssemblyName>darmuhsTerminalStuff</AssemblyName>
+	<AssemblyTitle>darmuhsTerminalStuff</AssemblyTitle>
+	<Version>3.9.0</Version>
+	<AssemblyVersion>3.9.0</AssemblyVersion>
 	<Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="darmuhngo" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
 
 	<!-- EmbeddedResource assets-->
   <ItemGroup>
-    <EmbeddedResource Include="Assets\hidden169"/>
+    <EmbeddedResource Include="Assets\hidden169" />
     <EmbeddedResource Include="darmuhngo" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Folder Include="SpecialStuff\Other QoL\" />
+  </ItemGroup>
 </Project>

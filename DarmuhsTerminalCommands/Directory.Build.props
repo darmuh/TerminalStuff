@@ -50,5 +50,5 @@
     <GamePluginsDir Condition="$(GamePluginsDir) == ''">$(GameRootDir)/BepInEx/plugins/</GamePluginsDir>
     <ManagedDir>$(GameRootDir)/Lethal Company_Data/Managed/</ManagedDir>
   </PropertyGroup>
-
+	
 </Project>

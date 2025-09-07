@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
+using TerminalStuff.SpecialStuff;
+using TerminalStuff.Util;
 using UnityEngine;
-using static TerminalStuff.StringStuff;
+using static TerminalStuff.Util.StringStuff;
 
 
 namespace TerminalStuff;

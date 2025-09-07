@@ -1,5 +1,5 @@
 ﻿using BepInEx.Configuration;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 using static OpenLib.ConfigManager.ConfigSetup;
 
 namespace TerminalStuff.Configs;
@@ -54,7 +54,7 @@ internal class QoLConfig
         TerminalAutoCompleteKey = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalAutoCompleteKey", "Tab", "Key used to activate TerminalAutoComplete feature https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/api/UnityEngine.InputSystem.Key.html");
         TerminalAutoCompleteMaxCount = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalAutoCompleteMaxCount", 5, "Max amount of matching commands to store before disabling autocomplete.", 3, 50);
         TerminalConflictResolution = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalConflictResolution", false, "With this feature enabled, terminal command input will be weighted for conflict resolution using the Levenshtein algorithm.");
-        TerminalRadarDefaultZoom = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalRadarDefaultZoom", 20f, "The default level zoom for the radar. The lower the number the more zoomed in you'll be.", 5f, 30f);
+        TerminalRadarDefaultZoom = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalRadarDefaultZoom", 30f, "The default level zoom for the radar. The lower the number the more zoomed in you'll be.\nDefault is 30", 5f, 60f);
         TerminalFillEmptyText = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalFillEmptyText", "nochange", "AutoFill any node with empty space depending on your desired formatting", new AcceptableValueList<string>("nochange", "fillbottom", "textmiddle", "textbottom"));
         TerminalStartPage = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalStartPage", "Help", "Enter a keyword to load when a player begins using the terminal.\nSet to \"None\" to not load any page!");
         SaveLastInput = MakeGeneric(Plugin.instance.Config, "Quality of Life", "SaveLastInput", true, "Will save the input of the person last using the terminal and add it back when you start using it again");

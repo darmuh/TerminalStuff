@@ -1,5 +1,5 @@
 ﻿using BepInEx.Configuration;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 using static OpenLib.ConfigManager.ConfigSetup;
 
 namespace TerminalStuff.SpecialStuff;

@@ -12,11 +12,11 @@ internal class BMX_LobbyCompat
 
         if (isNetworked)
         {
-            PluginHelper.RegisterPlugin(Plugin.PluginInfo.PLUGIN_GUID, version, LobbyCompatibility.Enums.CompatibilityLevel.Everyone, LobbyCompatibility.Enums.VersionStrictness.Patch);
+            PluginHelper.RegisterPlugin(MyPluginInfo.PLUGIN_GUID, version, LobbyCompatibility.Enums.CompatibilityLevel.Everyone, LobbyCompatibility.Enums.VersionStrictness.Patch);
         }
         else
         {
-            PluginHelper.RegisterPlugin(Plugin.PluginInfo.PLUGIN_GUID, version, LobbyCompatibility.Enums.CompatibilityLevel.ClientOnly, LobbyCompatibility.Enums.VersionStrictness.Patch);
+            PluginHelper.RegisterPlugin(MyPluginInfo.PLUGIN_GUID, version, LobbyCompatibility.Enums.CompatibilityLevel.ClientOnly, LobbyCompatibility.Enums.VersionStrictness.Patch);
         }
     }
 }

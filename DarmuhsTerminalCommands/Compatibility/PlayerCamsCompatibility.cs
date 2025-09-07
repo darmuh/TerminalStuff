@@ -1,4 +1,4 @@
-﻿using TerminalStuff.PluginCore;
+﻿using TerminalStuff.Util;
 using UnityEngine;
 
 namespace TerminalStuff;

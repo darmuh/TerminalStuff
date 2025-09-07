@@ -1,6 +1,6 @@
 ﻿using LethalLevelLoader;
 using System.Linq;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 
 namespace TerminalStuff.Compatibility;
 

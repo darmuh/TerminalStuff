@@ -2,13 +2,13 @@
 using System.Collections;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 using static OpenLib.Common.Teleporter;
-using static TerminalStuff.Misc;
-using static TerminalStuff.StringStuff;
+using static TerminalStuff.Util.Misc;
+using static TerminalStuff.Util.StringStuff;
 using static TerminalStuff.TerminalEvents;
 using static UnityEngine.Object;
 

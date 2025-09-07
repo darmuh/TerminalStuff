@@ -1,7 +1,7 @@
 ﻿using BepInEx.Configuration;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
 using TerminalStuff.SpecialStuff;
+using TerminalStuff.Util;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.Loggers;
 

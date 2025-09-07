@@ -2,9 +2,9 @@
 using System;
 using System.Text.RegularExpressions;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 using UnityEngine;
-using static TerminalStuff.StringStuff;
+using static TerminalStuff.Util.StringStuff;
 using Color = UnityEngine.Color;
 using Object = UnityEngine.Object;
 

@@ -7,8 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
-using TerminalStuff.PluginCore;
-using TerminalStuff.SpecialStuff.Store;
+using TerminalStuff.StoreTweaks;
+using TerminalStuff.Util;
 using UnityEngine;
 
 namespace TerminalStuff;

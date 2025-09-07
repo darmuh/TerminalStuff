@@ -6,26 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using TerminalStuff.CommandHandling;
 using TerminalStuff.EventSub;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
 using UnityEngine;
 
 
 namespace TerminalStuff;
 
-[BepInPlugin("darmuh.TerminalStuff", "darmuhsTerminalStuff", PluginInfo.PLUGIN_VERSION)]
-[BepInDependency("darmuh.OpenLib", "0.4.0")] //hard dependency for my library
-
-
-public class Plugin : BaseUnityPlugin
+[BepInAutoPlugin("darmuh.TerminalStuff")]
+[BepInDependency("darmuh.OpenLib", OpenLib.MyPluginInfo.PLUGIN_VERSION)] //OpenLib requires latest version!
+public partial class Plugin : BaseUnityPlugin
 {
     public static Plugin instance = null!;
-    public static class PluginInfo
-    {
-        public const string PLUGIN_GUID = "darmuh.TerminalStuff";
-        public const string PLUGIN_NAME = "darmuhsTerminalStuff";
-        public const string PLUGIN_VERSION = "3.9.0";
-    }
 
     internal static ManualLogSource Log = null!;
     internal static bool gamePatched = false;
@@ -86,7 +80,7 @@ public class Plugin : BaseUnityPlugin
     {
         instance = this;
         Log = base.Logger;
-        Log.LogInfo($"{PluginInfo.PLUGIN_NAME} is loaded with version {PluginInfo.PLUGIN_VERSION}!");
+        Log.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded with version {MyPluginInfo.PLUGIN_VERSION}!");
         StuffForLibrary.Init();
         ConfigSettings.BindConfigSettings();
         //Addkeywords used to be here

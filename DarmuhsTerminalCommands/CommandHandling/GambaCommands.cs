@@ -1,9 +1,9 @@
 ﻿using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 using UnityEngine;
 using static TerminalStuff.DynamicCommands;
-using static TerminalStuff.StringStuff;
+using static TerminalStuff.Util.StringStuff;
 
 namespace TerminalStuff;
 

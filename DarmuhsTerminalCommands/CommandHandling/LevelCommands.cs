@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using TerminalStuff.PluginCore;
-using static TerminalStuff.StringStuff;
+using TerminalStuff.Util;
+using static TerminalStuff.Util.StringStuff;
 using Random = System.Random;
 
 namespace TerminalStuff;

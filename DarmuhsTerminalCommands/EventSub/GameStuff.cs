@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
+using TerminalStuff.MoonsTweaks;
 using TerminalStuff.SpecialStuff;
+using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
 using static OpenLib.Common.StartGame;
-using static TerminalStuff.AlwaysOnStuff;
+using static TerminalStuff.VisualElements.AlwaysOnStuff;
 
 namespace TerminalStuff.EventSub;
 
@@ -74,7 +76,7 @@ internal class GameStuff
     {
         Plugin.instance.splitViewCreated = false;
         SplitViewChecks.InitSplitViewObjects(); //addSplitViewObjects
-        BoolStuff.ResetEnumBools(); // resets all enum bools
+        Bools.ResetEnumBools(); // resets all enum bools
         TerminalClockStuff.SetClockVisible(false); // disable clock on game restart
         MoreCamStuff.ResetPluginInstanceBools(); //reset view command bools
     }

@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 using static TwoRadarMaps.Plugin;
 
 namespace TerminalStuff;

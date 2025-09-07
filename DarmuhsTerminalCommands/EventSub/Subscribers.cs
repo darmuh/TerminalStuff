@@ -1,9 +1,11 @@
 ﻿using OpenLib.CoreMethods;
 using OpenLib.Events;
+using TerminalStuff.CommandHandling;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Patching;
 using TerminalStuff.SpecialStuff;
-using TerminalStuff.VisualCore;
+using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
 using static TerminalStuff.EventSub.TerminalStart;
 
 namespace TerminalStuff.EventSub;

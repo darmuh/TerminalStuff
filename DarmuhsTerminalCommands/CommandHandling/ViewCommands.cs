@@ -1,12 +1,14 @@
 ﻿using System.Text;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
-using TerminalStuff.PluginCore;
 using UnityEngine;
-using static TerminalStuff.AllMyTerminalPatches;
-using static TerminalStuff.MoreCamStuff;
-using static TerminalStuff.StringStuff;
-using static TerminalStuff.VisualCore.CamEvents;
+using static TerminalStuff.Patching.AllMyTerminalPatches;
+using static TerminalStuff.VisualElements.MoreCamStuff;
+using static TerminalStuff.Util.StringStuff;
+using static TerminalStuff.VisualElements.CamEvents;
+using TerminalStuff.VisualElements;
+using TerminalStuff.Util;
+using TerminalStuff.CommandHandling;
 
 namespace TerminalStuff;
 
@@ -67,7 +69,7 @@ internal class ViewCommands
     internal static string HandlePreviousSwitchEvent()
     {
         Loggers.LogInfo("switching to previous player event detected");
-        string displayText = "Ope, this shouldn't show up.... (SwitchCommandHandler)";
+        string displayText = "Ope, this shouldn't show up.... (HandlePreviousSwitchEvent)";
         bool earlyReturn = false;
         if (!AnyActiveMonitoring())
             displayText = AutoMonitor(out earlyReturn);
@@ -230,7 +232,7 @@ internal class ViewCommands
             modeNum = 4;
             return true;
         }
-        else if (config != "none" && BoolStuff.AnyMonitoringModesEnabled())
+        else if (config != "none" && Bools.AnyMonitoringModesEnabled())
         {
             if (Commands.TerminalMap.Value)
             {
@@ -422,7 +424,7 @@ internal class ViewCommands
             {
                 if (int.TryParse(val, out int newZoomVal))
                 {
-                    if (newZoomVal >= 5 && newZoomVal <= 50)
+                    if (newZoomVal >= 5 && newZoomVal <= 60) //max value of 60
                     {
                         radarZoom = newZoomVal;
 

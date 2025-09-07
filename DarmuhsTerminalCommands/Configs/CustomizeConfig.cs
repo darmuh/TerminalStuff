@@ -1,5 +1,5 @@
 ﻿using BepInEx.Configuration;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
 using static OpenLib.ConfigManager.ConfigSetup;
 
 namespace TerminalStuff.Configs;
@@ -44,7 +44,7 @@ public class CustomizeConfig
     internal static void Init()
     {
         //homescreen lines
-        HomeLine1 = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "homeline1", $"Welcome to the FORTUNE-9{Plugin.PluginInfo.PLUGIN_VERSION} OS PLUS", "First line of the home command (startup screen)");
+        HomeLine1 = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "homeline1", $"Welcome to the FORTUNE-9{MyPluginInfo.PLUGIN_VERSION} OS PLUS", "First line of the home command (startup screen)");
         HomeLine2 = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "homeline2", "\tUpgraded by Employee: <color=#e6b800>darmuh</color>", "Second line of the home command (startup screen)");
         HomeLine3 = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "homeline3", "Have a wonderful [currentDay]!", "Last line of the home command (startup screen)");
         HomeHelpLines = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "HomeHelpLines", ">>Type \"Help\" for a list of commands.\r\n>>Type <color=#b300b3>\"More\"</color> for a menu of darmuh's commands.\r\n", "these two lines should generally be used to point to menus of other usable commands. Can also be expanded to more than two lines by using \"\\r\\n\" to indicate a new line");

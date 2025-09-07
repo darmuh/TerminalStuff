@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Configs;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
 using UnityEngine.InputSystem;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.TerminalEvents;
@@ -18,7 +19,7 @@ internal class TerminalBeginUsing
 
         if (Plugin.instance.Terminal == null)
         {
-            Loggers.ERROR("FATAL ERROR: Terminal Instance is NULL");
+            Loggers.FATAL("FATAL ERROR: Terminal Instance is NULL");
             return;
         }
 
@@ -45,7 +46,7 @@ internal class TerminalBeginUsing
         //return;
 
         if (!ViewCommands.isVideoPlaying)
-            TerminalParse.NetSync(Plugin.instance.Terminal.currentNode!);
+            TerminalParse.NetSync(Plugin.instance.Terminal.currentNode!); //current node is not null, we set it to home earlier if it is
     }
 
     internal static void StartUsingTerminalCheck(Terminal instance)

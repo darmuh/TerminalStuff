@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using TerminalStuff.PluginCore;
+using TerminalStuff.Patching;
+using TerminalStuff.Util;
 using UnityEngine;
 
 namespace TerminalStuff;
