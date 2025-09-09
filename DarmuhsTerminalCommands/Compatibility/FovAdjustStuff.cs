@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace TerminalStuff;
+namespace TerminalStuff.Compatibility;
 
 internal class FovAdjustStuff
 {

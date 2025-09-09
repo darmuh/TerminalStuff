@@ -11,6 +11,7 @@ using TerminalStuff.MoonsTweaks;
 using UnityEngine;
 using static OpenLib.CoreMethods.LogicHandling;
 using static TerminalStuff.TerminalEvents;
+using TerminalStuff.Networking;
 
 namespace TerminalStuff.EventSub;
 

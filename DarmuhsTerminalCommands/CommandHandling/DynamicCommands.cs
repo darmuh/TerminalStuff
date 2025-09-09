@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;

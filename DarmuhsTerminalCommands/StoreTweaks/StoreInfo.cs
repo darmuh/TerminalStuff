@@ -9,39 +9,70 @@ public class StoreInfo
 {
     internal int price = 0;
     public string name = "";
-    public bool selected = false;
-    internal UnlockableItem unlockable = null!;
-    internal Item buyableItem = null!;
-    internal BuyableVehicle vehicle = null!;
-    internal bool isVehicle = false;
-    internal bool isSuit = false;
-    internal bool isPurchasePack = false;
-    internal bool waitForDelivery = true;
-    internal bool isUnlocked = false;
-    public bool onSale = false;
-    public int selectionCount = 1;
+    public bool Selected { get; private set; } = false;
+    internal UnlockableItem Unlockable = null!;
+    internal Item BuyableItem = null!;
+    internal BuyableVehicle Vehicle = null!;
+    internal bool IsVehicle()
+    {
+        return Vehicle != null;
+    }
+    internal bool IsSuit()
+    {
+        if (Unlockable == null)
+            return false;
+
+        return (Unlockable.unlockableType == 0 || Unlockable.suitMaterial != null);
+    }
+    internal bool IsPurchasePack { get; set; } = false;
+    internal bool WaitForDelivery { get; set; } = true;
+    internal bool IsUnlocked
+    {
+        get
+        {
+            if (Unlockable == null)
+                return false;
+
+            return (Unlockable.alreadyUnlocked || Unlockable.hasBeenUnlockedByPlayer);
+        }
+    }
+    public bool OnSale { get; set; } = false;
+    public int SelectionCount = 1;
     internal int maxAllowed = 0;
     internal TerminalNode terminalNode = null!;
 
-    public StoreMenuItem menuItem;
+    internal bool ShowItem = true;
+
+    public StoreMenuItem ThisMenuItem;
 
     public override string ToString()
     {
         return name;
     }
 
+    public bool ShouldShowInStore()
+    {
+        if (IsUnlocked)
+            return false;
+
+        if (terminalNode.buyItemIndex != -1 && BuyableItem == null)
+            return false;
+
+        return true;
+    }
+
     internal StoreInfo(TerminalNode storeNode, bool purchasePack = false)
     {
         terminalNode = storeNode;
         price = storeNode.itemCost;
-        isPurchasePack = purchasePack;
+        IsPurchasePack = purchasePack;
         GetStoreInfo(terminalNode);
-        menuItem = new(name, true)
+        ThisMenuItem = new(name, true)
         {
             OnPageLoad = PageLoad,
-            storeItem = this
+            StoreItem = this
         };
-        menuItem.SelectionEvent.AddListener(OnSelect);
+        ThisMenuItem.SelectionEvent.AddListener(OnSelect);
     }
 
     internal void UpdateNode(TerminalNode storeNode)
@@ -52,7 +83,7 @@ public class StoreInfo
         else if (terminalNode.itemCost < storeNode.itemCost)
             terminalNode = storeNode; //replace node that has a lower cost than the current one
 
-        if (buyableItem == null) //buyable items do NOT use node cost
+        if (BuyableItem == null) //buyable items do NOT use node cost
         {
             price = storeNode.itemCost;
 
@@ -61,57 +92,57 @@ public class StoreInfo
         }
 
         GetStoreInfo(storeNode);
-        menuItem.storeItem = this;
+        ThisMenuItem.StoreItem = this;
     }
 
     internal void OnSelect()
     {
-        selected = !selected;
-        selectionCount = 1;
-        Plugin.Log.LogMessage($"{name} selected [{selected}]");
+        Selected = !Selected;
+        SelectionCount = 1;
+        Plugin.Log.LogMessage($"{name} selected [{Selected}]");
         UpdateSelection();
     }
 
     internal void UpdateSelection()
     {
-        if (selected && !storeSelection.Contains(this))
-            storeSelection.Add(this);
+        if (Selected && !StoreSelection.Contains(this))
+            StoreSelection.Add(this);
 
-        if (!selected && storeSelection.Contains(this))
-            storeSelection.Remove(this);
+        if (!Selected && StoreSelection.Contains(this))
+            StoreSelection.Remove(this);
     }
 
     internal void PageLoad()
     {
         PriceChecks();
 
-        menuItem.Prefix = "";
-        menuItem.Suffix = "";
+        ThisMenuItem.Prefix = "";
+        ThisMenuItem.Suffix = "";
 
-        menuItem.Prefix += $"${price} ";
+        ThisMenuItem.Prefix += $"${price} ";
 
-        if (isVehicle && Plugin.instance.Terminal.hasWarrantyTicket)
-            menuItem.Prefix += "(warranty) ";
+        if (IsVehicle() && Plugin.instance.Terminal.hasWarrantyTicket)
+            ThisMenuItem.Prefix += "(warranty) ";
 
-        if (selectionCount > 1)
-            menuItem.Suffix += $" x {selectionCount}";
+        if (SelectionCount > 1)
+            ThisMenuItem.Suffix += $" x {SelectionCount}";
 
-        if (selected)
-            menuItem.Suffix += " *";
+        if (Selected)
+            ThisMenuItem.Suffix += " *";
 
-        if (onSale)
-            menuItem.Suffix += $"   ({GetSalesPercentage(this)}% OFF!)";
+        if (OnSale)
+            ThisMenuItem.Suffix += $"   ({GetSalesPercentage(this)}% OFF!)";
 
         if (price <= GetProjectedCredits() && StorePlusConfig.AffordableColor.Value.Length > 0)
         {
-            menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={StorePlusConfig.AffordableColor.Value}>");
-            menuItem.Suffix += "</color>";
+            ThisMenuItem.Prefix = ThisMenuItem.Prefix.Insert(0, $"<color={StorePlusConfig.AffordableColor.Value}>");
+            ThisMenuItem.Suffix += "</color>";
         }
 
-        if (price > GetProjectedCredits() && StorePlusConfig.NotEnoughCredsColor.Value.Length > 0 && !selected)
+        if (price > GetProjectedCredits() && StorePlusConfig.NotEnoughCredsColor.Value.Length > 0 && !Selected)
         {
-            menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={StorePlusConfig.NotEnoughCredsColor.Value}>");
-            menuItem.Suffix += "</color>";
+            ThisMenuItem.Prefix = ThisMenuItem.Prefix.Insert(0, $"<color={StorePlusConfig.NotEnoughCredsColor.Value}>");
+            ThisMenuItem.Suffix += "</color>";
         }
     }
 
@@ -119,49 +150,42 @@ public class StoreInfo
     {
         if (storeNode.buyItemIndex != -1 && Plugin.instance.Terminal.buyableItemsList.Length > storeNode.buyItemIndex)
         {
-            buyableItem = Plugin.instance.Terminal.buyableItemsList[storeNode.buyItemIndex];
-            if (buyableItem != null)
+            BuyableItem = Plugin.instance.Terminal.buyableItemsList[storeNode.buyItemIndex];
+            if (BuyableItem != null)
             {
-                name = buyableItem.itemName;
-                price = buyableItem.creditsWorth; //buyableitems use this value
+                name = BuyableItem.itemName;
+                price = BuyableItem.creditsWorth; //buyableitems use this value
             }
 
         }
 
         if (storeNode.buyVehicleIndex != -1)
         {
-            vehicle = Plugin.instance.Terminal.buyableVehicles[storeNode.buyVehicleIndex];
-            isVehicle = true;
+            Vehicle = Plugin.instance.Terminal.buyableVehicles[storeNode.buyVehicleIndex];
 
-            if (vehicle != null)
-                name = vehicle.vehicleDisplayName;
+            if (Vehicle != null)
+                name = Vehicle.vehicleDisplayName;
 
             name ??= $"Company Cruiser ({storeNode.buyVehicleIndex})";
         }
 
         if (storeNode.shipUnlockableID != -1 && StartOfRound.Instance.unlockablesList.unlockables.Count > storeNode.shipUnlockableID)
         {
-            unlockable = StartOfRound.Instance.unlockablesList.unlockables[storeNode.shipUnlockableID];
+            Unlockable = StartOfRound.Instance.unlockablesList.unlockables[storeNode.shipUnlockableID];
 
-            if (unlockable == null)
+            if (Unlockable == null)
                 return;
 
             name = terminalNode.creatureName;
-            waitForDelivery = false;
+            WaitForDelivery = false;
 
-            if (unlockable.unlockableType == 0 || unlockable.suitMaterial != null)
-                isSuit = true;
-
-            if (unlockable.alreadyUnlocked || unlockable.hasBeenUnlockedByPlayer)
-                isUnlocked = true;
-
-            if (unlockable.maxNumber > 0)
-                maxAllowed = unlockable.maxNumber;
+            if (Unlockable.maxNumber > 0)
+                maxAllowed = Unlockable.maxNumber;
 
         }
 
-        if (isPurchasePack)
-            name = unlockable.unlockableName;
+        if (IsPurchasePack)
+            name = Unlockable.unlockableName;
 
         name ??= $"Unknown Item";
         name = name.Trim();
@@ -176,43 +200,43 @@ public class StoreInfo
         //   return;
         //}
 
-        if (buyableItem == null)
+        if (BuyableItem == null)
             price = terminalNode.itemCost;
         else
-            price = buyableItem.creditsWorth;
+            price = BuyableItem.creditsWorth;
 
-        if (isPurchasePack)
+        if (IsPurchasePack)
         {
             price = StorePacks.GetPriceFromNode(terminalNode);
             return;
         }
 
-        if (waitForDelivery)
+        if (WaitForDelivery)
         {
             int original = price;
 
-            if (!isVehicle)
+            if (!IsVehicle())
                 price = GetSalesPrice(price, terminalNode.buyItemIndex);
             else
                 price = GetSalesPrice(price, terminalNode.buyVehicleIndex, true);
 
-            onSale = price != original;
+            OnSale = price != original;
         }
 
-        if (isVehicle && Plugin.instance.Terminal.hasWarrantyTicket)
+        if (IsVehicle() && Plugin.instance.Terminal.hasWarrantyTicket)
             price = 0;
 
     }
 
     internal bool InRotation()
     {
-        if (isVehicle)
+        if (IsVehicle())
             return true;
 
-        if (waitForDelivery)
+        if (WaitForDelivery)
             return true;
 
-        if (isPurchasePack)
+        if (IsPurchasePack)
             return true;
 
         if (ManualUpgradeNames.Any(c => OpenLib.Common.Misc.CompareStringsInvariant(c, terminalNode.creatureName)))
@@ -232,8 +256,8 @@ public class StoreInfo
 
     internal void Reset()
     {
-        selected = false;
-        selectionCount = 1;
+        Selected = false;
+        SelectionCount = 1;
     }
 
     internal static bool IsItemEnabled(int indexNum)

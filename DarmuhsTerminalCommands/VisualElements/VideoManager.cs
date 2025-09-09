@@ -5,8 +5,9 @@ using TerminalStuff.Util;
 using UnityEngine;
 using UnityEngine.Video;
 using static TerminalStuff.Patching.AllMyTerminalPatches;
-using static TerminalStuff.ViewCommands;
+using static TerminalStuff.CommandHandling.ViewCommands;
 using Random = System.Random;
+using TerminalStuff.Networking;
 
 namespace TerminalStuff.VisualElements;
 

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.MoonsTweaks;
 using TerminalStuff.SpecialStuff;

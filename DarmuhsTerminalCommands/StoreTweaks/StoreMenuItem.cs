@@ -20,7 +20,13 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
     private bool _showEmpty = false;
     public override bool ShowIfEmptyNest
     {
-        get => _showEmpty;
+        get
+        {
+            if (StoreItem == null)
+                return _showEmpty;
+            else
+                return StoreItem.ShouldShowInStore();
+        }
         set => _showEmpty = value;
     }
 
@@ -42,7 +48,7 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
 
     public string AdditionalBottomText = "";
 
-    public StoreInfo storeItem = null!;
+    public StoreInfo StoreItem = null!;
 
     public StoreMenuItem(string name, string kw, MenuItem Parent) : this(name)
     {
@@ -75,7 +81,7 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
         if (StorePlus.StorePlusMenu.AllMenuItemsOfType.Count == 0)
             return false;
 
-        if (StorePlus.StorePlusMenu.AllMenuItemsOfType.ConvertAll(x => x as StoreMenuItem).Any(x => x?.storeItem == item))
+        if (StorePlus.StorePlusMenu.AllMenuItemsOfType.ConvertAll(x => x as StoreMenuItem).Any(x => x?.StoreItem == item))
             return true;
 
         return false;

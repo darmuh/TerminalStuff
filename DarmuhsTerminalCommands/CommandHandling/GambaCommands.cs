@@ -1,5 +1,6 @@
 ﻿using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
+using TerminalStuff.Networking;
 using TerminalStuff.Util;
 using UnityEngine;
 using static TerminalStuff.DynamicCommands;

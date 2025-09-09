@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
+using TerminalStuff.Networking;
 using TerminalStuff.StoreTweaks;
 using TerminalStuff.Util;
 using UnityEngine;

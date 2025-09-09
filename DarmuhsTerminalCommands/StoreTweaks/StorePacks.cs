@@ -61,9 +61,9 @@ internal class StorePacks
 
         if (StorePlus.Packs.NestedMenus.Count > 0)
         {
-            StoreMenuItem existing = StorePlus.Packs.NestedMenus.Cast<StoreMenuItem>().FirstOrDefault(x => x.Name == Name && x.storeItem.isPurchasePack);
+            StoreMenuItem existing = StorePlus.Packs.NestedMenus.Cast<StoreMenuItem>().FirstOrDefault(x => x.Name == Name && x.StoreItem.IsPurchasePack);
             if (existing != null)
-                item = existing.storeItem;
+                item = existing.StoreItem;
         }
 
         if (item != null)
@@ -75,10 +75,10 @@ internal class StorePacks
         {
             item = new(terminalNode)
             {
-                isPurchasePack = true,
+                IsPurchasePack = true,
                 name = Name
             };
-            item.menuItem.SetParentMenu(StorePlus.Packs);
+            item.ThisMenuItem.SetParentMenu(StorePlus.Packs);
         }
 
     }

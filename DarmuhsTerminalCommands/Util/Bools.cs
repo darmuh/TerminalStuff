@@ -5,11 +5,13 @@ using UnityEngine.InputSystem;
 using static TerminalStuff.AdminCommands;
 using static TerminalStuff.DynamicCommands;
 using static TerminalStuff.EventSub.TerminalStart;
-using static TerminalStuff.NetHandler;
-using static TerminalStuff.ShipControls;
+using static TerminalStuff.Networking.NetHandler;
+using static TerminalStuff.CommandHandling.ShipControls;
 using static TerminalStuff.SpecialStuff.ShortcutBindings;
 using static TerminalStuff.TerminalEvents;
 using static TerminalStuff.SpecialStuff.WalkieInTerm;
+using TerminalStuff.CommandHandling;
+using TerminalStuff.Compatibility;
 
 namespace TerminalStuff.Util;
 

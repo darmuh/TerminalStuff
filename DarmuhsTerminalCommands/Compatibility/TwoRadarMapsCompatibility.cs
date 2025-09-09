@@ -2,7 +2,7 @@
 using TerminalStuff.Util;
 using static TwoRadarMaps.Plugin;
 
-namespace TerminalStuff;
+namespace TerminalStuff.Compatibility;
 
 internal class TwoRadarMapsCompatibility
 {

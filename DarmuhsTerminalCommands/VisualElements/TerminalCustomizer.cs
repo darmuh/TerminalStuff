@@ -1,4 +1,5 @@
-﻿using TerminalStuff.Configs;
+﻿using TerminalStuff.Compatibility;
+using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;
 using UnityEngine;

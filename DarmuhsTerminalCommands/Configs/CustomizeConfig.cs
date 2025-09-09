@@ -17,7 +17,11 @@ public class CustomizeConfig
 
     //colors
     public static ConfigEntry<bool> AutoResizeMoneyBG { get; internal set; } = null!;
-    public static ConfigEntry<bool> TerminalCustomization { get; internal set; } = null!;
+    public static ConfigEntry<bool> TerminalCustomization
+    {
+        get => ConfigSettings.TerminalCustomization;
+        set => ConfigSettings.TerminalCustomization = value;
+    }
     public static ConfigEntry<string> TerminalColor { get; internal set; } = null!;
     public static ConfigEntry<string> TerminalButtonsColor { get; internal set; } = null!;
     public static ConfigEntry<string> TerminalKeyboardColor { get; internal set; } = null!;

@@ -2,6 +2,7 @@
 using System;
 using System.Text.RegularExpressions;
 using TerminalStuff.Configs;
+using TerminalStuff.Networking;
 using TerminalStuff.Util;
 using UnityEngine;
 using static TerminalStuff.Util.StringStuff;

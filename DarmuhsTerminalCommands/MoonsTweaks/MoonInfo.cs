@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Compatibility;
-using TerminalStuff.SpecialStuff;
+using TerminalStuff.Configs;
 using TerminalStuff.Util;
 using static TerminalStuff.MoonsTweaks.MoonsPlus;
 
@@ -19,9 +19,9 @@ public class MoonInfo
     internal string LevelName = "";
     internal int LevelID = -1;
     internal bool OTP = false;
-    internal TerminalNode purchaseNode = null!;
-    internal TerminalNode resultNode = null!;
-    internal MoonMenuItem menuItem;
+    internal TerminalNode PurchaseNode = null!;
+    internal TerminalNode ResultNode = null!;
+    internal MoonMenuItem MenuItem;
 
     //bettermenu
 
@@ -171,13 +171,13 @@ public class MoonInfo
         Level = level;
         LevelID = level.levelID;
         LevelName = GetNumberless(level.PlanetName);
-        purchaseNode = AllNodes.FirstOrDefault(x => x.displayPlanetInfo == Level.levelID);
-        resultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
-        menuItem = new(LevelName);
-        menuItem.SelectionEvent.AddListener(SelectThisMoon);
-        menuItem.SetParentMenu(ShowMoons);
-        menuItem.OnPageLoad = AddToMenuName;
-        menuItem.moonInfo = this;
+        PurchaseNode = AllNodes.FirstOrDefault(x => x.displayPlanetInfo == Level.levelID);
+        ResultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
+        MenuItem = new(LevelName);
+        MenuItem.SelectionEvent.AddListener(SelectThisMoon);
+        MenuItem.SetParentMenu(ShowMoons);
+        MenuItem.OnPageLoad = AddToMenuName;
+        MenuItem.moonInfo = this;
 
         Loggers.LogDebug($"NEW MOONINFO, {LevelName}");
     }
@@ -187,57 +187,57 @@ public class MoonInfo
         //LevelID already exists
         Level = level;
         LevelName = GetNumberless(level.PlanetName);
-        purchaseNode = AllNodes.FirstOrDefault(x => x.displayPlanetInfo == Level.levelID);
-        resultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
-        menuItem ??= new(LevelName);
-        menuItem.SelectionEvent.AddListener(SelectThisMoon);
-        menuItem.SetParentMenu(ShowMoons);
-        menuItem.OnPageLoad = AddToMenuName;
-        menuItem.moonInfo = this;
+        PurchaseNode = AllNodes.FirstOrDefault(x => x.displayPlanetInfo == Level.levelID);
+        ResultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
+        MenuItem ??= new(LevelName);
+        MenuItem.SelectionEvent.AddListener(SelectThisMoon);
+        MenuItem.SetParentMenu(ShowMoons);
+        MenuItem.OnPageLoad = AddToMenuName;
+        MenuItem.moonInfo = this;
 
         Loggers.LogDebug($"RELOAD MOONINFO, {LevelName}");
     }
 
     public void AddToMenuName()
     {
-        menuItem.Prefix = "";
-        menuItem.Suffix = "";
+        MenuItem.Prefix = "";
+        MenuItem.Suffix = "";
 
         if (IsCompany)
-            menuItem.Name = "Gordion (Company)";
+            MenuItem.Name = "Gordion (Company)";
         else if (IsLocked)
-            menuItem.Name = "[ROUTE LOCKED]";
+            MenuItem.Name = "[ROUTE LOCKED]";
         else if (IsHidden)
-            menuItem.Name = "[ ??? ]";
+            MenuItem.Name = "[ ??? ]";
 
         if (MoonsFilter.Price)
-            menuItem.Prefix += $"${DisplayPrice} ";
+            MenuItem.Prefix += $"${DisplayPrice} ";
 
         if (IsCurrent)
         {
-            menuItem.Prefix += "<<";
-            menuItem.Suffix += ">>";
+            MenuItem.Prefix += "<<";
+            MenuItem.Suffix += ">>";
         }
 
         if (MoonsFilter.Weather && GetWeatherName(Level).Length > 1)
-            menuItem.Suffix += GetWeatherName(Level);
+            MenuItem.Suffix += GetWeatherName(Level);
 
         if (MoonsFilter.Difficulty)
-            menuItem.Suffix += $" ({Level.riskLevel})";
+            MenuItem.Suffix += $" ({Level.riskLevel})";
 
         if (AdditionalInfo.Length > 0) //add any additional stuff from other mods accessing this attribute
-            menuItem.Suffix += AdditionalInfo;
+            MenuItem.Suffix += AdditionalInfo;
 
         if (DisplayPrice <= Plugin.instance.Terminal.groupCredits && MoonsPlusConfig.AffordableColor.Value.Length > 0)
         {
-            menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={MoonsPlusConfig.AffordableColor.Value}>");
-            menuItem.Suffix += "</color>";
+            MenuItem.Prefix = MenuItem.Prefix.Insert(0, $"<color={MoonsPlusConfig.AffordableColor.Value}>");
+            MenuItem.Suffix += "</color>";
         }
 
         if (DisplayPrice > Plugin.instance.Terminal.groupCredits && MoonsPlusConfig.NotEnoughCredsColor.Value.Length > 0)
         {
-            menuItem.Prefix = menuItem.Prefix.Insert(0, $"<color={MoonsPlusConfig.NotEnoughCredsColor.Value}>");
-            menuItem.Suffix += "</color>";
+            MenuItem.Prefix = MenuItem.Prefix.Insert(0, $"<color={MoonsPlusConfig.NotEnoughCredsColor.Value}>");
+            MenuItem.Suffix += "</color>";
         }
 
     }
@@ -290,11 +290,11 @@ public class MoonInfo
             return;
         }
 
-        if (MoonsPlusConfig.UseVanillaPurchaseNodes.Value && purchaseNode != null)
+        if (MoonsPlusConfig.UseVanillaPurchaseNodes.Value && PurchaseNode != null)
         {
             MoonsPlusMenu.ExitAction = () =>
             {
-                CommonTerminal.LoadNewNode(purchaseNode);
+                CommonTerminal.LoadNewNode(PurchaseNode);
                 Loggers.LogDebug("Loading vanilla node!");
             };
             MoonsPlusMenu.ExitInTerminal();
@@ -315,10 +315,10 @@ public class MoonInfo
         if (HaveVisited)
         {
             OTP = true;
-            if (purchaseNode != null)
-                purchaseNode.itemCost = 0;
-            if (resultNode != null)
-                resultNode.itemCost = 0;
+            if (PurchaseNode != null)
+                PurchaseNode.itemCost = 0;
+            if (ResultNode != null)
+                ResultNode.itemCost = 0;
         }
     }
 
@@ -421,10 +421,10 @@ public class MoonInfo
         if (Plugin.instance.LethalLevelLoader)
             return LLLCompat.GetPrice(Level);
 
-        if (purchaseNode == null)
+        if (PurchaseNode == null)
             return 0;
 
-        return purchaseNode.itemCost;
+        return PurchaseNode.itemCost;
     }
 
     internal void UpdateHistory()
@@ -531,10 +531,10 @@ public class MoonInfo
         if (OTP)
         {
             Loggers.LogDebug($"Setting {LevelName} terminalnodes back to Price - {Price}");
-            if (resultNode != null)
-                resultNode.itemCost = Price;
-            if (purchaseNode != null)
-                purchaseNode.itemCost = Price;
+            if (ResultNode != null)
+                ResultNode.itemCost = Price;
+            if (PurchaseNode != null)
+                PurchaseNode.itemCost = Price;
             OTP = false;
         }
     }

@@ -32,7 +32,7 @@ internal class StorePlus
     internal static StoreMenuItem ExternalMods = new("Other");
 
     //BetterMenuItem that changes
-    internal static StoreMenuItem Current = null!;
+    internal static StoreMenuItem Current { get; set; } = null!;
 
     //TerminalNodes
     internal static TerminalNode OriginalStorePage = null!;
@@ -40,9 +40,9 @@ internal class StorePlus
     //Misc
     //internal static string LoadExtKey = ""; // 
     internal static int SubTotal = 0; //subtotal before purchase, resets to 0 at launch of menu
-    internal static List<StoreInfo> AllStoreItems = [];
-    internal static List<StoreInfo> storeSelection = [];
-    internal static List<int> excludedNodesFromAutoGen = [];
+    internal static List<StoreInfo> AllStoreItems { get; set; } = [];
+    internal static List<StoreInfo> StoreSelection { get; set; } = [];
+    internal static List<int> ExcludedNodesFromAutoGen { get; set; } = [];
     internal static List<string> ManualUpgradeNames = [];
 
     internal static void SetToVanilla()
@@ -138,34 +138,34 @@ internal class StorePlus
         if (menuItem == null)
             return;
 
-        StoreInfo selection = menuItem.storeItem;
+        StoreInfo selection = menuItem.StoreItem;
 
 
-        int selectedCount = StorePlusMenu.DisplayMenuItemsOfType.OfType<StoreMenuItem>().Where(x => x.storeItem.selected).Sum(s => s.storeItem.selectionCount) + Plugin.instance.Terminal.orderedItemsFromTerminal.Count;
+        int selectedCount = StorePlusMenu.DisplayMenuItemsOfType.OfType<StoreMenuItem>().Where(x => x.StoreItem.Selected).Sum(s => s.StoreItem.SelectionCount) + Plugin.instance.Terminal.orderedItemsFromTerminal.Count;
 
-        if (!selection.selected)
+        if (!selection.Selected)
             return;
 
-        if (selection.maxAllowed != 0 && selection.maxAllowed <= selection.selectionCount)
+        if (selection.maxAllowed != 0 && selection.maxAllowed <= selection.SelectionCount)
             return;
 
-        if (selection.isVehicle)
+        if (selection.IsVehicle())
             return;
 
         if (SubTotal + selection.price > Plugin.instance.Terminal.groupCredits - StoreSettings.savings)
             return;
 
-        if (selection.selectionCount >= ConfigGetters.GetMaxItems() || selectedCount >= ConfigGetters.GetMaxItems())
+        if (selection.SelectionCount >= ConfigGetters.GetMaxItems() || selectedCount >= ConfigGetters.GetMaxItems())
             return;
 
-        if (selection.isPurchasePack)
+        if (selection.IsPurchasePack)
         {
             if (StorePacks.GetBuyablesCountFromNode(selection.terminalNode) >= ConfigGetters.GetMaxItems())
                 return;
         }
 
 
-        int newNum = selection.selectionCount + 1;
+        int newNum = selection.SelectionCount + 1;
         SetCount(ref selection, newNum);
     }
 
@@ -178,19 +178,19 @@ internal class StorePlus
         if (menuItem == null)
             return;
 
-        StoreInfo selection = menuItem.storeItem;
+        StoreInfo selection = menuItem.StoreItem;
 
-        if (!selection.selected)
+        if (!selection.Selected)
             return;
 
-        int newNum = selection.selectionCount - 1;
+        int newNum = selection.SelectionCount - 1;
         SetCount(ref selection, newNum);
     }
 
     internal static void SetCount(ref StoreInfo selection, int newCount)
     {
-        Loggers.LogDebug($"Original count: {selection.selectionCount} vs newCount - {newCount}");
-        selection.selectionCount = Mathf.Clamp(newCount, 1, 99);
+        Loggers.LogDebug($"Original count: {selection.SelectionCount} vs newCount - {newCount}");
+        selection.SelectionCount = Mathf.Clamp(newCount, 1, 99);
         UpdateSubtotal();
         StorePlusMenu.Load();
     }
@@ -248,18 +248,18 @@ internal class StorePlus
 
         message.Append($"\r\n");
 
-        foreach (StoreInfo item in storeSelection)
+        foreach (StoreInfo item in StoreSelection)
         {
-            if (item.isPurchasePack)
+            if (item.IsPurchasePack)
             {
                 List<string> packList = StorePacks.GetItemListFromNode(item.terminalNode);
-                message.Append($"${item.price} [{item.name}] x {item.selectionCount}\r\n");
+                message.Append($"${item.price} [{item.name}] x {item.SelectionCount}\r\n");
                 foreach (string packItem in packList)
                     message.Append($"    {packItem}\n");
                 continue;
             }
 
-            message.Append($"${item.price} {item.name} x {item.selectionCount}\n");
+            message.Append($"${item.price} {item.name} x {item.SelectionCount}\n");
         }
 
         message.Append($"\r\n\r\nTotal Value of Purchase: <color=#e6b800>{SubTotal}</color>");
@@ -331,9 +331,9 @@ internal class StorePlus
         Loggers.LogDebug("UpdateSubtotal!");
         int sub = 0;
 
-        foreach (StoreInfo item in storeSelection)
+        foreach (StoreInfo item in StoreSelection)
         {
-            sub += item.price * item.selectionCount;
+            sub += item.price * item.SelectionCount;
         }
 
         SubTotal = sub;
@@ -381,7 +381,7 @@ internal class StorePlus
             if (node.itemCost < 0)
                 continue;
 
-            if (excludedNodesFromAutoGen.Contains(node.shipUnlockableID))
+            if (ExcludedNodesFromAutoGen.Contains(node.shipUnlockableID))
                 continue;
 
             if (node.creatureName.IsNullOrWhiteSpace())
@@ -454,11 +454,11 @@ internal class StorePlus
 
     internal static void ResetVars()
     {
-        AllStoreItems.DoIf(x => x.selected || x.selectionCount > 1, x => x.Reset());
+        AllStoreItems.DoIf(x => x.Selected || x.SelectionCount > 1, x => x.Reset());
         StorePlusMenu.AcceptAnything = false;
         StorePlusMenu.CurrentPage = 1;
         SubTotal = 0;
-        storeSelection = [];
+        StoreSelection = [];
     }
 
     internal static void ReturnToStore()
@@ -480,37 +480,37 @@ internal class StorePlus
 
     private static void SortStoreItem(StoreInfo item)
     {
-        if (item.isPurchasePack)
+        if (item.IsPurchasePack)
         {
             Loggers.LogDebug($"Purchase Pack detected @ SortStoreItem: {item.name}");
-            item.menuItem.SetParentMenu(Packs);
+            item.ThisMenuItem.SetParentMenu(Packs);
             return;
         }
 
-        if (item.isSuit && item.name.Length > 1)
+        if (item.IsSuit() && item.name.Length > 1)
         {
             Loggers.LogDebug($"Buyable Suit detected @ SortStoreItem: {item.name}");
-            item.menuItem.SetParentMenu(Suits);
+            item.ThisMenuItem.SetParentMenu(Suits);
             return;
         }
 
-        if (item.isVehicle)
+        if (item.IsVehicle())
         {
             Loggers.LogDebug($"Buyable Vehicle detected @ SortStoreItem: {item.name}");
-            item.menuItem.SetParentMenu(Vehicles);
+            item.ThisMenuItem.SetParentMenu(Vehicles);
             return;
         }
 
-        if (!item.waitForDelivery)
+        if (!item.WaitForDelivery)
         {
             Loggers.LogDebug($"Upgrade detected @ SortStoreItem: {item.name}");
-            item.menuItem.SetParentMenu(Upgrades);
+            item.ThisMenuItem.SetParentMenu(Upgrades);
             return;
         }
 
         Loggers.LogDebug($"Buyable Item detected @ SortStoreItem: {item.name}");
 
-        item.menuItem.SetParentMenu(Buyables);
+        item.ThisMenuItem.SetParentMenu(Buyables);
 
     }
 
@@ -519,7 +519,7 @@ internal class StorePlus
         if (StorePlusMenu.AcceptAnything)
             return;
 
-        if (storeSelection.Count == 0)
+        if (StoreSelection.Count == 0)
         {
             Plugin.Log.LogMessage("No items selected to purchase!");
             Plugin.instance.Terminal.PlayTerminalAudioServerRpc(1);
@@ -537,15 +537,15 @@ internal class StorePlus
 
         List<StoreInfo> dropshipItems = [];
 
-        foreach (StoreInfo item in storeSelection)
+        foreach (StoreInfo item in StoreSelection)
         {
             Loggers.LogDebug($"storeSelection contains: {item.name}");
 
-            if (item.isPurchasePack)
-                StorePacks.CompletePurchaseV2(item.terminalNode, item.selectionCount);
-            else if (item.isVehicle)
+            if (item.IsPurchasePack)
+                StorePacks.CompletePurchaseV2(item.terminalNode, item.SelectionCount);
+            else if (item.IsVehicle())
                 VehiclePurchase(item);
-            else if (item.waitForDelivery && !item.isPurchasePack) //deliverable items and vehicles
+            else if (item.WaitForDelivery && !item.IsPurchasePack) //deliverable items and vehicles
                 dropshipItems.Add(item);
             else
             {
@@ -553,7 +553,7 @@ internal class StorePlus
                 if (item.terminalNode.shipUnlockableID < 0 || item.terminalNode.shipUnlockableID > StartOfRound.Instance.unlockablesList.unlockables.Count)
                     continue;
 
-                if (item.isPurchasePack)
+                if (item.IsPurchasePack)
                     continue;
 
                 StartOfRound.Instance.BuyShipUnlockableServerRpc(item.terminalNode.shipUnlockableID, Plugin.instance.Terminal.groupCredits - item.price);
@@ -562,11 +562,11 @@ internal class StorePlus
 
         if (dropshipItems.Count > 0)
         {
-            storeSelection.RemoveAll(x => dropshipItems.Contains(x));
+            StoreSelection.RemoveAll(x => dropshipItems.Contains(x));
 
             DropShipPurchase(ref dropshipItems);
 
-            storeSelection.AddRange(dropshipItems);
+            StoreSelection.AddRange(dropshipItems);
         }
 
         Plugin.instance.Terminal.StartCoroutine(PurchaseResultPage());
@@ -584,7 +584,7 @@ internal class StorePlus
     {
         List<int> add = [];
         int cost = 0;
-        int fullItemsCount = items.Sum(x => x.selectionCount);
+        int fullItemsCount = items.Sum(x => x.SelectionCount);
         int skip = 0;
 
         if (fullItemsCount + add.Count > ConfigGetters.GetMaxItems())
@@ -594,7 +594,7 @@ internal class StorePlus
 
         for (int i = items.Count - 1; i >= 0; i--)
         {
-            if (items[i].isPurchasePack)
+            if (items[i].IsPurchasePack)
             {
                 Loggers.WARNING($"PURCHASE PACK {items[i].name} DETECTED IN REGULAR PURCHASE!!");
                 continue;
@@ -602,24 +602,24 @@ internal class StorePlus
 
             if (skip > 0 && items.Count - 1 - skip <= i)
             {
-                if (items[i].selectionCount > 1 && items[i].selectionCount - skip > 0)
+                if (items[i].SelectionCount > 1 && items[i].SelectionCount - skip > 0)
                 {
-                    items[i].selectionCount = items[i].selectionCount - skip;
+                    items[i].SelectionCount = items[i].SelectionCount - skip;
                     skip = 0;
                 }
                 else
                 {
-                    skip -= items[i].selectionCount;
+                    skip -= items[i].SelectionCount;
                     items.Remove(items[i]);
                     continue;
                 }
             }
 
-            cost += items[i].price * items[i].selectionCount;
+            cost += items[i].price * items[i].SelectionCount;
 
-            if (items[i].selectionCount > 1)
+            if (items[i].SelectionCount > 1)
             {
-                for (int s = 0; s < items[i].selectionCount; s++)
+                for (int s = 0; s < items[i].SelectionCount; s++)
                     add.Add(items[i].terminalNode.buyItemIndex);
             }
             else

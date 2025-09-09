@@ -5,6 +5,8 @@ using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.TerminalEvents;
 using TerminalStuff.VisualElements;
 using TerminalStuff.Util;
+using TerminalStuff.CommandHandling;
+using TerminalStuff.Compatibility;
 
 namespace TerminalStuff.EventSub;
 

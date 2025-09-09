@@ -1,7 +1,7 @@
 ﻿using OpenLib.InteractiveMenus;
 using System.Collections.Generic;
 using System.Linq;
-using TerminalStuff.SpecialStuff;
+using TerminalStuff.Configs;
 using TerminalStuff.Util;
 using static TerminalStuff.MoonsTweaks.MoonsPlus;
 

@@ -16,7 +16,7 @@ using static TerminalStuff.EventSub.TerminalStart;
 
 #pragma warning disable CA1822
 
-namespace TerminalStuff;
+namespace TerminalStuff.Networking;
 
 public class NetHandler : NetworkBehaviour
 {
@@ -33,14 +33,14 @@ public class NetHandler : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     internal void NodeLoadServerRpc(string topRightText, string nodeName, string nodeText, int nodeNumber = -1)
     {
-        NetworkManager networkManager = base.NetworkManager;
+        NetworkManager networkManager = NetworkManager;
         if (netNodeSet && (networkManager.IsHost || networkManager.IsServer))
         {
             Loggers.LogInfo("RPC called from host, sending to client RPC ");
             NodeLoadClientRpc(topRightText, nodeName, nodeText, true, nodeNumber);
             return;
         }
-        else if ((!netNodeSet && networkManager.IsHost) || networkManager.IsServer)
+        else if (!netNodeSet && networkManager.IsHost || networkManager.IsServer)
         {
             //if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
             //return;
@@ -63,7 +63,7 @@ public class NetHandler : NetworkBehaviour
         //if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
         //return;
 
-        NetworkManager networkManager = base.NetworkManager;
+        NetworkManager networkManager = NetworkManager;
         if (fromHost && (networkManager.IsHost || networkManager.IsServer))
         {
             NetNodeReset(false);
@@ -167,7 +167,7 @@ public class NetHandler : NetworkBehaviour
     [ClientRpc]
     internal void SyncDropShipClientRpc(bool isRefund)
     {
-        NetworkManager networkManager = base.NetworkManager;
+        NetworkManager networkManager = NetworkManager;
         if (networkManager.IsHost || networkManager.IsServer)
         {
             if (isRefund)
@@ -216,7 +216,7 @@ public class NetHandler : NetworkBehaviour
         if (Misc.IsLocalPlayerNull())
             return;
 
-        if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
+        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
         {
             Loggers.LogInfo($"This is the client sending the video name {videoPlaying}");
             return;
@@ -269,7 +269,7 @@ public class NetHandler : NetworkBehaviour
         if (Misc.IsLocalPlayerNull())
             return;
 
-        if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
+        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
         {
             Loggers.LogInfo($"This is the client syncing the bool");
             return;
@@ -308,12 +308,12 @@ public class NetHandler : NetworkBehaviour
         if (Misc.IsLocalPlayerNull())
             return;
 
-        if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
+        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
         {
             Loggers.LogInfo($"This is the client requesting the node");
             return;
         }
-        else if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == otherClient)
+        else if ((int)StartOfRound.Instance.localPlayerController.playerClientId == otherClient)
         {
             Loggers.LogInfo($"This is the client the node is being requested from");
             //NetHandler.Instance.SyncActiveCamsBoolServerRpc(otherClient, netCamStatus);
@@ -337,7 +337,7 @@ public class NetHandler : NetworkBehaviour
     [ClientRpc]
     internal void AskUpgradeStatusClientRpc()
     {
-        NetworkManager networkManager = base.NetworkManager;
+        NetworkManager networkManager = NetworkManager;
         if (networkManager.IsHost || networkManager.IsServer)
         {
             foreach (string name in SaveManager.AllUpgradesUnlocked)
@@ -355,7 +355,7 @@ public class NetHandler : NetworkBehaviour
     [ClientRpc]
     internal void GetTravelHistoryClientRpc()
     {
-        NetworkManager networkManager = base.NetworkManager;
+        NetworkManager networkManager = NetworkManager;
         if (networkManager.IsHost || networkManager.IsServer)
         {
             foreach (string name in MoonsPlus.MoonsVisited)
@@ -411,7 +411,7 @@ public class NetHandler : NetworkBehaviour
     [ClientRpc]
     internal void SendItemsToAllClientRpc(int[] itemsOrdered)
     {
-        NetworkManager networkManager = base.NetworkManager;
+        NetworkManager networkManager = NetworkManager;
         if (!networkManager.IsHost || !networkManager.IsServer)
         {
             Loggers.LogInfo("Client: Setting storeCart value to host's orderedItemsFromTerminal list");
@@ -430,7 +430,7 @@ public class NetHandler : NetworkBehaviour
     internal void SyncCreditsClientRpc(int newCreds, int items)
     {
 
-        NetworkManager networkManager = base.NetworkManager;
+        NetworkManager networkManager = NetworkManager;
         if (networkManager.IsHost || networkManager.IsServer)
         {
             Plugin.instance.Terminal.SyncGroupCreditsServerRpc(newCreds, items);
@@ -469,7 +469,7 @@ public class NetHandler : NetworkBehaviour
         if (Misc.IsLocalPlayerNull())
             return;
 
-        if (((int)StartOfRound.Instance.localPlayerController.playerClientId) == fromClient)
+        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
         {
             Loggers.LogDebug($"This is the client updating target to {newTarget}");
             return;

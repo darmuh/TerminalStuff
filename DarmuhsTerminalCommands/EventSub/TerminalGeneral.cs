@@ -6,6 +6,7 @@ using TerminalStuff.StoreTweaks;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
 using static TerminalStuff.TerminalEvents;
+using TerminalStuff.Networking;
 
 
 namespace TerminalStuff.EventSub;

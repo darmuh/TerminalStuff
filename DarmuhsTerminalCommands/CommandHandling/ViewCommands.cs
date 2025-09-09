@@ -8,9 +8,10 @@ using static TerminalStuff.Util.StringStuff;
 using static TerminalStuff.VisualElements.CamEvents;
 using TerminalStuff.VisualElements;
 using TerminalStuff.Util;
-using TerminalStuff.CommandHandling;
+using TerminalStuff.Networking;
+using TerminalStuff.Compatibility;
 
-namespace TerminalStuff;
+namespace TerminalStuff.CommandHandling;
 
 internal class ViewCommands
 {
@@ -571,7 +572,7 @@ internal class ViewCommands
         Loggers.LogInfo("updating displaytext!!!");
         GetCurrentMode(out string mode);
 
-        string playerName = (givenIndex == -1)
+        string playerName = givenIndex == -1
             ? GameStuff.TerminalMapRenderer.radarTargets[GameStuff.TerminalMapRenderer.targetTransformIndex].name
             : GameStuff.TerminalMapRenderer.radarTargets[givenIndex].name;
 

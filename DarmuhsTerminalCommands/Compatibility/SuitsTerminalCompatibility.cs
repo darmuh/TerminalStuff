@@ -2,7 +2,7 @@
 using UnityEngine;
 using static suitsTerminal.AdvancedMenu;
 
-namespace TerminalStuff;
+namespace TerminalStuff.Compatibility;
 
 internal class SuitsTerminalCompatibility
 {

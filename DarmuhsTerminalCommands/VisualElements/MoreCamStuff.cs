@@ -6,7 +6,10 @@ using TerminalStuff.EventSub;
 using TerminalStuff.Util;
 using UnityEngine;
 using static TerminalStuff.Patching.AllMyTerminalPatches;
-using static TerminalStuff.ViewCommands;
+using static TerminalStuff.CommandHandling.ViewCommands;
+using TerminalStuff.Networking;
+using TerminalStuff.Compatibility;
+using System.Linq;
 
 namespace TerminalStuff.VisualElements;
 
@@ -27,22 +30,28 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
     internal static List<string> excludedNames =
             //stuff that should not disable cams
             [
+                "Fov",
+                "Show Cameras",
+                "Show Map",
+                "Show MiniMap",
+                "Show MiniCams",
+                "Show Overlay",
+                "Show Mirror",
                 "ViewInsideShipCam 1",
-                "TerminalRadarZoom",
-                "terminalStuff Mirror",
-                "TerminalDoor",
-                "TerminalLights",
-                "TerminalAlwaysOnCommand",
+                "Radar Zoom",
+                "Door Button",
+                "Lightswitch",
+                "Always-On Toggle",
                 "Use Inverse Teleporter",
                 "Use Teleporter",
-                "TerminalClear",
-                "TerminalDanger",
-                "TerminalVitals",
-                "TerminalHeal",
-                "TerminalLoot",
-                "TerminalRandomSuit",
-                "TerminalClockCommand",
-                "TerminalPrevious",
+                "Clear",
+                "Danger",
+                "Vitals",
+                "Heal",
+                "Loot",
+                "Random Suit",
+                "Clock toggle",
+                "Previous",
                 "SwitchRadarCamPlayer 1",
                 "SwitchedCam",
                 "switchDummy",
@@ -55,7 +64,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
                 "ParserError3",
                 "PingedRadarBooster",
                 "SendSignalTranslator",
-                "FinishedRadarBooster",
+                "FinishedRadarBooster"
             ];
 
     internal static void VideoPersist(string nodeName)
@@ -71,16 +80,19 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
 
     internal static void CamPersistance(string nodeName, TerminalNode node = null!)
     {
-        if (!excludedNames.Contains(nodeName) && HideCams())
+        List<string> checkForMatch = excludedNames;
+        checkForMatch.Add(nodeName);
+        if (!OpenLib.Common.Misc.CompareStringsInvariant(checkForMatch) && HideCams())
         {
             SplitViewChecks.DisableSplitView("neither");
             Loggers.LogInfo("disabling ANY cams views");
+            return;
         }
-        else if (nodeName == "ViewInsideShipCam 1" && node != null)
-        {
-            if (!IsViewNode(node))
-                ResetPluginInstanceBools();
-        }
+        else if (node == null)
+            return;
+
+        if (!IsViewNode(node))
+            ResetPluginInstanceBools();
     }
 
     internal static bool IsViewNode(TerminalNode node)

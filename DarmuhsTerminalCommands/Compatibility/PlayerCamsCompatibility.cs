@@ -1,7 +1,7 @@
 ﻿using TerminalStuff.Util;
 using UnityEngine;
 
-namespace TerminalStuff;
+namespace TerminalStuff.Compatibility;
 
 internal class PlayerCamsCompatibility
 {

@@ -7,6 +7,8 @@ using UnityEngine.Video;
 using static TerminalStuff.Util.Bools;
 using static TerminalStuff.EventSub.TerminalQuit;
 using TerminalStuff.Util;
+using TerminalStuff.CommandHandling;
+using TerminalStuff.Compatibility;
 
 namespace TerminalStuff.VisualElements;
 

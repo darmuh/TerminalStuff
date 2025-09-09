@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace TerminalStuff;
+namespace TerminalStuff.Compatibility;
 
 internal class OpenBodyCamsCompatibility
 {

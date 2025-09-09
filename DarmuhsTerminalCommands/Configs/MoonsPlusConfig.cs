@@ -3,7 +3,7 @@ using TerminalStuff.MoonsTweaks;
 using TerminalStuff.Util;
 using static OpenLib.ConfigManager.ConfigSetup;
 
-namespace TerminalStuff.SpecialStuff;
+namespace TerminalStuff.Configs;
 
 public class MoonsPlusConfig
 {

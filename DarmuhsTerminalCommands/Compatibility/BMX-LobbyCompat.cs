@@ -2,7 +2,7 @@
 using System;
 using System.Reflection;
 
-namespace TerminalStuff;
+namespace TerminalStuff.Compatibility;
 
 internal class BMX_LobbyCompat
 {

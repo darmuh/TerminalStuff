@@ -5,20 +5,15 @@ using TerminalStuff.Util;
 using static OpenLib.ConfigManager.ConfigSetup;
 using static OpenLib.Loggers;
 
+#pragma warning disable IDE0130 // OpenLib dependent on current structure
 namespace TerminalStuff;
+#pragma warning restore IDE0130 
 
 public static class ConfigSettings
 {
     //public static MainListing TerminalStuffMain = null!;
 
-    public static ConfigEntry<bool> TerminalCustomization
-    {
-        get => CustomizeConfig.TerminalCustomization;
-        set
-        {
-            return;
-        }
-    }
+    public static ConfigEntry<bool> TerminalCustomization { get; internal set; } = null!; //shipcolors requires this here
 
     //LogLevel
     public static ConfigEntry<LoggingLevel> LogLevel { get; internal set; } = null!;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
+using TerminalStuff.Networking;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;

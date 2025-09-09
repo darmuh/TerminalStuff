@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
-using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
 using UnityEngine;
@@ -48,7 +47,7 @@ public class MoonsPlus
     internal static FilterView MoonsFilter = new();
 
     //Assets
-    internal static AssetBundle hiddenAsset = null!;
+    internal static AssetBundle HiddenAsset = null!;
     internal static VideoClip HiddenClip = null!;
 
     //Misc
@@ -82,21 +81,21 @@ public class MoonsPlus
         else
             Loggers.LogDebug($"Found hidden169 @ {fileName}");
 
-        if (hiddenAsset == null)
-            hiddenAsset = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(fileName));
+        if (HiddenAsset == null)
+            HiddenAsset = AssetBundle.LoadFromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(fileName));
 
         if (HiddenClip == null)
-            HiddenClip = (VideoClip)hiddenAsset.LoadAsset("hidden169.mp4");
+            HiddenClip = (VideoClip)HiddenAsset.LoadAsset("hidden169.mp4");
 
     }
 
     internal static void UnloadAssets()
     {
-        if (hiddenAsset == null)
+        if (HiddenAsset == null)
             return;
 
         HiddenClip = null!;
-        hiddenAsset.Unload(true);
+        HiddenAsset.Unload(true);
     }
 
     internal static void SetupBetterMenu()
@@ -275,7 +274,7 @@ public class MoonsPlus
     {
         // Determine what menu items to show
         FilterView.MoonOnTopCheck();
-        MoonListing.Do(x => x.menuItem.ShowIfEmptyNest = x.ShowInListing());
+        MoonListing.Do(x => x.MenuItem.ShowIfEmptyNest = x.ShowInListing());
 
         // Video Reel Section
         VideoReelStuff();
@@ -304,7 +303,7 @@ public class MoonsPlus
         if (MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count || MoonsPlusMenu.ActiveSelection < 0)
             return;
 
-        MoonInfo current = MoonListing.FirstOrDefault(x => x.menuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection]);
+        MoonInfo current = MoonListing.FirstOrDefault(x => x.MenuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection]);
 
         if (current == null)
         {
@@ -341,7 +340,7 @@ public class MoonsPlus
 
         if (show)
         {
-            MoonInfo currentMoon = MoonListing.FirstOrDefault(x => x.menuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection]);
+            MoonInfo currentMoon = MoonListing.FirstOrDefault(x => x.MenuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection]);
 
             if (currentMoon != null)
             {
@@ -393,12 +392,12 @@ public class MoonsPlus
 
     internal static void CheckNodePurchase(TerminalNode node)
     {
-        MoonInfo moon = MoonListing.FirstOrDefault(x => x.resultNode == node);
+        MoonInfo moon = MoonListing.FirstOrDefault(x => x.ResultNode == node);
         if (moon != null)
         {
             moon.OTP = true;
-            moon.resultNode.itemCost = 0;
-            moon.purchaseNode.itemCost = 0;
+            moon.ResultNode.itemCost = 0;
+            moon.PurchaseNode.itemCost = 0;
 
             moon.UpdateInfo();
         }

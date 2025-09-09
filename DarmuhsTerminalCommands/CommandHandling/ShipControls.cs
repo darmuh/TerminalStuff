@@ -11,8 +11,10 @@ using static TerminalStuff.Util.Misc;
 using static TerminalStuff.Util.StringStuff;
 using static TerminalStuff.TerminalEvents;
 using static UnityEngine.Object;
+using TerminalStuff.Networking;
+using TerminalStuff.Compatibility;
 
-namespace TerminalStuff;
+namespace TerminalStuff.CommandHandling;
 
 internal class ShipControls
 {

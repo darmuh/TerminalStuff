@@ -3,6 +3,7 @@ using BepInEx.Bootstrap;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TerminalStuff.Networking;
 using TerminalStuff.Patching;
 using TerminalStuff.Util;
 using UnityEngine;
@@ -10,7 +11,7 @@ using static TerminalStuff.DynamicCommands;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.TerminalEvents;
 
-namespace TerminalStuff;
+namespace TerminalStuff.CommandHandling;
 
 internal class MoreCommands
 {

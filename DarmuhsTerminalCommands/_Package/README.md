@@ -4,6 +4,10 @@
 
 ---
 
+![Dynamic Regex Thunderstore Badge](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fthunderstore.io%2Fc%2Flethal-company%2Fp%2Fdarmuh%2FdarmuhsTerminalStuff%2F&search=Total%20downloads%5B%5E%5Cd%5D*(%5Cd%5B%5Cd%2C%5D*)&replace=%241&style=for-the-badge&logo=thunderstore&label=thunderstore&color=%2300BC8C&link=https%3A%2F%2Fthunderstore.io%2Fc%2Flethal-company%2Fp%2Fdarmuh%2FdarmuhsTerminalStuff%2F)
+![Github Badge](https://img.shields.io/badge/source%20code-github?style=for-the-badge&logo=github&label=github&color=%234183C4&link=https%3A%2F%2Fgithub.com%2Fdarmuh%2FTerminalStuff)
+![Kofi Badge](https://img.shields.io/badge/darmuh-kofi?style=for-the-badge&logo=kofi&label=kofi&color=%23FF6433&link=https%3A%2F%2Fko-fi.com%2Fdarmuh)
+
 ## [ **Features** ]
 
 ### Networked Terminal Nodes:

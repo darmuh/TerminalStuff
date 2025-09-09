@@ -3,7 +3,7 @@ using TerminalStuff.EventSub;
 using UnityEngine;
 using UnityEngine.UI;
 using static TerminalStuff.VisualElements.MoreCamStuff;
-using static TerminalStuff.ViewCommands;
+using static TerminalStuff.CommandHandling.ViewCommands;
 using TerminalStuff.Util;
 
 namespace TerminalStuff.VisualElements;

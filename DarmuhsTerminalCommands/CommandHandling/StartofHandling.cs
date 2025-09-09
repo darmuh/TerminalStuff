@@ -4,6 +4,7 @@ using System.Linq;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.EventSub;
+using TerminalStuff.Networking;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;
 using static OpenLib.CoreMethods.LogicHandling;

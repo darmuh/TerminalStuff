@@ -129,7 +129,7 @@ public class Commands
 
         TerminalHeal = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalHeal", false, "Command to heal yourself");
         //AddManagedBool(TerminalHeal, defaultManaged, false, "COMFORT", HealKeywords, MoreCommands.HealCommand);
-        AddLocalCommmand("Heal", "Comfort", TerminalHeal, HealKeywords, MoreCommands.HealCommand);
+        AddLocalCommmand("Heal", "Comfort", TerminalHeal, HealKeywords, MoreCommands.HealCommand, false);
 
         TerminalFov = MakeGeneric(Plugin.instance.Config, "Comfort Commands (On/Off)", "TerminalFov", false, "Command to change your FOV");
         //AddManagedBool(TerminalFov, defaultManaged, false, "COMFORT", FovKeywords, DynamicCommands.FovPrompt, 1, true, DynamicCommands.FovConfirm, DynamicCommands.FovDeny, "", "", "fov");
@@ -153,7 +153,7 @@ public class Commands
 
         TerminalVitals = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalVitals", false, "Scan player being monitored for their vitals");
         //AddManagedBool(TerminalVitals, defaultManaged, true, "EXTRAS", "vitals", CostCommands.VitalsCommand);
-        AddNetworkedCommmand("Vitals", "Extras", TerminalVitals, VitalsKWs, CostCommands.VitalsCommand);
+        AddNetworkedCommmand("Vitals", "Extras", TerminalVitals, VitalsKWs, CostCommands.VitalsCommand, false);
 
         TerminalBioScan = MakeGeneric(Plugin.instance.Config, "Extras Commands (On/Off)", "TerminalBioScan", false, "Scan for \"non-employee\" lifeforms.");
         //AddManagedBool(TerminalBioScan, defaultManaged, true, "EXTRAS", "bioscan", CostCommands.BioscanCommand);
@@ -311,7 +311,7 @@ public class Commands
 
 
         //--- Shortcuts
-        StuffForLibrary.Bind = AddLocalCommmandManualWords("bindCommand", TerminalShortcutCommands, ["bind"], DynamicCommands.BindKeyToCommand, "Comfort", true, false, true);
+        StuffForLibrary.Bind = AddLocalCommmandManualWords("Bind", TerminalShortcutCommands, ["bind"], DynamicCommands.BindKeyToCommand, "Comfort", true, false, true);
         StuffForLibrary.Unbind = AddLocalCommmandManualWords("Unbind", TerminalShortcutCommands, ["unbind"], DynamicCommands.UnBindKeyToCommand, "Comfort", true, false, true);
         //---
 

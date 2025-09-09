@@ -57,24 +57,14 @@ public static class TerminalEvents
                 }
             }
 
-            CommandManager packCmd = new($"{item.Key}_PP", Commands.TerminalPurchasePacks, [item.Key], StorePacks.AskPurchasePack, 2)
-            {
-                AddAtAwake = false
-            };
-            packCmd.SetInfoText($"Purchase Pack [{item.Key}]\r\n\r\n\tContains:\r\n{item.Value.Replace(",", ", ")}\r\n\r\n");
-            packCmd.ConfirmBase = new(packCmd, StorePacks.CompletePurchasePack)
-            {
-                DenyTxt = $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n"
-            };
-            packCmd.StoreBase = new(packCmd)
-            {
-                AlwaysInStock = true
-            };
-
+            
+            CommandManager packCmd = Commands.AddLocalCommmandManualWords($"{item.Key}_PP", Commands.TerminalPurchasePacks, [item.Key], StorePacks.AskPurchasePack, "Comfort", true, false);
+            Commands.AddConfirmationCommand(packCmd, StorePacks.CompletePurchasePack, () => $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n");
+            packCmd.StoreBase.AlwaysInStock = true;
             packCmd.RegisterCommand();
             purchasePacks.Add(packCmd);
 
-            StorePlus.excludedNodesFromAutoGen.Add(packCmd.terminalNode.shipUnlockableID);
+            StorePlus.ExcludedNodesFromAutoGen.Add(packCmd.terminalNode.shipUnlockableID);
 
             StorePacks pack = StorePacksInfo.AllPacks.FirstOrDefault(s => s.Name == item.Key);
 
