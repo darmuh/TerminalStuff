@@ -33,7 +33,6 @@ internal class QoLConfig
     public static ConfigEntry<string> WalkieTermMB { get; internal set; } = null!;
     public static ConfigEntry<string> KeyActionsConfig { get; internal set; } = null!;
     public static ConfigEntry<bool> CreateMoreMenus { get; internal set; } = null!;
-    public static ConfigEntry<bool> FauxMoreMenu { get; internal set; } = null!;
 
     internal static void Init()
     {
@@ -43,7 +42,6 @@ internal class QoLConfig
         TerminalRunDelay = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalRunDelay", false, "Enable this for the ability to run commands on a delay, Adds 2 customizable keywords (DelayKWs/StopDelayKWs)");
         KeyActionsConfig = MakeGeneric(Plugin.instance.Config, "Quality of Life", "KeyActionsConfig", "", "Stored keybinds, don't modify this unless you know what you're doing!");
         CreateMoreMenus = MakeGeneric(Plugin.instance.Config, "Quality of Life", "CreateMoreMenus", true, "Set this to false to remove the More commands menu.\nIf disabled, any command added by this mod will be added to the 'Other' command listing");
-        FauxMoreMenu = MakeGeneric(Plugin.instance.Config, "Quality of Life", "FauxMoreMenu", false, "Set this to true to use Faux Keywords for more menu category & next commands.\nCan be used in the case of certain category commands not being created due to existing keywords (ie. fun moon filter from LLL)");
 
         LockCameraInTerminal = MakeGeneric(Plugin.instance.Config, "Quality of Life", "LockCameraInTerminal", false, "Enable this to lock the player camera to the terminal when it is in use.");
         TerminalLightBehaviour = MakeGeneric(Plugin.instance.Config, "Quality of Life", "TerminalLightBehaviour", "alwayson", "Use this config item to change how the terminal light behaves. Options are 'nochange' which keeps vanilla behaviour, 'disable' which disables this light whenever you use it, and 'alwayson' which will keep the light on as long as the screen is on", new AcceptableValueList<string>("nochange", "disable", "alwayson"));

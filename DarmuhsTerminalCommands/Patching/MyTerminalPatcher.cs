@@ -122,29 +122,6 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
-    [HarmonyPriority(Priority.Last)]
-    public class TextPostProcessTranspiler : Terminal
-    {
-        static int replacements = 0;
-        [HarmonyTranspiler]
-        private static IEnumerable<CodeInstruction> TextPostProcess_Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            Plugin.PatchLog("TextPostProcess Transpiler Initialized");
-            replacements = 0;
-            CodeInstruction original = new(OpCodes.Ldstr, "\n\n\n\n\n\n\n\n\n\n\n\n\n\nn\n\n\n\n\n\n");
-            instructions.DoIf(instruction => instruction.operand == original.operand, Fix);
-            return instructions;
-        }
-
-        static void Fix(CodeInstruction instruction)
-        {
-            replacements++;
-            instruction.operand = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-            Plugin.PatchLog($"TextPostProcess - Transpiler success!\n[ {replacements} ] lines changed");
-        }
-    }
-
     [HarmonyPatch(typeof(Terminal), "BuyItemsServerRpc")]
     [HarmonyPriority(Priority.Last)]
     public class PurchaseLimitPatch1 : Terminal
@@ -274,22 +251,6 @@ public class AllMyTerminalPatches : MonoBehaviour
             replacements++;
             Plugin.PatchLog($"ParsePlayerSentence patched in favor of maxitems config!\n[ {replacements} ] lines changed");
             return codeMatcher.Instructions();
-        }
-
-
-        private static void ReplaceInt(CodeInstruction instruction)
-        {
-            if (!int.TryParse(instruction.operand.ToString(), out int value))
-                return;
-
-            if (value != 10)
-                return;
-
-            CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItems);
-            instruction.opcode = getter.opcode;
-            instruction.operand = getter.operand;
-            replacements++;
-            Plugin.PatchLog($"ParsePlayerSentence replaced {value} in favor of maxitems config!\n[ {replacements} ] lines changed");
         }
     }
 

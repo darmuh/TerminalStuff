@@ -2,6 +2,7 @@
 using OpenLib.CoreMethods;
 using OpenLib.Menus;
 using TerminalStuff.Configs;
+using static TerminalStuff.Configs.CustomizeConfig;
 using static OpenLib.Menus.CommandsMenu;
 
 namespace TerminalStuff.Util;
@@ -9,7 +10,6 @@ namespace TerminalStuff.Util;
 
 internal class MenuBuild
 {
-    //NEW
     internal static CommandsMenuBase MoreMenu = null!;
     internal static CommandMenuItem<CommandsMenuBase> MainMenuItem = null!;
     internal static CommandManager MoreMenuCommand = null!;
@@ -21,10 +21,17 @@ internal class MenuBuild
         {
             MainMenu = MainMenuItem,
             PageSize = 10,
-            AdjustScrollInMenu = false
+            AdjustScrollInMenu = false,
+            CategoryHeader = MoreMenuSectionHeader.Value,
+            CommandHeader = MoreMenuCommandHeader.Value,
+            KeywordsHeader = MoreMenuKeywordsHeader.Value,
+            InfoHeader = MoreMenuInfoHeader.Value,
+            AddInfoMenu = MoreIncludeCommandInfo.Value,
+            AddKeywordsMenu = MoreIncludeCommandKeywords.Value,
+            AddRunCommand = MoreIncludeCommandRun.Value
         };
 
-        MainMenuItem = CreateMainMenu(MoreMenu, "More Commands Menu", () => "=== More Commands Menu ===\n\n");
+        MainMenuItem = CreateMainMenu(MoreMenu, "More Commands Menu", () => MoreMenuMainHeader.Value);
     }
 
     internal static string EnterCommandMenu()
@@ -55,6 +62,11 @@ internal class MenuBuild
             }
             return;
         }
+
+        AddingThings.AddToHelpCommand(MoreHintText.Value);
+        if (LogicHandling.TryGetFromAllNodes("OtherCommands", out TerminalNode otherNode))
+            AddingThings.AddToExistingNodeText($"\n{MoreHintText.Value}", ref otherNode);
+
 
         var active = OpenLib.Plugin.GetActiveCommands();
         UpdateMenuListing(MoreMenu, MainMenuItem, active);

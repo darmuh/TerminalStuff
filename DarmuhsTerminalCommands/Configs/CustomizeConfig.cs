@@ -12,8 +12,18 @@ public class CustomizeConfig
     public static ConfigEntry<string> HomeLine3 { get; internal set; } = null!;
     public static ConfigEntry<string> HomeHelpLines { get; internal set; } = null!;
     public static ConfigEntry<string> HomeTextArt { get; internal set; } = null!;
-    public static ConfigEntry<string> MoreMenuText { get; internal set; } = null!;
+    
+    //More Menu
+    public static ConfigEntry<string> MoreMenuMainHeader { get; internal set; } = null!;
+    public static ConfigEntry<string> MoreMenuSectionHeader { get; internal set; } = null!;
+    public static ConfigEntry<string> MoreMenuCommandHeader { get; internal set; } = null!;
+    public static ConfigEntry<string> MoreMenuKeywordsHeader { get; internal set; } = null!;
+    public static ConfigEntry<string> MoreMenuInfoHeader { get; internal set; } = null!;
     public static ConfigEntry<string> MoreHintText { get; internal set; } = null!;
+    public static ConfigEntry<bool> MoreIncludeCommandInfo { get; internal set; } = null!;
+    public static ConfigEntry<bool> MoreIncludeCommandKeywords { get; internal set; } = null!;
+    public static ConfigEntry<bool> MoreIncludeCommandRun { get; internal set; } = null!;
+
 
     //colors
     public static ConfigEntry<bool> AutoResizeMoneyBG { get; internal set; } = null!;
@@ -55,8 +65,15 @@ public class CustomizeConfig
 
         HomeTextArt = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "HomeTextArt", "[leadingSpacex4][leadingSpace]<color=#e6b800>^^      .-=-=-=-.  ^^\r\n ^^        (`-=-=-=-=-`)         ^^\r\n         (`-=-=-=-=-=-=-`)  ^^         ^^\r\n   ^^   (`-=-=-=-=-=-=-=-`)   ^^          \r\n       ( `-=-=-=-(@)-=-=-` )      ^^\r\n       (`-=-=-=-=-=-=-=-=-`)  ^^          \r\n       (`-=-=-=-=-=-=-=-=-`)  ^^\r\n        (`-=-=-=-=-=-=-=-`)          ^^\r\n         (`-=-=-=-=-=-=-`)  ^^            \r\n           (`-=-=-=-=-`)\r\n            `-=-=-=-=-`</color>", "ASCII Art goes here");
 
-        MoreMenuText = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenuText", "Welcome to darmuh's Terminal Upgrade!\r\n\tSee below Categories for new stuff :)", "This is the header of the more command menu\nRefreshing this text requires a lobby restart.");
         MoreHintText = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreHintText", "<color=#b300b3>>MORE</color>\nTo open a menu of darmuh's commands.\nRefreshing this text requires a lobby restart.", "Text displayed for hints to the more command menu");
+        MoreMenuMainHeader = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Main Header", "====== More Commands Menu ======\n\n", "Customize the header of the main menu of the More menu system");
+        MoreMenuSectionHeader = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Section Header", "======== {catName>>} {commands>>} ========\n\n", "Customize the header of the main menu of the More menu system");
+        MoreMenuCommandHeader = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Command Header", "======== {commandName} ========\n\n", "Customize the header for commands in the More menu system");
+        MoreMenuKeywordsHeader = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Keywords Header", "======== {commandName} Keywords ========\n\n", "Customize the header for the keywords listing of a command in the More menu system");
+        MoreMenuInfoHeader = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Info Header", "====== {commandName} Information ======\n\n", "Customize the header for the information of a command in the More menu system");
+        MoreIncludeCommandInfo = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Include Command Info", true, "This determines if more menu generation will try to generate info menu items for each command");
+        MoreIncludeCommandKeywords = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Include Command Keywords", true, "This determines if more menu generation will try to generate a command's keywords as menu items");
+        MoreIncludeCommandRun = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "MoreMenu Include Command Run", true, "This determines if more menu generation will try to generate menu items to exit the menu and run the specific command");
 
         //Terminal Customization
         TerminalCustomization = MakeGeneric(Plugin.instance.Config, "Terminal Customization", "TerminalCustomization", true, "Enable or Disable terminal color customizations");

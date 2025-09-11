@@ -26,7 +26,7 @@ public static class TerminalEvents
     public static TerminalSettings terminalSettings { get; internal set; } = new(); //used in OpenLib compat
 #pragma warning restore IDE1006
     internal static bool quitTerminalEnum = false;
-    internal static List<CommandManager> purchasePacks = [];
+    internal static List<CommandManager> PurchasePacks { get; set; } = [];
 
     internal static Color transparent = new(0, 0, 0, 0);
 
@@ -47,9 +47,9 @@ public static class TerminalEvents
         {
             Loggers.LogDebug($"setting {item.Key} keyword to purchase pack with items: {item.Value}");
 
-            if (purchasePacks.Count != 0)
+            if (PurchasePacks.Count != 0)
             {
-                CommandManager match = purchasePacks.FirstOrDefault(p => p.KeywordList.Contains(item.Key));
+                CommandManager match = PurchasePacks.FirstOrDefault(p => p.KeywordList.Contains(item.Key));
                 if (match != null)
                 {
                     match.RegisterCommand();
@@ -59,12 +59,11 @@ public static class TerminalEvents
 
             
             CommandManager packCmd = Commands.AddLocalCommmandManualWords($"{item.Key}_PP", Commands.TerminalPurchasePacks, [item.Key], StorePacks.AskPurchasePack, "Comfort", true, false);
-            Commands.AddConfirmationCommand(packCmd, StorePacks.CompletePurchasePack, () => $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n");
-            packCmd.StoreBase.AlwaysInStock = true;
+            Commands.AddStoreCommand(packCmd, $"{item.Key}", 0, StorePacks.CompletePurchasePack, () => $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n", 0, true);
             packCmd.RegisterCommand();
-            purchasePacks.Add(packCmd);
+            PurchasePacks.Add(packCmd);
 
-            StorePlus.ExcludedNodesFromAutoGen.Add(packCmd.terminalNode.shipUnlockableID);
+            StorePlus.ExcludedNodesFromAutoGen.Add(packCmd.terminalNode);
 
             StorePacks pack = StorePacksInfo.AllPacks.FirstOrDefault(s => s.Name == item.Key);
 

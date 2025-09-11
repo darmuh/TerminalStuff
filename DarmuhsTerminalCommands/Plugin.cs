@@ -81,7 +81,6 @@ public partial class Plugin : BaseUnityPlugin
         instance = this;
         Log = base.Logger;
         Log.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded with version {MyPluginInfo.PLUGIN_VERSION}!");
-        StuffForLibrary.Init();
         ConfigSettings.BindConfigSettings();
         //Addkeywords used to be here
         VideoManager.Load();

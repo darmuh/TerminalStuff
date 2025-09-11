@@ -24,7 +24,4 @@
     <EmbeddedResource Include="Assets\hidden169" />
     <EmbeddedResource Include="darmuhngo" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SpecialStuff\Other QoL\" />
-  </ItemGroup>
 </Project>

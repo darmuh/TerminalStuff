@@ -44,9 +44,6 @@ internal class TerminalBeginUsing
         if (enabled.Any(x => x.VerySpecialNum != -1 && Plugin.instance.Terminal.currentNode == x.terminalNode))
             return;
 
-        //if (ConfigSettings.TerminalStuffMain.specialListNum.ContainsKey(Plugin.instance.Terminal.currentNode))
-        //return;
-
         if (!ViewCommands.isVideoPlaying)
             TerminalParse.NetSync(Plugin.instance.Terminal.currentNode!); //current node is not null, we set it to home earlier if it is
     }

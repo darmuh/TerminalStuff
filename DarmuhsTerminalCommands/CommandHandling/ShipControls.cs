@@ -34,8 +34,6 @@ internal class ShipControls
 
     internal static string BasicDoorCommand()
     {
-
-        //TerminalNode node = getTerm.currentNode;
         string displayText = string.Empty;
 
         if (DoorSpaceCheck())

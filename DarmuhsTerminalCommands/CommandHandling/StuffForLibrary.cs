@@ -10,19 +10,10 @@ internal class StuffForLibrary
     internal static CommandManager Switch = null!;
     internal static CommandManager Bind = null!;
     internal static CommandManager Unbind = null!;
-    internal static void Init()
-    {
-        //Commands.TerminalStuffBools = [];
-        //ConfigSettings.TerminalStuffMain = new();
-
-        //InitListing(ref ConfigSettings.TerminalStuffMain);
-        Plugin.Log.LogInfo("TerminalStuffMain listing initialized");
-    }
 
     internal static void AddCommands()
     {
         Plugin.Log.LogInfo("AddCommands called for TerminalStuffMain listing");
-        //GetCommandsToAdd(Commands.TerminalStuffBools, ConfigSettings.TerminalStuffMain);
         SwitchCommand();
     }
 

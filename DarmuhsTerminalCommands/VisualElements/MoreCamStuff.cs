@@ -80,9 +80,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
 
     internal static void CamPersistance(string nodeName, TerminalNode node = null!)
     {
-        List<string> checkForMatch = excludedNames;
-        checkForMatch.Add(nodeName);
-        if (!OpenLib.Common.Misc.CompareStringsInvariant(checkForMatch) && HideCams())
+        if (!OpenLib.Common.Misc.CompareStringsInvariant(excludedNames, nodeName) && HideCams())
         {
             SplitViewChecks.DisableSplitView("neither");
             Loggers.LogInfo("disabling ANY cams views");

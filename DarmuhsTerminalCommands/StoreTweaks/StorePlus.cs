@@ -42,7 +42,7 @@ internal class StorePlus
     internal static int SubTotal = 0; //subtotal before purchase, resets to 0 at launch of menu
     internal static List<StoreInfo> AllStoreItems { get; set; } = [];
     internal static List<StoreInfo> StoreSelection { get; set; } = [];
-    internal static List<int> ExcludedNodesFromAutoGen { get; set; } = [];
+    internal static List<TerminalNode> ExcludedNodesFromAutoGen { get; set; } = [];
     internal static List<string> ManualUpgradeNames = [];
 
     internal static void SetToVanilla()
@@ -381,7 +381,7 @@ internal class StorePlus
             if (node.itemCost < 0)
                 continue;
 
-            if (ExcludedNodesFromAutoGen.Contains(node.shipUnlockableID))
+            if (ExcludedNodesFromAutoGen.Contains(node))
                 continue;
 
             if (node.creatureName.IsNullOrWhiteSpace())
