@@ -47,6 +47,7 @@ public class TerminalStart
         TerminalCustomizer.TerminalCustomization();
         MenuBuild.CreateDarmuhsTerminalStuffMenus();
         SaveManager.InitUnlocks(); // sync upgrades status for this save
+        StorePlus.GetStoreItems(); // StorePlus/StorePacks init
     }
 
     private static void OtherModWords()
@@ -134,7 +135,6 @@ public class TerminalStart
         ViewCommands.isVideoPlaying = false;
         //TerminalClockStuff.StartClockCoroutine();
         AlwaysOnStart(Plugin.instance.Terminal, startNode);
-        StorePlus.GetStoreItems();
         MoonsPlus.MoonsPlusSetup();
         yield return new WaitForSeconds(0.1f);
         Plugin.instance.Terminal.topRightText.text = $"${Plugin.instance.Terminal.groupCredits}"; //fix creds display for alwayson

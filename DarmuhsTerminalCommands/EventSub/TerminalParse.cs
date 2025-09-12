@@ -1,4 +1,5 @@
-﻿using TerminalStuff.CommandHandling;
+﻿using System.Linq;
+using TerminalStuff.CommandHandling;
 using TerminalStuff.Networking;
 using TerminalStuff.StoreTweaks;
 using TerminalStuff.Util;
@@ -68,15 +69,11 @@ public class TerminalParse
 
     internal static void GetDynamicCost()
     {
-        /*
         foreach (var item in StorePacksInfo.AllPacks)
         {
-            if (!item.terminalNode .name.Contains("_confirm"))
-            {
-                item.Key.itemCost = StorePacks.GetPriceFromNode(item.Key);
-                Loggers.LogDebug($"Updating price for {item.Key.name} to {item.Key.itemCost}");
-            }
-        }*/
+            item.commandManager.terminalNode.itemCost = StorePacks.GetPriceFromNode(item.terminalNode);
+            Loggers.LogDebug($"Updating price for {item.Name} to {item.commandManager.terminalNode.itemCost}");
+        }
     }
 
     internal static TerminalNode OnNewDisplayText(ref TerminalNode node)
@@ -86,15 +83,18 @@ public class TerminalParse
         if (Plugin.instance.CruiserTerm)
             StartofHandling.ParseCruiserTerm(ref node);
 
-        /*if (ConfigSettings.TerminalStuffMain.storePacks.TryGetValue(node, out string value))
+        TerminalNode query = node;
+        StorePacks pack = StorePacksInfo.AllPacks.FirstOrDefault(x => x.terminalNode == query);
+
+        if (pack != null)
         {
             node.itemCost = 0;
             Loggers.LogInfo("Updating currentPackList");
             TerminalNode refNode = node;
-            StorePacksInfo.Selected = StorePacksInfo.AllPacks.FirstOrDefault(x => x.terminalNode == refNode);
+            StorePacksInfo.Selected = pack;
             if (node.creatureName != string.Empty)
                 StorePacksInfo.CurrentPackName = node.creatureName;
-        }*/
+        }
 
         return node;
     }

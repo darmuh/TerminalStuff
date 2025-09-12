@@ -68,9 +68,9 @@ public static class TerminalEvents
             StorePacks pack = StorePacksInfo.AllPacks.FirstOrDefault(s => s.Name == item.Key);
 
             if (pack != null)
-                pack.UpdateExisting(item.Value, packCmd.terminalNode);
+                pack.UpdateExisting(item.Value, packCmd);
             else
-                pack = new(item.Key, item.Value, packCmd.terminalNode);
+                pack = new(item.Key, item.Value, packCmd);
         }
     }
 

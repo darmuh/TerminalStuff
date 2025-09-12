@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using OpenLib.CoreMethods;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TerminalStuff.Configs;
@@ -16,8 +17,9 @@ internal class StorePacks
     internal string configValue = "";
     internal List<string> ContentsList = [];
     internal TerminalNode terminalNode;
+    internal CommandManager commandManager;
 
-    internal string Contents = "";
+    internal string Contents { get { return GetContents(); } }
 
     //used in funcs
     internal List<TerminalNode> UpgradeItems = [];
@@ -28,11 +30,12 @@ internal class StorePacks
         return Name;
     }
 
-    internal StorePacks(string name, string value, TerminalNode node)
+    internal StorePacks(string name, string value, CommandManager command)
     {
         Name = name;
         configValue = value;
-        terminalNode = node;
+        commandManager = command;
+        terminalNode = command.terminalNode;
         terminalNode.creatureName = Name;
         GetPurchasePackContents();
         Loggers.LogDebug($"PurchasePack {Name} created with {ItemsToPurchase.Count} unique items and {UpgradeItems.Count} Upgrades/Furniture");
@@ -42,10 +45,11 @@ internal class StorePacks
             AddToStorePlus();
     }
 
-    internal void UpdateExisting(string value, TerminalNode node)
+    internal void UpdateExisting(string value, CommandManager command)
     {
         configValue = value;
-        terminalNode = node;
+        commandManager = command;
+        terminalNode = command.terminalNode;
         GetPurchasePackContents();
         Loggers.LogDebug($"PurchasePack {Name} updated with {ItemsToPurchase.Count} unique items and {UpgradeItems.Count} Upgrades/Furniture");
 
@@ -141,6 +145,8 @@ internal class StorePacks
 
         Selected.GetContents();
 
+        Selected.commandManager.ConfirmBase.Confirm.result.itemCost = 0;
+
         StringBuilder packBuy = new();
         packBuy.AppendLine($"You have purchased the {CurrentPackName} PurchasePack!\r\n\r\n\tContents:\r\n");
         packBuy.Append(Selected.Contents);
@@ -180,7 +186,6 @@ internal class StorePacks
                 StartOfRound.Instance.BuyShipUnlockableServerRpc(item.shipUnlockableID, Plugin.instance.Terminal.groupCredits);
                 Loggers.LogInfo($"Unlocking {item.creatureName}");
             }
-
         }
     }
 
@@ -401,7 +406,7 @@ internal class StorePacks
 internal static class StorePacksInfo
 {
     internal static string CurrentPackName = "";
-    internal static StorePacks Selected = null!;
+    internal static StorePacks Selected { get; set; } = null!;
     //internal static string PackContents = "";
     internal static List<StorePacks> AllPacks = [];
 
