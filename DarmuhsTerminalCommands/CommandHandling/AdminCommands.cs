@@ -26,7 +26,7 @@ internal class AdminCommands
         if (val.Length < 1)
         {
             string getPlayerNames = PlayerNameAndIDList();
-            displayText = $"You must specify a player name or ID to kick them!\r\n\tKickable Players:\r\n(id) PlayerName{getPlayerNames}\r\n\r\n";
+            displayText = $"You must specify a player name or ID to kick them!\n\tKickable Players:\n(id) PlayerName{getPlayerNames}\n\n";
             return displayText;
         }
 
@@ -39,7 +39,7 @@ internal class AdminCommands
                 {
                     TerminalGeneral.CancelConfirmation = false;
                     playerToKick = player;
-                    displayText = $"Kick {player.playerUsername} from the lobby?\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\r\n\r\n";
+                    displayText = $"Kick {player.playerUsername} from the lobby?\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n\n";
                     Loggers.LogInfo("valid player to kick from id");
                     return displayText;
                 }
@@ -55,13 +55,13 @@ internal class AdminCommands
                 {
                     TerminalGeneral.CancelConfirmation = false;
                     playerToKick = player;
-                    displayText = $"Kick {player.playerUsername} from the lobby?\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\r\n\r\n";
+                    displayText = $"Kick {player.playerUsername} from the lobby?\n\n\n\n\n\n\n\n\n\n\nPlease CONFIRM or DENY.\n\n";
                     return displayText;
                 }
             }
         }
 
-        displayText = $"Unable to find player to kick by name or id - {val}\r\n\r\n";
+        displayText = $"Unable to find player to kick by name or id - {val}\n\n";
         return displayText;
     }
 
@@ -72,7 +72,7 @@ internal class AdminCommands
         {
             if (StartOfRound.Instance.localPlayerController != player && player.isPlayerControlled)
             {
-                message.Append($"\r\n({player.playerClientId}) {player.playerUsername}\r\n");
+                message.Append($"\n({player.playerClientId}) {player.playerUsername}\n");
             }
         }
 
@@ -86,7 +86,7 @@ internal class AdminCommands
             return true;
         else
         {
-            displayText = $"You do not have permission to kick players from this lobby, you are NOT the host.\r\n\r\n";
+            displayText = $"You do not have permission to kick players from this lobby, you are NOT the host.\n\n";
             Plugin.Log.LogWarning("Somehow non-host player could try to kick others, error handled.");
             return false;
         }
@@ -96,13 +96,13 @@ internal class AdminCommands
     {
         int playerID = GetPlayerToKickID(playerToKick);
         Plugin.instance.Terminal.StartCoroutine(KickYes(playerID));
-        string displayText = $"Kick Player Action Confirmed.\r\n\r\n\tKicking player: {playerToKick.playerUsername}\r\n\r\n";
+        string displayText = $"Kick Player Action Confirmed.\n\n\tKicking player: {playerToKick.playerUsername}\n\n";
         return displayText;
     }
 
     internal static string KickPlayerDeny()
     {
-        string displayText = $"Cancelling kick player action for player:{playerToKick.playerUsername}\r\n\r\n";
+        string displayText = $"Cancelling kick player action for player:{playerToKick.playerUsername}\n\n";
         playerToKick = null!;
         return displayText;
     }

@@ -22,77 +22,14 @@ public class NetHandler : NetworkBehaviour
 {
     public static Events.CustomEvent ShipReset = new();
     internal static NetHandler Instance { get; private set; } = null!;
-    internal static Terminal patchTerminal = null!;
-    internal static bool netNodeSet = false;
-    internal bool endFlashRainbow = false;
-    internal static TerminalNode netNode = CreateDummyNode("", true, "");
-    internal static bool rainbowFlashEnum = false;
+    internal bool EndFlashRainbow = false;
+    internal static TerminalNode NetNode = CreateDummyNode("", true, "");
+    internal static bool RainbowFlashRoutine = false;
 
     //Load New Node SYNC
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void NodeLoadServerRpc(string topRightText, string nodeName, string nodeText, int nodeNumber = -1)
+    [Rpc(SendTo.NotMe, RequireOwnership = false)]
+    internal void SyncNodesRpc(string topRightText, string nodeName, string nodeText, int nodeNumber = -1)
     {
-        NetworkManager networkManager = NetworkManager;
-        if (netNodeSet && (networkManager.IsHost || networkManager.IsServer))
-        {
-            Loggers.LogInfo("RPC called from host, sending to client RPC ");
-            NodeLoadClientRpc(topRightText, nodeName, nodeText, true, nodeNumber);
-            return;
-        }
-        else if (!netNodeSet && networkManager.IsHost || networkManager.IsServer)
-        {
-            //if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
-            //return;
-
-            Loggers.LogInfo($"Host: attempting to sync node {nodeName}/{nodeNumber}");
-            SyncNodes(topRightText, nodeName, nodeText, nodeNumber);
-        }
-        else
-        {
-            Loggers.LogInfo($"Server: This should only be coming from clients");
-            NodeLoadClientRpc(topRightText, nodeName, nodeText, true, nodeNumber);
-        }
-
-        Loggers.LogInfo("Server: Attempting to sync nodes between clients.");
-    }
-
-    [ClientRpc]
-    internal void NodeLoadClientRpc(string topRightText, string nodeName, string nodeText, bool fromHost, int nodeNumber = -1)
-    {
-        //if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
-        //return;
-
-        NetworkManager networkManager = NetworkManager;
-        if (fromHost && (networkManager.IsHost || networkManager.IsServer))
-        {
-            NetNodeReset(false);
-            Loggers.LogInfo("Node detected coming from host, resetting nNS and ending RPC");
-            return;
-        }
-
-        if (!netNodeSet)
-        {
-            Loggers.LogInfo($"Client: attempting to sync node, {nodeName}/{nodeNumber}");
-            SyncNodes(topRightText, nodeName, nodeText, nodeNumber);
-        }
-        else
-        {
-            Loggers.LogInfo("Client: netNodeSet is true, no sync required.");
-            NetNodeReset(false);
-            return;
-        }
-    }
-
-    internal static bool NetNodeReset(bool set)
-    {
-        netNodeSet = set;
-        return netNodeSet;
-    }
-
-    private void SyncNodes(string topRightText, string nodeName, string nodeText, int nodeNumber = -1)
-    {
-
         if (!TryGetFromAllNodes(nodeName, out TerminalNode node))
         {
             DefaultSync(nodeName, nodeText);
@@ -101,8 +38,6 @@ public class NetHandler : NetworkBehaviour
         }
         else
         {
-            NetNodeReset(true);
-
             if (nodeNumber != -1 && nodeNumber <= Configs.Commands.GetSpecialCommands().ConvertAll(x => x.VerySpecialNum).Max())
             {
                 TerminalNode viewNode = StartofHandling.FindViewNode(nodeNumber);
@@ -135,7 +70,6 @@ public class NetHandler : NetworkBehaviour
 
 
             Plugin.instance.Terminal.topRightText.text = topRightText;
-            NetNodeReset(false);
         }
     }
 
@@ -151,21 +85,14 @@ public class NetHandler : NetworkBehaviour
 
         MoreCamStuff.CamPersistance(nodeName);
         MoreCamStuff.VideoPersist(nodeName);
-        netNode.displayText = nodeText;
-        Plugin.instance.Terminal.LoadNewNode(netNode);
+        NetNode.displayText = nodeText;
+        Plugin.instance.Terminal.LoadNewNode(NetNode);
 
         Loggers.LogInfo($"Only displaying {nodeName} text.");
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void SyncDropShipServerRpc(bool isRefund = false)
-    {
-        Loggers.LogInfo($"Server: Attempting to sync dropship between players...");
-        SyncDropShipClientRpc(isRefund);
-    }
-
-    [ClientRpc]
-    internal void SyncDropShipClientRpc(bool isRefund)
+    [Rpc(SendTo.Owner, RequireOwnership = false)]
+    internal void SyncDropShipRpc(bool isRefund)
     {
         NetworkManager networkManager = NetworkManager;
         if (networkManager.IsHost || networkManager.IsServer)
@@ -181,197 +108,48 @@ public class NetHandler : NetworkBehaviour
             Loggers.LogInfo("Host syncing dropship to storeCart after purchase");
             int[] itemsOrdered = [.. Plugin.instance.Terminal.orderedItemsFromTerminal];
             CostCommands.storeCart = Plugin.instance.Terminal.orderedItemsFromTerminal;
-            SendItemsToAllServerRpc(itemsOrdered);
+            HostSendItemsToAllRpc(itemsOrdered);
         }
     }
 
-    internal static void SyncMyVideoChoiceToEveryone(string videoPlaying)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void SyncMyVideoChoiceToEveryoneRpc(string videoPlaying)
     {
-        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value || !ConfigSettings.VideoSync.Value)
-            return;
-
-        if (Misc.IsLocalPlayerNull())
-            return;
-
-        if (Instance == null || StartOfRound.Instance == null || StartOfRound.Instance.localPlayerController == null)
-            return;
-
-        Loggers.LogInfo($"Sending {videoPlaying} as videoPlaying to other clients with active screens");
-        Instance.SyncVideoChoiceServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, videoPlaying);
+        VideoManager.currentlyPlaying = videoPlaying;
+        Loggers.LogInfo($"currentlyPlaying set to {videoPlaying}");
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void SyncVideoChoiceServerRpc(int fromClient, string videoPlaying)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void SyncMyCamsBoolToEveryoneRpc(bool value)
     {
-        Loggers.LogDebug($"Server: Attempting to sync video choice: {videoPlaying}");
-        SyncVideoChoiceClientRpc(fromClient, videoPlaying);
+        Plugin.instance.activeCam = value;
+        Loggers.LogInfo($"activeCam set to {value}");
     }
 
-    [ClientRpc]
-    internal void SyncVideoChoiceClientRpc(int fromClient, string videoPlaying)
+    [Rpc(SendTo.Owner, RequireOwnership = false)]
+    internal void GetHostTerminalRpc()
     {
-        if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
-            return;
-
-        if (Misc.IsLocalPlayerNull())
-            return;
-
-        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
-        {
-            Loggers.LogInfo($"This is the client sending the video name {videoPlaying}");
-            return;
-        }
-        else if (VideoManager.currentlyPlaying == videoPlaying)
-        {
-            Loggers.LogInfo($"video already set to {videoPlaying}");
-            return;
-        }
-        else
-        {
-            VideoManager.currentlyPlaying = videoPlaying;
-            Loggers.LogInfo($"currentlyPlaying set to {videoPlaying}");
-            return;
-        }
-
+        Loggers.LogInfo($"Server: Syncing current node from host.");
+        StartofHandling.SyncTerminal(Plugin.instance.Terminal.currentNode);
     }
 
-    internal static void SyncMyCamsBoolToEveryone(bool myCams)
+
+    [Rpc(SendTo.Owner, RequireOwnership = false)]
+    internal void AskHostUpgradeStatusRpc()
     {
-        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
-            return;
-
-        if (Instance == null)
-            return;
-
-        if (Misc.IsLocalPlayerNull())
-            return;
-
-        if (Plugin.instance.activeCam == myCams)
-            return;
-
-        Instance.SyncActiveCamsBoolServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, myCams);
+        foreach (string name in SaveManager.AllUpgradesUnlocked)
+            UpgradeStatusRpc(name);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void SyncActiveCamsBoolServerRpc(int fromClient, bool value)
+    [Rpc(SendTo.Owner, RequireOwnership = false)]
+    internal void AskHostTravelHistoryRpc()
     {
-
-        Loggers.LogInfo($"Server: Attempting to sync active cams bool...");
-        SyncActiveCamsClientRpc(fromClient, value);
+        foreach (string name in MoonsPlus.MoonsVisited)
+            UpdateTravelHistoryRpc(name);
     }
 
-    [ClientRpc]
-    internal void SyncActiveCamsClientRpc(int fromClient, bool value)
-    {
-        if (!Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
-            return;
-
-        if (Misc.IsLocalPlayerNull())
-            return;
-
-        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
-        {
-            Loggers.LogInfo($"This is the client syncing the bool");
-            return;
-        }
-        else if (Plugin.instance.activeCam == value)
-        {
-            Loggers.LogInfo("Catching extra sync and returning");
-            return;
-        }
-
-        else
-        {
-            Plugin.instance.activeCam = value;
-            Loggers.LogInfo($"activeCam set to {value}");
-            return;
-        }
-
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void SyncTerminalServerRpc(int fromClient, int otherClient)
-    {
-        if (fromClient == -1 || otherClient == -1)
-        {
-            Loggers.ERROR($"SyncTerminalServerRpc FATAL ERROR: Invalid client ID detected.\nfromClient: {fromClient}\notherClient: {otherClient}");
-            return;
-        }
-
-        Loggers.LogInfo($"Server: Client [{fromClient}] requesting terminalNode from: [{otherClient}]");
-        SyncTerminalClientRpc(fromClient, otherClient);
-    }
-
-    [ClientRpc]
-    internal void SyncTerminalClientRpc(int fromClient, int otherClient)
-    {
-        if (Misc.IsLocalPlayerNull())
-            return;
-
-        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
-        {
-            Loggers.LogInfo($"This is the client requesting the node");
-            return;
-        }
-        else if ((int)StartOfRound.Instance.localPlayerController.playerClientId == otherClient)
-        {
-            Loggers.LogInfo($"This is the client the node is being requested from");
-            //NetHandler.Instance.SyncActiveCamsBoolServerRpc(otherClient, netCamStatus);
-            StartofHandling.SyncTerminal(Plugin.instance.Terminal.currentNode);
-            return;
-        }
-        else
-        {
-            Loggers.LogInfo("This client is neither the client requesting node status or the client being requested to provide it.");
-            return;
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void AskUpgradeStatusServerRpc()
-    {
-        Loggers.LogInfo($"Server: Client requesting Update of upgrades status for all clients");
-        AskUpgradeStatusClientRpc();
-    }
-
-    [ClientRpc]
-    internal void AskUpgradeStatusClientRpc()
-    {
-        NetworkManager networkManager = NetworkManager;
-        if (networkManager.IsHost || networkManager.IsServer)
-        {
-            foreach (string name in SaveManager.AllUpgradesUnlocked)
-                UpgradeStatusServerRpc(name);
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void GetTravelHistoryServerRpc()
-    {
-        Loggers.LogInfo($"Server: Client requesting Travel History status update for all clients");
-        GetTravelHistoryClientRpc();
-    }
-
-    [ClientRpc]
-    internal void GetTravelHistoryClientRpc()
-    {
-        NetworkManager networkManager = NetworkManager;
-        if (networkManager.IsHost || networkManager.IsServer)
-        {
-            foreach (string name in MoonsPlus.MoonsVisited)
-                TravelHistoryServerRpc(name);
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void TravelHistoryServerRpc(string moonName)
-    {
-        Loggers.LogInfo($"Server: Adding {moonName} to travel history for all clients");
-        TravelHistoryClientRpc(moonName);
-    }
-
-    [ClientRpc]
-    internal void TravelHistoryClientRpc(string moonName)
+    [Rpc(SendTo.NotMe, RequireOwnership = false)]
+    internal void UpdateTravelHistoryRpc(string moonName)
     {
         if (MoonsPlus.MoonsVisited.Contains(moonName))
             return;
@@ -381,35 +159,22 @@ public class NetHandler : NetworkBehaviour
         if (GameNetworkManager.Instance.localPlayerController.IsHost)
             SaveManager.SaveTravelHistory(MoonsPlus.MoonsVisited);
 
-        Loggers.LogInfo($"Client: Adding {moonName} to travel history for all clients");
+        Loggers.LogInfo($"Client: Adding {moonName} to travel history");
         MoonsPlus.UpdateMoonTravelHistory(moonName);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void UpgradeStatusServerRpc(string upgradeName)
-    {
-        Loggers.LogInfo($"Server: Updating {upgradeName} upgrade status for all clients");
-        UpgradeStatusClientRpc(upgradeName);
-    }
-
-    [ClientRpc]
-    internal void UpgradeStatusClientRpc(string upgradeName)
+    [Rpc(SendTo.NotMe, RequireOwnership = false)]
+    internal void UpgradeStatusRpc(string upgradeName)
     {
         if (!SaveManager.AllUpgradesUnlocked.Contains(upgradeName))
             SaveManager.AllUpgradesUnlocked.Add(upgradeName);
 
-        Loggers.LogInfo($"Client: Updating {upgradeName} upgrade status for all clients");
+        Loggers.LogInfo($"Client: Updating {upgradeName} upgrade status");
         CostCommands.UpdateUnlockStatus();
     }
 
-    [ServerRpc(RequireOwnership = true)]
-    internal void SendItemsToAllServerRpc(int[] itemsOrdered)
-    {
-        Loggers.LogInfo("Server: Sending itemsOrdered to clients...");
-        SendItemsToAllClientRpc(itemsOrdered);
-    }
-    [ClientRpc]
-    internal void SendItemsToAllClientRpc(int[] itemsOrdered)
+    [Rpc(SendTo.NotMe)]
+    internal void HostSendItemsToAllRpc(int[] itemsOrdered)
     {
         NetworkManager networkManager = NetworkManager;
         if (!networkManager.IsHost || !networkManager.IsServer)
@@ -420,16 +185,9 @@ public class NetHandler : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void SyncCreditsServerRpc(int newCreds, int items)
+    [Rpc(SendTo.Owner, RequireOwnership = false)]
+    internal void SyncHostCreditsRpc(int newCreds, int items)
     {
-        Loggers.LogInfo("Server: syncing credits and items...");
-        SyncCreditsClientRpc(newCreds, items);
-    }
-    [ClientRpc]
-    internal void SyncCreditsClientRpc(int newCreds, int items)
-    {
-
         NetworkManager networkManager = NetworkManager;
         if (networkManager.IsHost || networkManager.IsServer)
         {
@@ -438,14 +196,8 @@ public class NetHandler : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void SyncRadarZoomServerRpc(float zoom)
-    {
-        Loggers.LogInfo("Server: syncing radar zoom level...");
-        SyncRadarZoomClientRpc(zoom);
-    }
-    [ClientRpc]
-    internal void SyncRadarZoomClientRpc(float zoom)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void SyncRadarZoomRpc(float zoom)
     {
         if (ViewCommands.radarZoom == zoom)
             return;
@@ -456,274 +208,130 @@ public class NetHandler : NetworkBehaviour
         Loggers.LogInfo($"Radar Zoom set to {ViewCommands.radarZoom}");
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void SyncRadarMapServerRpc(int fromClient, int newTarget)
+    [Rpc(SendTo.NotMe)]
+    internal void SyncRadarMapRpc(int newTarget)
     {
-        Loggers.LogDebug($"Server: Client ({fromClient}) attempting to sync radarmap target to {newTarget}");
-        SyncRadarMapClientRpc(fromClient, newTarget);
+        Loggers.LogDebug("SyncRadarMapClientRpc called from another client");
+        GameStuff.TerminalMapRenderer.StartCoroutine(GameStuff.TerminalMapRenderer.updateMapTarget(newTarget, true));
     }
 
-    [ClientRpc]
-    internal void SyncRadarMapClientRpc(int fromClient, int newTarget)
+    [Rpc(SendTo.Owner, RequireOwnership = false)]
+    internal void GetHostAlwaysOnStatusRpc()
     {
-        if (Misc.IsLocalPlayerNull())
-            return;
-
-        if ((int)StartOfRound.Instance.localPlayerController.playerClientId == fromClient)
-        {
-            Loggers.LogDebug($"This is the client updating target to {newTarget}");
-            return;
-        }
-        else
-        {
-
-            Loggers.LogDebug("SyncRadarMapClientRpc called from another client");
-            GameStuff.TerminalMapRenderer.StartCoroutine(GameStuff.TerminalMapRenderer.updateMapTarget(newTarget, true));
-        }
-
+        AlwaysOnDisplaySyncRpc(AlwaysOnDisplay);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void StartAoDServerRpc(bool aod)
-    {
-        Loggers.LogInfo($"Server: syncing alwaysondisplay to {aod}");
-        AoDClientRpc(aod);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void AoDServerRpc(bool aod)
-    {
-        Loggers.LogInfo($"Server: syncing alwaysondisplay to {aod}");
-        AoDClientRpc(aod);
-    }
-    [ClientRpc]
-    internal void AoDClientRpc(bool aod)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void AlwaysOnDisplaySyncRpc(bool aod)
     {
         Loggers.LogInfo($"Client: setting alwaysondisplay to {aod}");
-        alwaysOnDisplay = aod;
+        AlwaysOnDisplay = aod;
         if (Plugin.instance.Terminal.terminalInUse == false)
             ToggleScreen(aod);
     }
 
-
     //Ship Color changes
-    [ServerRpc(RequireOwnership = false)]
-    internal void ShipColorALLServerRpc(Color newColor, string target)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void ShipColorAllRpc(Color newColor, string target)
     {
-        ShipColorALLClientRpc(newColor, target);
+        ColorCommands.SetLightColors([ColorCommands.FrontLight1, ColorCommands.FrontLight2, ColorCommands.MidLight1, ColorCommands.MidLight2, ColorCommands.BackLight1, ColorCommands.BackLight2], newColor);
+        Loggers.LogInfo($"Ship Color change for all lights received. Color: {newColor} Name: {target} ");
     }
 
-    [ClientRpc]
-    internal void ShipColorALLClientRpc(Color newColor, string target)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void ShipColorFrontRpc(Color newColor, string target)
     {
-        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-        Loggers.LogInfo($"Client: Ship Color change for all lights received. Color: {newColor} Name: {target} ");
+        ColorCommands.SetLightColors([ColorCommands.FrontLight1, ColorCommands.FrontLight2], newColor);
+        Loggers.LogInfo($"Ship Color change received for front lights. Color: {newColor} Name: {target} ");
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    internal void ShipColorFRONTServerRpc(Color newColor, string target)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void ShipColorMidRpc(Color newColor, string target)
     {
-        ShipColorFRONTClientRpc(newColor, target);
+        ColorCommands.SetLightColors([ColorCommands.MidLight1, ColorCommands.MidLight2], newColor);
+        Loggers.LogInfo($"Ship Color change received for middle lights. Color: {newColor} Name: {target} ");
     }
 
-    [ClientRpc]
-    internal void ShipColorFRONTClientRpc(Color newColor, string target)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void ShipColorBackRpc(Color newColor, string target)
     {
-        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)").GetComponent<Light>().color = newColor;
-        Loggers.LogInfo($"Client: Ship Color change received for front lights. Color: {newColor} Name: {target} ");
+        ColorCommands.SetLightColors([ColorCommands.BackLight1, ColorCommands.BackLight2], newColor);
+        Loggers.LogInfo($"Ship Color change received for back lights. Color: {newColor} Name: {target} ");
     }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void ShipColorMIDServerRpc(Color newColor, string target)
-    {
-        Loggers.LogInfo("serverRpc called");
-        ShipColorMIDClientRpc(newColor, target);
-    }
-
-    [ClientRpc]
-    internal void ShipColorMIDClientRpc(Color newColor, string target)
-    {
-        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)").GetComponent<Light>().color = newColor;
-        Loggers.LogInfo($"Client: Ship Color change received for middle lights. Color: {newColor} Name: {target} ");
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void ShipColorBACKServerRpc(Color newColor, string target)
-    {
-        Loggers.LogInfo("serverRpc called");
-        ShipColorBACKClientRpc(newColor, target);
-    }
-
-    [ClientRpc]
-    internal void ShipColorBACKClientRpc(Color newColor, string target)
-    {
-        GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)").GetComponent<Light>().color = newColor;
-        Loggers.LogInfo($"Client: Ship Color change received for back lights. Color: {newColor} Name: {target} ");
-    }
-
 
     //Flashlights
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void FlashColorServerRpc(Color newColor, ulong playerID, string playerName)
+    [Rpc(SendTo.Everyone, RequireOwnership = false)]
+    internal void FlashColorRpc(Color newColor, ulong playerID)
     {
-        //Loggers.LogInfo("Fcolor serverRpc called");
-        FlashColorClientRpc(newColor, playerID, playerName);
-        HelmetLightColorClientRpc(newColor, playerID);
-    }
+        PlayerControllerB player = StartOfRound.Instance.allPlayerScripts.FirstOrDefault(p => p.playerSteamId == playerID);
 
-    [ClientRpc]
-    internal void FlashColorClientRpc(Color newColor, ulong playerID, string playerName)
-    {
-        if (StartOfRound.Instance.localPlayerController.playerClientId == playerID)
+        if (player == null)
             return;
 
-        //Loggers.LogInfo("Fcolor clientRpc called");
-        FlashlightItem getFlash = FindFlashlightObject(playerName);
-        if (getFlash != null)
+        player.helmetLight.color = newColor;
+        foreach(var item in player.ItemSlots)
         {
-            SetFlash(ref getFlash, newColor);
-        }
-
-        else
-            Loggers.WARNING($"Unable to find flashlight of player [ {playerName} ] to set custom color [ {newColor} ]");
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void HelmetLightColorServerRpc(Color newColor, ulong playerID)
-    {
-        //Loggers.LogInfo("Fcolor serverRpc called");
-        HelmetLightColorClientRpc(newColor, playerID);
-    }
-
-    [ClientRpc]
-    internal void HelmetLightColorClientRpc(Color newColor, ulong playerID)
-    {
-        if (StartOfRound.Instance.localPlayerController.playerClientId == playerID)
-            return;
-
-        SetHelmetLight(newColor, playerID);
-    }
-
-    private FlashlightItem FindFlashlightObject(string playerName)
-    {
-        List<FlashlightItem> allflashlights = [.. FindObjectsByType<FlashlightItem>(sortMode: FindObjectsSortMode.None)];
-        FlashlightItem flashlightItem = null!;
-
-        if (allflashlights.Count == 0)
-            return flashlightItem;
-
-        foreach (FlashlightItem thisFlash in allflashlights)
-        {
-            if (thisFlash.playerHeldBy != null)
+            if(item is FlashlightItem flashlight)
             {
-                if (thisFlash.playerHeldBy.playerUsername == playerName && thisFlash.gameObject.name.Contains("Flashlight"))
-                {
-                    flashlightItem = thisFlash.GetComponent<FlashlightItem>();
-                    break;
-                }
+                flashlight.flashlightBulb.color = newColor;
+                flashlight.flashlightBulbGlow.color = newColor;
             }
-        }
-
-        return flashlightItem;
-    }
-
-    internal static void SetFlash(ref FlashlightItem flashlightItem, Color newColor)
-    {
-
-        // Move the null check outside the loop
-        if (flashlightItem == null)
-            return;
-
-        if (flashlightItem.flashlightBulb != null && flashlightItem.flashlightBulbGlow != null)
-        {
-            flashlightItem.flashlightBulb.color = newColor;
-            flashlightItem.flashlightBulbGlow.color = newColor;
-        }
-        else
-        {
-            Loggers.WARNING($"flashlightBulb or flashlightBulbGlow is null");
-        }
-    }
-
-    internal static void SetHelmetLight(Color newColor, ulong playerID)
-    {
-        if (StartOfRound.Instance.allPlayerScripts.Length <= (int)playerID)
-            return;
-
-        if (StartOfRound.Instance.allPlayerScripts[(int)playerID].helmetLight)
-        {
-            StartOfRound.Instance.allPlayerScripts[(int)playerID].helmetLight.color = newColor;
         }
     }
 
     internal void CycleThroughRainbowFlash()
     {
-        if (rainbowFlashEnum)
+        if (RainbowFlashRoutine)
             return;
 
-        // Start the new coroutine for the rainbow effect
-        string playerName = GameNetworkManager.Instance.localPlayerController.playerUsername;
-        ulong playerID = GameNetworkManager.Instance.localPlayerController.playerClientId;
-        PlayerControllerB getPlayer = StartOfRound.Instance.localPlayerController;
-
-        endFlashRainbow = false;
-        StartCoroutine(RainbowFlashCoroutine(playerName, playerID, getPlayer));
-        Loggers.LogInfo($"{playerName} trying to set flashlight to rainbow mode!");
-
+        EndFlashRainbow = false;
+        ColorCommands.RainbowFlash = true;
+        Loggers.LogInfo($"setting flashlight to rainbow mode!");
+        StartCoroutine(RainbowFlashCoroutine());
     }
 
-    private IEnumerator RainbowFlashCoroutine(string playerName, ulong playerID, PlayerControllerB player)
+    private IEnumerator RainbowFlashCoroutine()
     {
-        if (rainbowFlashEnum)
+        if (RainbowFlashRoutine)
             yield break;
 
-        rainbowFlashEnum = true;
+        RainbowFlashRoutine = true;
         Loggers.LogDebug("RainbowFlashCoroutine!");
 
-        FlashlightItem flashlight = FindFlashlightObject(playerName);
-        if (flashlight != null)
+        PlayerControllerB player = StartOfRound.Instance.localPlayerController;
+
+        if(player.ItemSlots[player.currentItemSlot] is FlashlightItem flashlight)
         {
             flashlight.itemProperties.itemName += "(Rainbow)";
 
-            while (!player.isPlayerDead && !endFlashRainbow)
+            while (!player.isPlayerDead && !EndFlashRainbow)
             {
                 float rainbowSpeed = 0.4f;
                 float hue = Mathf.PingPong(Time.time * rainbowSpeed, 1f);
                 Color flashlightColor = Color.HSVToRGB(hue, 1f, 1f);
 
-                SetFlash(ref flashlight, flashlightColor);
-                SetHelmetLight(flashlightColor, playerID);
-                Instance.FlashColorServerRpc(flashlightColor, playerID, playerName);
+                Instance.FlashColorRpc(flashlightColor, player.playerSteamId);
 
-                // Wait for a short duration before updating the color again
-                yield return new WaitForSeconds(0.05f);
+                // Wait for next frame
+                yield return new WaitForEndOfFrame();
 
-                if (StartOfRound.Instance.allPlayersDead || flashlight.insertedBattery.empty || !flashlight.isHeld || !flashlight.flashlightBulb.enabled || !ColorCommands.RainbowFlash)
+                if (StartOfRound.Instance.allPlayersDead || flashlight.insertedBattery.empty || !flashlight.isHeld || !ColorCommands.RainbowFlash)
                 {
                     Loggers.LogInfo("ending flashy rainbow");
                     flashlight.itemProperties.itemName = flashlight.itemProperties.itemName.Replace("(Rainbow)", "");
-                    endFlashRainbow = true;
+                    EndFlashRainbow = true;
                 }
             }
         }
         else
-            Plugin.Log.LogWarning("no flashlights found for rainbow!");
+            Plugin.Log.LogMessage("Rainbow flashlight did not find a valid flashlight item in the player's hand!");
 
-        rainbowFlashEnum = false;
+        RainbowFlashRoutine = false;
     }
 
     //QuickRestart RPC
-    [ServerRpc(RequireOwnership = true)]
-    internal void QuickRestartServerRpc()
-    {
-        QuickRestartClientRpc();
-    }
-
-    [ClientRpc]
-    internal void QuickRestartClientRpc()
+    [Rpc(SendTo.Everyone)]
+    internal void QuickRestartRpc()
     {
         GameNetworkManager.Instance.localPlayerController.DropAllHeldItemsAndSync();
         if (GameNetworkManager.Instance.localPlayerController.currentTriggerInAnimationWith == Plugin.instance.Terminal.terminalTrigger)
@@ -745,31 +353,12 @@ public class NetHandler : NetworkBehaviour
         StartOfRound.Instance.ResetShip();
         StartOfRound.Instance.currentPlanetPrefab.transform.position = StartOfRound.Instance.planetContainer.transform.position;
         ShipReset.Invoke(); //public event for other mods to listen to and do things on ship reset, This has been added to openlib now
-
     }
 
-
-    //DO NOT REMOVE
-    public override void OnNetworkSpawn()
+    private void Awake()
     {
-        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
-        {
-            if (Instance != null && Instance.gameObject != null)
-            {
-                NetworkObject networkObject = Instance.gameObject.GetComponent<NetworkObject>();
-
-                if (networkObject != null)
-                {
-                    networkObject.Despawn();
-                    Plugin.Log.LogInfo("Nethandler despawned!");
-                }
-            }
-        }
-
         Instance = this;
-        base.OnNetworkSpawn();
         Plugin.Log.LogInfo("Nethandler Spawned!");
-
     }
 
 #pragma warning restore CA1822

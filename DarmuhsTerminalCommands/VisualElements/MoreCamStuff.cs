@@ -24,7 +24,11 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         Plugin.instance.isOnMirror = false;
         Plugin.instance.isOnOverlay = false;
         Plugin.instance.activeCam = false;
-        NetHandler.SyncMyCamsBoolToEveryone(false);
+
+        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+            Plugin.instance.activeCam = false;
+        else
+            NetHandler.Instance.SyncMyCamsBoolToEveryoneRpc(false);
     }
 
     internal static List<string> excludedNames =
@@ -71,7 +75,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
     {
         if (isVideoPlaying && nodeName != "darmuh's videoPlayer")
         {
-            FixVideoPatch.OnVideoEnd(Plugin.instance.Terminal);
+            FixVideoPatch.OnVideoEnd();
             isVideoPlaying = false;
             //Plugin.Log.LogInfo("isVideoPlaying set to FALSE");
             Loggers.LogInfo("disabling video");
@@ -88,9 +92,6 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         }
         else if (node == null)
             return;
-
-        if (!IsViewNode(node))
-            ResetPluginInstanceBools();
     }
 
     internal static bool IsViewNode(TerminalNode node)

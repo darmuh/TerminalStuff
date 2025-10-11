@@ -1,16 +1,18 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using TerminalStuff.CommandHandling;
 using TerminalStuff.EventSub;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
-using UnityEngine;
+using OpenLib.Common;
+using TerminalStuff.Networking;
+using TerminalStart = TerminalStuff.EventSub.TerminalStart;
 
 
 namespace TerminalStuff;
@@ -21,8 +23,10 @@ public partial class Plugin : BaseUnityPlugin
 {
     public static Plugin instance = null!;
 
+    //Networking
+    internal NetworkPrefabGen<NetHandler> Networker = null!;
+
     internal static ManualLogSource Log = null!;
-    internal static bool gamePatched = false;
 
     //Compatibility
     public bool LobbyCompat = false;
@@ -38,7 +42,7 @@ public partial class Plugin : BaseUnityPlugin
     public bool ShipInventory = false;
     public bool CruiserTerm = false;
     public bool ITAPI = false;
-    public bool LethalLevelLoader = false;
+    public bool LethalLevelLoader => Chainloader.PluginInfos.ContainsKey("imabatby.lethallevelloader");
     public bool WeatherTweaks = false;
     public bool GenImprovements = false;
 
@@ -89,53 +93,29 @@ public partial class Plugin : BaseUnityPlugin
         Config.SettingChanged += OnSettingChanged;
         //FontStuff.TestingFonts();
 
-        //start of networking stuff
-
-        var types = AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly());
-        var methods = types.SelectMany(t => t.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static));
-        foreach (MethodInfo method in methods)
-        {
-            var atts = method.GetCustomAttributes(typeof(RuntimeInitializeOnLoadMethodAttribute), false);
-            if (atts.Length > 0)
-                method.Invoke(null, null);
-        }
-
-        //end of networking stuff
-
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-        gamePatched = true;
+
+        Networker = new NetworkPrefabGen<NetHandler>("darmuhsTerminalStuff Networker", ConfigSettings.ModNetworking);
     }
 
     internal void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)
     {
         Loggers.LogDebug("CONFIG SETTING CHANGE EVENT");
-        StuffForLibrary.ManualManagedBools();
+        StuffForLibrary.ConfigSettingChange();
         TerminalStart.InitiateTerminalStuff();
 
         if (settingChangedArg.ChangedSetting == null)
             return;
-
-        /*
-        if (ConfigMisc.CheckChangedConfigSetting(defaultManaged, settingChangedArg.ChangedSetting) || ConfigMisc.CheckChangedConfigSetting(Configs.Commands.TerminalStuffBools, settingChangedArg.ChangedSetting))
-        {
-            Loggers.LogDebug("managed bools have been modified!!");
-        } */
     }
 
     internal void OnConfigReloaded(object sender, EventArgs e)
     {
         Loggers.LogDebug("Config has been reloaded!");
-        //NetworkingCheck(ConfigSettings.ModNetworking.Value, instance.Config, defaultManaged);
-        //ReadConfigAndAssignValues(instance.Config, defaultManaged);
-        //ReadConfigAndAssignValues(instance.Config, Configs.Commands.TerminalStuffBools);
     }
 
     //Keeping this here since transpilers can run before LogLevel is set
     internal static void PatchLog(string message)
     {
-        if (gamePatched)
-            return;
-
         Log.LogInfo(message);
     }
 }

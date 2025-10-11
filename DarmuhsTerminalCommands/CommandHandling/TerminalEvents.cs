@@ -59,7 +59,7 @@ public static class TerminalEvents
 
             
             CommandManager packCmd = Commands.AddLocalCommmandManualWords($"{item.Key}_PP", Commands.TerminalPurchasePacks, [item.Key], StorePacks.AskPurchasePack, "Comfort", true, false);
-            Commands.AddStoreCommand(packCmd, $"{item.Key}", 0, StorePacks.CompletePurchasePack, () => $"You have cancelled the purchase of Purchase Pack [{item.Key}].\r\n\r\n", 0, true);
+            Commands.AddStoreCommand(packCmd, $"{item.Key}", 0, StorePacks.CompletePurchasePack, () => $"You have cancelled the purchase of Purchase Pack [{item.Key}].\n\n", 0, true);
             packCmd.RegisterCommand();
             PurchasePacks.Add(packCmd);
 
@@ -126,24 +126,24 @@ public static class TerminalEvents
     internal static string ClockToggle()
     {
         if (TerminalClockStuff.textComponent == null)
-            return "Unable to find Terminal Clock component!\r\n\r\n";
+            return "Unable to find Terminal Clock component!\n\n";
 
         if (StartOfRound.Instance.inShipPhase)
-            return "Unable to determine time zone while in Orbit!\r\n\r\n";
+            return "Unable to determine time zone while in Orbit!\n\n";
 
         if (!clockDisabledByCommand && TerminalClockStuff.IsClockVisible())
         {
             Loggers.LogDebug("Disabling clock via command!");
             clockDisabledByCommand = true;
             TerminalClockStuff.SetClockVisible(false);
-            return "Terminal Clock [DISABLED].\r\n";
+            return "Terminal Clock [DISABLED].\n";
         }
         else
         {
             Loggers.LogDebug("Enabling clock via command!");
             clockDisabledByCommand = false;
             TerminalClockStuff.SetClockVisible(true);
-            return "Terminal Clock [ENABLED].\r\n";
+            return "Terminal Clock [ENABLED].\n";
         }
     }
 

@@ -17,7 +17,7 @@ namespace TerminalStuff.EventSub;
 
 public class TerminalStart
 {
-    internal static bool alwaysOnDisplay = false;
+    internal static bool AlwaysOnDisplay = false;
 
     //Ignore Naming warnings since used in other mods, including OpenLib
 #pragma warning disable IDE1006
@@ -27,6 +27,7 @@ public class TerminalStart
     internal static List<TerminalNode> vanillaNodes = [];
     internal static TerminalNode viewMonitorVanilla = null!;
     internal static TerminalNode switchNodeVanilla = null!;
+    internal static TerminalKeyword RouteKeyword = null!;
     internal static bool delayStartEnum = false;
 
     internal static void OnTerminalStart()
@@ -45,7 +46,6 @@ public class TerminalStart
         TerminalClockStuff.MakeClock();
         ShortcutBindings.InitSavedShortcuts();
         TerminalCustomizer.TerminalCustomization();
-        MenuBuild.CreateDarmuhsTerminalStuffMenus();
         SaveManager.InitUnlocks(); // sync upgrades status for this save
         StorePlus.GetStoreItems(); // StorePlus/StorePacks init
     }
@@ -104,6 +104,9 @@ public class TerminalStart
             Loggers.LogDebug("bestiaryNode cached");
         }
 
+        if (OpenLib.CoreMethods.DynamicBools.TryGetKeyword("route", out RouteKeyword))
+            Loggers.LogDebug("routeKeyword grabbed!");
+
         if (!Plugin.instance.splitViewCreated)
         {
             Loggers.LogDebug("Trying to cache vanilla view monitor");
@@ -129,6 +132,7 @@ public class TerminalStart
 
         delayStartEnum = true;
         yield return new WaitForSeconds(1);
+        MenuBuild.CreateDarmuhsTerminalStuffMenus();
         Loggers.LogInfo("1 Second delay methods starting.");
         SplitViewChecks.CheckForSplitView("neither");
         Loggers.LogInfo("disabling cams views");
@@ -165,11 +169,11 @@ public class TerminalStart
             if (ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
             {
                 Loggers.LogDebug("network nodes enabled, syncing alwayson status");
-                NetHandler.Instance.StartAoDServerRpc(true);
+                NetHandler.Instance.AlwaysOnDisplaySyncRpc(true);
             }
             else
             {
-                alwaysOnDisplay = true;
+                AlwaysOnDisplay = true;
                 ToggleScreen(true);
                 thisterm.LoadNewNode(startNode);
             }
@@ -195,7 +199,7 @@ public class TerminalStart
         if (GameNetworkManager.Instance.localPlayerController.IsHost)
         {
             GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(0); //fix vanilla bug where you need to switch map target at start
-            NetHandler.Instance.SyncRadarZoomServerRpc(QoLConfig.TerminalRadarDefaultZoom.Value); //host only at load-in
+            NetHandler.Instance.SyncRadarZoomRpc(QoLConfig.TerminalRadarDefaultZoom.Value); //host only at load-in
             thisterm.LoadNewNode(startNode);
             StartofHandling.CheckNetNode(startNode);
             return;
@@ -214,8 +218,7 @@ public class TerminalStart
         Loggers.LogDebug("grabbing node from host");
         Loggers.LogDebug("------------ CLIENT JUST LOADED --------------");
 
-        int hostClient = Misc.HostClientID();
-        NetHandler.Instance.SyncTerminalServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, hostClient);
+        NetHandler.Instance.GetHostTerminalRpc();
     }
 
     private static void DebugShowInfo()

@@ -68,7 +68,7 @@ internal class TerminalBeginUsing
         if (Commands.TerminalRefund.Value && ConfigSettings.ModNetworking.Value)
         {
             Loggers.LogDebug("Syncing items between players for refund command");
-            NetHandler.Instance.SyncDropShipServerRpc();
+            NetHandler.Instance.SyncDropShipRpc(false);
         }
 
         ChooseStartPage(instance, ref nextNode);

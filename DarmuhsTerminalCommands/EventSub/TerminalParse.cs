@@ -24,8 +24,8 @@ public class TerminalParse
         if (node.displayText == null)
             return node;
 
-        if (!node.displayText.EndsWith("\r\n"))
-            node.displayText += "\r\n\r\n";
+        if (!node.displayText.EndsWith("\n"))
+            node.displayText += "\n\n";
 
         NetSync(node);
         return node;
@@ -43,22 +43,19 @@ public class TerminalParse
             if (MoreCamStuff.IsViewNode(node)) //should be the listing that contains the viewnodes
             {
                 int nodeNum = StartofHandling.FindViewInt(node);
-                NetHandler.NetNodeReset(true);
-                NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText, nodeNum);
+                NetHandler.Instance.SyncNodesRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText, nodeNum);
                 Loggers.LogInfo($"Valid node detected, nNS true & nodeNum: {nodeNum}");
                 return;
             }
             else if (!Plugin.instance.splitViewCreated && (bool)node.persistentImage && node.name == "ViewInsideShipCam 1")
             {
-                NetHandler.NetNodeReset(true);
-                NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText, 100);
+                NetHandler.Instance.SyncNodesRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText, 100);
                 Loggers.LogInfo($"Valid node detected, nNS true & nodeNum: 100 (vanilla view monitor)");
                 return;
             }
             else
             {
-                NetHandler.NetNodeReset(true);
-                NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText);
+                NetHandler.Instance.SyncNodesRpc(Plugin.instance.Terminal.topRightText.text, node.name, node.displayText);
                 Loggers.LogInfo($"Valid node detected, nNS true, no nodeNum set");
                 return;
             }

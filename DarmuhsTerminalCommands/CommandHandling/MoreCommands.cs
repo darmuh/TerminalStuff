@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TerminalStuff.Networking;
-using TerminalStuff.Patching;
 using TerminalStuff.Util;
 using UnityEngine;
 using static TerminalStuff.DynamicCommands;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.TerminalEvents;
+using static TerminalStuff.Patching.OtherPatches;
 
 namespace TerminalStuff.CommandHandling;
 
@@ -102,7 +102,7 @@ internal class MoreCommands
             GameNetworkManager.Instance.localPlayerController.DamagePlayer(-100, false, true);
             GameNetworkManager.Instance.localPlayerController.MakeCriticallyInjured(false);
             int getNewHealth = GameNetworkManager.Instance.localPlayerController.health;
-            displayText = $"{ConfigSettings.HealString.Value}\nHealth: {GameNetworkManager.Instance.localPlayerController.health}\r\n";
+            displayText = $"{ConfigSettings.HealString.Value}\nHealth: {GameNetworkManager.Instance.localPlayerController.health}\n";
             Loggers.LogInfo($"Health now = {getNewHealth}");
             return displayText;
         }
@@ -198,34 +198,34 @@ internal class MoreCommands
     internal static string AlwaysOnDisplay()
     {
         string displayText;
-        if (!alwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
+        if (!EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
         {
             keepAlwaysOnDisabled = false;
-            NetHandler.Instance.AoDServerRpc(true);
-            displayText = $"Terminal Always-on Display [ENABLED]\r\n";
+            NetHandler.Instance.AlwaysOnDisplaySyncRpc(true);
+            displayText = $"Terminal Always-on Display [ENABLED]\n";
             return displayText;
             //Plugin.Log.LogInfo("set alwaysondisplay to true");
         }
-        else if (alwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
+        else if (EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
         {
             keepAlwaysOnDisabled = true;
-            NetHandler.Instance.AoDServerRpc(false);
-            displayText = $"Terminal Always-on Display [DISABLED]\r\n";
+            NetHandler.Instance.AlwaysOnDisplaySyncRpc(false);
+            displayText = $"Terminal Always-on Display [DISABLED]\n";
             return displayText;
             //Plugin.Log.LogInfo("set alwaysondisplay to false");
         }
-        else if (!alwaysOnDisplay && !ConfigSettings.NetworkedNodes.Value)
+        else if (!EventSub.TerminalStart.AlwaysOnDisplay && !ConfigSettings.NetworkedNodes.Value)
         {
             keepAlwaysOnDisabled = false;
-            alwaysOnDisplay = true;
-            displayText = $"Terminal Always-on Display [ENABLED]\r\n";
+            EventSub.TerminalStart.AlwaysOnDisplay = true;
+            displayText = $"Terminal Always-on Display [ENABLED]\n";
             return displayText;
         }
-        else if (alwaysOnDisplay && !ConfigSettings.NetworkedNodes.Value)
+        else if (EventSub.TerminalStart.AlwaysOnDisplay && !ConfigSettings.NetworkedNodes.Value)
         {
             keepAlwaysOnDisabled = true;
-            alwaysOnDisplay = false;
-            displayText = $"Terminal Always-on Display [DISABLED]\r\n";
+            EventSub.TerminalStart.AlwaysOnDisplay = false;
+            displayText = $"Terminal Always-on Display [DISABLED]\n";
             return displayText;
         }
         else

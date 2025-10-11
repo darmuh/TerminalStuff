@@ -16,7 +16,7 @@ internal class LevelCommands
 
         if (Plugin.instance.Terminal.groupCredits < ConfigSettings.RouteRandomCost.Value)
         {
-            displayText = $"You cannot afford to run the 'route random' command.\r\n\r\n\tRoute Random Cost: [{ConfigSettings.RouteRandomCost.Value}]\r\n\tYour credits: <color=#BD3131>[{Plugin.instance.Terminal.groupCredits}]</color>\r\n\r\n\r\n";
+            displayText = $"You cannot afford to run the 'route random' command.\n\n\tRoute Random Cost: [{ConfigSettings.RouteRandomCost.Value}]\n\tYour credits: <color=#BD3131>[{Plugin.instance.Terminal.groupCredits}]</color>\n\n\n";
             return displayText;
         }
 
@@ -55,7 +55,7 @@ internal class LevelCommands
 
         if (validLevels.Count < 1)
         {
-            displayText = $"Route Random was unable to select a valid moon and you have not been charged.\r\n\r\nThis may be due to all moons have banned weather attributes...\r\n\r\n\r\n";
+            displayText = $"Route Random was unable to select a valid moon and you have not been charged.\n\nThis may be due to all moons have banned weather attributes...\n\n\n";
             return displayText;
         }
         Random rand = new();
@@ -67,7 +67,7 @@ internal class LevelCommands
 
         int newCreds = CostCommands.CalculateNewCredits(Plugin.instance.Terminal.groupCredits, ConfigSettings.RouteRandomCost.Value, Plugin.instance.Terminal);
 
-        displayText = $"Your new balance is ■{newCreds} Credits.\r\n\r\nRoute Random has chosen {validLevels[randomIndex].PlanetName}!\r\n\r\n\tEnjoy!\r\n\r\n";
+        displayText = $"Your new balance is ■{newCreds} Credits.\n\nRoute Random has chosen {validLevels[randomIndex].PlanetName}!\n\n\tEnjoy!\n\n";
         return displayText;
     }
 }

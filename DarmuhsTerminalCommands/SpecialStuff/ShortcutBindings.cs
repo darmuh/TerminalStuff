@@ -121,7 +121,7 @@ public class ShortcutBindings
 
     internal static void UnbindKey(string[] words, int wordCount, out string displayText)
     {
-        string invalidInput = "Unable to unbind key.\n\nUsage: unbind <key> \r\nexample: unbind f1 \r\n";
+        string invalidInput = "Unable to unbind key.\n\nUsage: unbind <key> \nexample: unbind f1 \n";
 
         if (wordCount < 2 || wordCount > 2)
         {
@@ -145,7 +145,7 @@ public class ShortcutBindings
             Enum.TryParse(givenKey, ignoreCase: true, out Key keyFromString);
             keyActions.Remove(keyFromString);
             SaveShortcutsToConfig();
-            displayText = $"Keybind removed! Key: {givenKey} has been removed from any command mappings.\r\n";
+            displayText = $"Keybind removed! Key: {givenKey} has been removed from any command mappings.\n";
             Loggers.LogInfo($"Unbound shortcut tied to {givenKey}");
             return;
         }
@@ -153,7 +153,7 @@ public class ShortcutBindings
 
     internal static void BindToCommand(string[] words, int wordCount, out string displayText)
     {
-        string invalidBind = "Unable to bind key to command.\n\nUsage: bind <key> <keyword>\nexample: bind f1 switch\r\n";
+        string invalidBind = "Unable to bind key to command.\n\nUsage: bind <key> <keyword>\nexample: bind f1 switch\n";
         if (wordCount < 3)
         {
             Loggers.LogInfo("Not enough words detected!");
@@ -183,7 +183,7 @@ public class ShortcutBindings
                 Enum.TryParse(givenKey, ignoreCase: true, out Key keyFromString);
                 keyActions.Add(keyFromString, command.ToString());
                 SaveShortcutsToConfig();
-                displayText = $"Keybind created! Key: {givenKey} has been mapped to the following multi-word input: {command}\r\n";
+                displayText = $"Keybind created! Key: {givenKey} has been mapped to the following multi-word input: {command}\n";
                 Loggers.LogInfo($"Keybind created mapping {givenKey} to [{command}]");
                 return;
             }
@@ -209,7 +209,7 @@ public class ShortcutBindings
             Enum.TryParse(givenKey, ignoreCase: true, out Key keyFromString);
             keyActions.Add(keyFromString, givenWord);
             SaveShortcutsToConfig();
-            displayText = $"Keybind created! Key: {givenKey} has been mapped to the command: {givenWord}\r\n";
+            displayText = $"Keybind created! Key: {givenKey} has been mapped to the command: {givenWord}\n";
             Loggers.LogInfo($"BindToCommand: Keybind created mapping {givenKey} to {givenWord}");
         }
     }

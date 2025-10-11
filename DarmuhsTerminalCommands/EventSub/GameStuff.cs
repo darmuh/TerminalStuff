@@ -157,8 +157,8 @@ internal class GameStuff
         if (SoftCompatibility("WhiteSpike.InteractiveTerminalAPI", ref Plugin.instance.ITAPI))
             Loggers.LogDebug("InteractiveTerminalAPI detected!");
 
-        if (SoftCompatibility("imabatby.lethallevelloader", ref Plugin.instance.LethalLevelLoader))
-            Loggers.LogDebug("LethalLevelLoader by IAmBatby detected!");
+        //if (SoftCompatibility("imabatby.lethallevelloader", ref Plugin.instance.LethalLevelLoader))
+            //Loggers.LogDebug("LethalLevelLoader by IAmBatby detected!");
         if (SoftCompatibility("WeatherTweaks", ref Plugin.instance.WeatherTweaks))
             Loggers.LogDebug("WeatherTweaks by mrov detected!");
 

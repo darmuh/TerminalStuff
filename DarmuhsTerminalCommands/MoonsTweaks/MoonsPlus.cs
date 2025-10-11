@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using OpenLib.CoreMethods;
 using OpenLib.InteractiveMenus;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -22,13 +24,15 @@ public class MoonsPlus
 
     internal static TerminalNode OriginalMoonsPage = null!;
 
-    internal static List<MoonInfo> MoonListing = [];
+    internal static List<MoonInfo> MoonListing { get; set; } = [];
     internal static List<string> AcceptableWeathers = [];
     internal static List<string> MoonsVisited = [];
     internal static List<string> MoonsPurchased = [];
 
     internal static MoonMenuItem MoonsMainMenu = new("MoonsPlus Menu");
-    internal static MoonMenuItem ShowMoons = new("Moons");
+    internal static MoonMenuItem AllMoons = new("All Moons");
+    internal static MoonMenuItem GoodWeatherMoons = new("Favorable Weather Moons");
+    internal static MoonMenuItem AffordableMoons = new("Affordable Moons");
     internal static MoonMenuItem FilterMain = new("Settings");
 
     //filter menus
@@ -40,11 +44,6 @@ public class MoonsPlus
     internal static MoonMenuItem SortWeather { get; set; } = null!;
     internal static MoonMenuItem SortPrice { get; set; } = null!;
     internal static MoonMenuItem SortRisk { get; set; } = null!;
-    internal static MoonMenuItem FilterUnaffordable { get; set; } = null!;
-    internal static MoonMenuItem FilterWeather { get; set; } = null!;
-
-    //menu stuff
-    internal static FilterView MoonsFilter = new();
 
     //Assets
     internal static AssetBundle HiddenAsset = null!;
@@ -53,6 +52,14 @@ public class MoonsPlus
     //Misc
     internal static bool RunOnce = false; //will only run once per game launch
     public static bool ShowingReel = false;
+    public enum StartPage
+    {
+        Main,
+        AllMoons,
+        GoodWeatherMoons,
+        AffordableMoons,
+        Settings
+    }
 
     internal static void SetToVanilla()
     {
@@ -105,16 +112,26 @@ public class MoonsPlus
 
         MoonsPlusMenu.MainMenu = MoonsMainMenu;
         MoonsPlusMenu.PageSize = 10;
-        MoonsMainMenu.Header = () => "============= MoonsPlus Main  =============\r\n\r\n";
-        ShowMoons.SetParentMenu(MoonsMainMenu);
-        ShowMoons.Header = () => "============= Select a Moon  =============\r\n\r\n";
-        ShowMoons.Footer = GetMoonsFooter;
-        ShowMoons.OnPageLoad = MoonsOnPageLoad;
+        MoonsMainMenu.Header = () => "============= MoonsPlus Main  =============\n\n";
+        AllMoons.SetParentMenu(MoonsMainMenu);
+        AllMoons.Header = () => "============= Select a Moon  =============\n\n";
+        AllMoons.Footer = GetMoonsFooter;
+        AllMoons.OnPageLoad = AllMoonsOnPageLoad;
+        AllMoons.AdjustNestedMenuList.AddListener(FilterView.OrderMenu);
+        AffordableMoons.SetParentMenu(MoonsMainMenu);
+        AffordableMoons.Header = () => "============= Select a Moon  =============\n\n";
+        AffordableMoons.Footer = GetMoonsFooter;
+        AffordableMoons.OnPageLoad = AffordableMoonsOnPageLoad;
+        AffordableMoons.AdjustNestedMenuList.AddListener(FilterView.OrderMenu);
+        GoodWeatherMoons.SetParentMenu(MoonsMainMenu);
+        GoodWeatherMoons.Header = () => "============= Select a Moon  =============\n\n";
+        GoodWeatherMoons.Footer = GetMoonsFooter;
+        GoodWeatherMoons.OnPageLoad = GoodWeatherMoonsOnPageLoad;
+        GoodWeatherMoons.AdjustNestedMenuList.AddListener(FilterView.OrderMenu);
         FilterMain.SetParentMenu(MoonsMainMenu);
-        FilterMain.Header = () => "===== Settings =====\r\n\r\n";
+        FilterMain.Header = () => "===== Settings =====\n\n";
         FilterMain.Footer = GetFilterFooter;
         MoonMenuItem.CreateFilterMenus();
-
         RunOnce = true;
     }
 
@@ -163,7 +180,7 @@ public class MoonsPlus
 
         CreateMoonInfos();
 
-        if (!MoonsCommand.KeywordList.Any(x => OpenLib.Common.Misc.CompareStringsInvariant(x, "moons")))
+        if (!MoonsPlusConfig.MoonsPlusKeywords.Value.Contains("moons", System.StringComparison.InvariantCultureIgnoreCase))
         {
             MoonsCommand.RegisterCommand();
             MoonsPlusMenu.MenuNode = MoonsCommand.terminalNode;
@@ -187,32 +204,8 @@ public class MoonsPlus
     internal static string GetFilterFooter()
     {
         StringBuilder message = new();
-        message.Append($"Currently Sorting by: {MoonsFilter.Sorting}\r\n");
-        message.Append($"Back Menu: [BackSpace]    Toggle Filter: [Enter]\r\n\r\n");
-        return message.ToString();
-    }
-
-    internal static string GetMainFooter()
-    {
-        string currentLevel;
-        MoonInfo currentMoon = MoonListing.FirstOrDefault(x => x.Level == StartOfRound.Instance.currentLevel);
-
-        if (currentMoon != null)
-        {
-            if (currentMoon.IsHidden && !MoonsPlusConfig.RevealHiddenOnRoute.Value)
-                currentLevel = "?????";
-            else if (currentMoon.IsCompany)
-                currentLevel = "71 Gordion (Company)";
-            else
-                currentLevel = currentMoon.Level.PlanetName;
-        }
-        else
-            currentLevel = StartOfRound.Instance.currentLevel.PlanetName;
-
-        StringBuilder message = new();
-        message.Append($"\r\n\r\nCurrently Orbiting: {currentLevel}\r\n\r\n");
-        message.Append($"Page [LeftArrow] < {MoonsPlusMenu.CurrentPage}/{Mathf.CeilToInt((float)MoonsPlusMenu.DisplayMenuItemsOfType.Count / MoonsPlusMenu.PageSize)} > [RightArrow]\r\n");
-        message.Append($"Leave Menu: [BackSpace]    Select: [Enter]\r\n\r\n");
+        message.Append($"Currently Sorting by: {FilterView.Sorting}\n");
+        message.Append($"Back Menu: [{MoonsPlusMenu.leaveMenu}]    Toggle Setting: [{MoonsPlusMenu.selectMenu}]\n\n");
         return message.ToString();
     }
 
@@ -234,9 +227,9 @@ public class MoonsPlus
             currentLevel = StartOfRound.Instance.currentLevel.PlanetName;
 
         StringBuilder message = new();
-        message.Append($"\r\n\r\nCurrently Orbiting: {currentLevel}\r\n\r\n");
-        message.Append($"Page [LeftArrow] < {MoonsPlusMenu.CurrentPage}/{Mathf.CeilToInt((float)MoonsPlusMenu.DisplayMenuItemsOfType.Count / MoonsPlusMenu.PageSize)} > [RightArrow]\r\n");
-        message.Append($"Back Menu: [BackSpace]    Select Moon: [Enter]\r\n\r\n");
+        message.Append($"\n\nCurrently Orbiting: {currentLevel}\n\n");
+        message.Append($"Page [LeftArrow] < {MoonsPlusMenu.CurrentPage}/{Mathf.CeilToInt((float)MoonsPlusMenu.DisplayMenuItemsOfType.Count / MoonsPlusMenu.PageSize)} > [RightArrow]\n");
+        message.Append($"Back Menu: [BackSpace]    Select Moon: [Enter]\n\n");
         return message.ToString();
     }
 
@@ -246,17 +239,18 @@ public class MoonsPlus
         if (Plugin.instance.WeatherTweaks)
             levelWeather = WeatherTweaksCompat.GetWeather(level);
         else
-            levelWeather = level.currentWeather.ToString();
+            levelWeather = $"{level.currentWeather}";
 
         if (OpenLib.Common.Misc.StringStartsWithInvariant(levelWeather, "none"))
             levelWeather = "";
 
+        Loggers.LogDebug($"{level.PlanetName} weather - {levelWeather}");
         return levelWeather;
     }
 
-    internal static string FilterMenuBools(bool enabled)
+    internal static string FilterMenuBools(bool isEnabled)
     {
-        if (enabled)
+        if (isEnabled)
             return "<color=#00ab66>Active</color>";
         else
             return "<color=#b22222>Disabled</color>";
@@ -265,24 +259,62 @@ public class MoonsPlus
     //command return
     internal static string EnterMoonsMenu()
     {
-        MoonsPlusMenu.EnterAtPage(MoonMenuItem.GetStartMenu());
+        MoonsPlusMenu.ExitAction = null!;
+        MoonsPlusMenu.EnterAtPage(GetStartMenu());
         return "";
     }
 
-    //only used for moons listing
-    internal static void MoonsOnPageLoad()
+    internal static MenuItem GetStartMenu()
     {
-        // Determine what menu items to show
-        FilterView.MoonOnTopCheck();
-        MoonListing.Do(x => x.MenuItem.ShowIfEmptyNest = x.ShowInListing());
+        switch (MoonsPlusConfig.MenuStartPage.Value)
+        {
+            case StartPage.Main:
+                return MoonsMainMenu;
+            case StartPage.AllMoons:
+                return AllMoons;
+            case StartPage.GoodWeatherMoons:
+                return GoodWeatherMoons;
+            case StartPage.AffordableMoons:
+                return AffordableMoons;
+            case StartPage.Settings:
+                return FilterMain;
+            default:
+                break;
+        }
+
+        return MoonsMainMenu;
+    }
+
+    private static void UpdateMoonListing(ref MoonMenuItem Parent, bool price = false, bool weather = false)
+    {
+        Parent.NestedMenus = [];
+        foreach (MoonInfo moon in MoonListing)
+        {
+            moon.MenuItem.ShowIfEmptyNest = moon.ShowInListing(price, weather);
+            Parent.AddNestedItem(moon.MenuItem);
+        }
 
         // Video Reel Section
         VideoReelStuff();
         List<MoonInfo> currentList = [];
-        ShowMoons.NestedMenus.FindAll(m => m.ShowIfEmptyNest).OfType<MoonMenuItem>().DoIf(x => x.moonInfo != null, x => currentList.Add(x.moonInfo));
+        MoonListing.DoIf(x => x.MenuItem.moonInfo != null && x.MenuItem.ShowIfEmptyNest, x => currentList.Add(x));
 
         UpdateMoonsDisplayed.Invoke(currentList);
+    }
 
+    internal static void AllMoonsOnPageLoad()
+    {
+        UpdateMoonListing(ref AllMoons);
+    }
+
+    internal static void AffordableMoonsOnPageLoad()
+    {
+        UpdateMoonListing(ref AffordableMoons, true);
+    }
+
+    internal static void GoodWeatherMoonsOnPageLoad()
+    {
+        UpdateMoonListing(ref GoodWeatherMoons, false, true);
     }
 
     internal static void VideoReelStuff()
@@ -294,7 +326,7 @@ public class MoonsPlus
             return;
         }
 
-        if (activeMenu != ShowMoons)
+        if (activeMenu != AllMoons)
         {
             ShowReel(false);
             return;
@@ -325,14 +357,14 @@ public class MoonsPlus
         if (!MoonsPlusConfig.ShowVideoReels.Value)
         {
             Loggers.LogDebug($"Video Reels Disabled! (ShowVideoReels is {MoonsPlusConfig.ShowVideoReels.Value})");
-            HideReel();
+            MoonsPlusMenu.MenuNode.displayVideo = null!;
             return;
         }
 
         if (MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count)
         {
             Loggers.LogDebug($"Video Reel Disabled! ActiveSelection is greater than or equal to the display items count!");
-            HideReel();
+            MoonsPlusMenu.MenuNode.displayVideo = null!;
             return;
         }
 
@@ -354,7 +386,7 @@ public class MoonsPlus
                         return;
                     }
 
-                    HideReel();
+                    MoonsPlusMenu.MenuNode.displayVideo = null!;
                     return;
                 }
 
@@ -364,13 +396,7 @@ public class MoonsPlus
             }
         }
         else
-            HideReel();
-    }
-
-    internal static void HideReel()
-    {
-        MoonsPlusMenu.MenuNode.displayVideo = null!;
-        CamEvents.SetRawImageDimensions(Plugin.instance.Terminal.terminalImage.rectTransform, isFullScreen: true);
+            MoonsPlusMenu.MenuNode.displayVideo = null!;
     }
 
     internal static void HideLevelFromMapScreen()

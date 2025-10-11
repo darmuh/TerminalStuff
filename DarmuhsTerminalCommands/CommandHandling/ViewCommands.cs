@@ -50,7 +50,7 @@ internal class ViewCommands
         else
         {
             SplitViewChecks.DisableSplitView("map");
-            displayText = $"{ConfigSettings.MapOffString.Value}\r\n";
+            displayText = $"{ConfigSettings.MapOffString.Value}\n";
             return;
         }
     }
@@ -62,7 +62,7 @@ internal class ViewCommands
         Loggers.LogInfo("This should only trigger in orbit");
         node.clearPreviousText = true;
         node.loadImageSlowly = false;
-        displayText = "Radar view not available in orbit.\r\n";
+        displayText = "Radar view not available in orbit.\n";
         ResetPluginInstanceBools();
         return;
     }
@@ -92,7 +92,7 @@ internal class ViewCommands
         if (Plugin.instance.TwoRadarMapsMod && ConfigSettings.ModNetworking.Value && ConfigSettings.NetworkedNodes.Value)
         {
             Loggers.LogDebug("Second radar requires syncing!");
-            NetHandler.Instance.SyncRadarMapServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, target);
+            NetHandler.Instance.SyncRadarMapRpc(target);
         }
     }
 
@@ -154,10 +154,10 @@ internal class ViewCommands
                     return TerminalStart.viewMonitorVanilla.displayText;
                 }
                 else
-                    return "There is no active monitoring to switch!\r\n\r\n";
+                    return "There is no active monitoring to switch!\n\n";
             }
             else
-                return "There is no active monitoring to switch!\r\n\r\n";
+                return "There is no active monitoring to switch!\n\n";
         }
 
         if (GetDefaultNodeNum(out int modeNum))
@@ -166,7 +166,7 @@ internal class ViewCommands
             return SyncViewNodeWithNum(modeNum, "");
         }
         else
-            return "There is no active monitoring to switch!\r\n\r\n";
+            return "There is no active monitoring to switch!\n\n";
     }
 
     internal static int GetCurrentNodeNum()
@@ -330,7 +330,7 @@ internal class ViewCommands
             SetMirrorState(false);
             SplitViewChecks.DisableSplitView("mirror");
             Loggers.LogInfo("mirror removed");
-            return $"\n\n\t>>Mirror Camera removed from terminal.\r\n\r\n";
+            return $"\n\n\t>>Mirror Camera removed from terminal.\n\n";
         }
     }
 
@@ -343,7 +343,7 @@ internal class ViewCommands
         if (Plugin.instance.OpenBodyCamsMod && ConfigSettings.CamsUseDetectedMods.Value)
         {
             if (!OpenLib.Compat.OpenBodyCamFuncs.BodyCamIsUnlocked() && ConfigSettings.ObcRequireUpgrade.Value)
-                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\r\n\r\n";
+                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
         if (Plugin.instance.isOnCamera == false && Plugin.instance.splitViewCreated)
@@ -360,7 +360,7 @@ internal class ViewCommands
         else
         {
             SplitViewChecks.DisableSplitView("cams");
-            string displayText = $"{ConfigSettings.CamOffString.Value}\r\n";
+            string displayText = $"{ConfigSettings.CamOffString.Value}\n";
             Loggers.LogInfo("Cams removed");
             return displayText;
         }
@@ -376,7 +376,7 @@ internal class ViewCommands
         if (Plugin.instance.OpenBodyCamsMod && ConfigSettings.CamsUseDetectedMods.Value)
         {
             if (!OpenLib.Compat.OpenBodyCamFuncs.BodyCamIsUnlocked() && ConfigSettings.ObcRequireUpgrade.Value)
-                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\r\n\r\n";
+                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
         if (Plugin.instance.splitViewCreated && !Plugin.instance.isOnMiniCams)
@@ -389,7 +389,7 @@ internal class ViewCommands
         else
         {
             SplitViewChecks.DisableSplitView("minicams");
-            return $"{ConfigSettings.MiniCamsOffString.Value}\r\n";
+            return $"{ConfigSettings.MiniCamsOffString.Value}\n";
         }
     }
 
@@ -399,11 +399,11 @@ internal class ViewCommands
 
         if (!AnyActiveMonitoring() && Plugin.instance.splitViewCreated)
         {
-            return $"No active monitoring detected, unable to change zoom.\r\n\r\n";
+            return $"No active monitoring detected, unable to change zoom.\n\n";
         }
         else if (!Plugin.instance.splitViewCreated && !(bool)Plugin.instance.Terminal.displayingPersistentImage)
         {
-            return $"No active monitoring detected, unable to change zoom.\r\n\r\n";
+            return $"No active monitoring detected, unable to change zoom.\n\n";
         }
         else
         {
@@ -414,12 +414,12 @@ internal class ViewCommands
                 Loggers.LogInfo($"Radar Zoom set to {radarZoom}");
 
                 if (ConfigSettings.NetworkedNodes.Value)
-                    NetHandler.Instance.SyncRadarZoomServerRpc(radarZoom);
+                    NetHandler.Instance.SyncRadarZoomRpc(radarZoom);
 
                 if (!Plugin.instance.splitViewCreated)
-                    return $"Radar Zoom level adjusted.\r\n";
+                    return $"Radar Zoom level adjusted.\n";
 
-                return $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRadar Zoom level adjusted.\r\n";
+                return $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRadar Zoom level adjusted.\n";
             }
             else
             {
@@ -433,18 +433,18 @@ internal class ViewCommands
                         Loggers.LogInfo($"Radar Zoom set to {radarZoom}");
 
                         if (ConfigSettings.NetworkedNodes.Value)
-                            NetHandler.Instance.SyncRadarZoomServerRpc(radarZoom);
+                            NetHandler.Instance.SyncRadarZoomRpc(radarZoom);
 
                         if (!Plugin.instance.splitViewCreated)
-                            return $"Radar Zoom level adjusted to new value: {val}\r\n";
+                            return $"Radar Zoom level adjusted to new value: {val}\n";
 
-                        return $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRadar Zoom level adjusted to new value: {val}\r\n";
+                        return $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRadar Zoom level adjusted to new value: {val}\n";
                     }
                     else
-                        return $"Cannot change zoom to value: {val}.\nValue is too high or too low.\r\n\r\n";
+                        return $"Cannot change zoom to value: {val}.\nValue is too high or too low.\n\n";
                 }
                 else
-                    return $"Cannot change zoom to invalid value: {val}.\r\n";
+                    return $"Cannot change zoom to invalid value: {val}.\n";
             }
         }
     }
@@ -471,7 +471,7 @@ internal class ViewCommands
         if (Plugin.instance.OpenBodyCamsMod && ConfigSettings.CamsUseDetectedMods.Value)
         {
             if (!OpenLib.Compat.OpenBodyCamFuncs.BodyCamIsUnlocked() && ConfigSettings.ObcRequireUpgrade.Value)
-                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\r\n\r\n";
+                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
         if (Plugin.instance.splitViewCreated && !Plugin.instance.isOnMiniMap)
@@ -484,7 +484,7 @@ internal class ViewCommands
         else
         {
             SplitViewChecks.DisableSplitView("minimap");
-            return $"{ConfigSettings.MiniMapOffString.Value}\r\n";
+            return $"{ConfigSettings.MiniMapOffString.Value}\n";
         }
     }
 
@@ -498,7 +498,7 @@ internal class ViewCommands
         if (Plugin.instance.OpenBodyCamsMod && ConfigSettings.CamsUseDetectedMods.Value)
         {
             if (!OpenLib.Compat.OpenBodyCamFuncs.BodyCamIsUnlocked() && ConfigSettings.ObcRequireUpgrade.Value)
-                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\r\n\r\n";
+                return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
         if (Plugin.instance.splitViewCreated && !Plugin.instance.isOnOverlay)
@@ -511,7 +511,7 @@ internal class ViewCommands
         else
         {
             SplitViewChecks.DisableSplitView("overlay");
-            return $"{ConfigSettings.OverlayOffString.Value}\r\n";
+            return $"{ConfigSettings.OverlayOffString.Value}\n";
         }
     }
 
@@ -519,8 +519,10 @@ internal class ViewCommands
 
     internal static void SetAnyCamsTrue()
     {
-        Plugin.instance.activeCam = true;
-        NetHandler.SyncMyCamsBoolToEveryone(true);
+        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+            Plugin.instance.activeCam = true;
+        else
+            NetHandler.Instance.SyncMyCamsBoolToEveryoneRpc(true);
     }
 
     internal static string LolVideoPlayerEvent()
@@ -532,12 +534,12 @@ internal class ViewCommands
         SplitViewChecks.CheckForSplitView("neither"); // Disables split view components if enabled
 
         if (VideoManager.Videos.Count == 0) //if videos failed to load at launch
-            return "No videos available to play!\n\nWomp Womp.\r\n\r\n";
+            return "No videos available to play!\n\nWomp Womp.\n\n";
 
         node.clearPreviousText = true;
-        FixVideoPatch.sanityCheckLOL = true;
+        FixVideoPatch.VideoCheck = true;
 
-        string displayText = VideoManager.PickVideoToPlay(Plugin.instance.Terminal.videoPlayer);
+        string displayText = VideoManager.PickVideoToPlay();
         return displayText;
     }
 
@@ -545,7 +547,7 @@ internal class ViewCommands
     {
         StringBuilder message = new();
         message.AppendLine("This command has been <color=#ff1a1a>deactivated</color> to ensure compatibility with <color=#ffff66>OpenBodyCams'</color> \"view bodycam\" command.\n\n");
-        message.AppendLine("If you would like to use this command please disable Terminal Commands in OpenBodyCams' config.\n\r\n");
+        message.AppendLine("If you would like to use this command please disable Terminal Commands in OpenBodyCams' config.\n\n");
         return message.ToString();
     }
 
@@ -560,7 +562,7 @@ internal class ViewCommands
         {
             if (menuItem.itemKeywords.Count == 0)
                 continue;
-            message.AppendLine($"> <color=#ffff66>{OpenLib.Common.CommonStringStuff.GetKeywordsForMenuItem(menuItem.itemKeywords)}</color>\r\n{menuItem.itemDescription}\r\n");
+            message.AppendLine($"> <color=#ffff66>{OpenLib.Common.CommonStringStuff.GetKeywordsForMenuItem(menuItem.itemKeywords)}</color>\n{menuItem.itemDescription}\n");
         }*/
 
         return message.ToString();
@@ -577,11 +579,11 @@ internal class ViewCommands
             : GameStuff.TerminalMapRenderer.radarTargets[givenIndex].name;
 
         if (mode == "Mirror")
-            displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMirror Enabled.\r\n\n";
+            displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMirror Enabled.\n\n";
         else if (!Plugin.instance.splitViewCreated)
-            displayText = $"Monitoring: {playerName} [{mode}]\r\n\n";
+            displayText = $"Monitoring: {playerName} [{mode}]\n\n";
         else
-            displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {playerName} [{mode}]\r\n\n";
+            displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {playerName} [{mode}]\n\n";
         return;
     }
 

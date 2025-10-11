@@ -21,7 +21,7 @@ internal class GambaCommands
         {
             TerminalGeneral.CancelConfirmation = true;
             validGambleValue = false;
-            string displayText = "Unable to gamble at this time...\r\n\tInvalid input detected, no digits were provided!\r\n\r\n";
+            string displayText = "Unable to gamble at this time...\n\tInvalid input detected, no digits were provided!\n\n";
             Loggers.WARNING("not enough words for the gamble command!");
             return displayText;
         }
@@ -48,7 +48,7 @@ internal class GambaCommands
     {
         TerminalGeneral.CancelConfirmation = true;
         validGambleValue = false;
-        string displayText = $"Unable to gamble at this time...\r\n\tInvalid input detected!\r\n\tInput: {val}\r\n\r\n";
+        string displayText = $"Unable to gamble at this time...\n\tInvalid input detected!\n\tInput: {val}\n\n";
         Loggers.WARNING("there are no digits for the gamble command!");
         return displayText;
     }
@@ -74,7 +74,7 @@ internal class GambaCommands
         if (validGambleValue)
         {
             Loggers.LogInfo("Valid gamble value detected, but gamble has been canceled");
-            string displayText = $"Gamble for {ParsedValue}% of your credits has been canceled.\r\n\r\n\r\n";
+            string displayText = $"Gamble for {ParsedValue}% of your credits has been canceled.\n\n\n";
             return displayText;
         }
         else
@@ -112,7 +112,7 @@ internal class GambaCommands
 
             // Assign the result values to appropriate variables
             Plugin.instance.Terminal.groupCredits = gambleResult.newGroupCredits;
-            NetHandler.Instance.SyncCreditsServerRpc(gambleResult.newGroupCredits, Plugin.instance.Terminal.numberOfItemsInDropship);
+            NetHandler.Instance.SyncHostCreditsRpc(gambleResult.newGroupCredits, Plugin.instance.Terminal.numberOfItemsInDropship);
             newParsedValue = false;
             displayText = gambleResult.displayText;
             return;
@@ -138,7 +138,7 @@ internal class GambaCommands
         if (isWinner)
         {
             // Code for winning scenario
-            string displayText = $"Congratulations! You won ■{gambleAmount} credits!\r\n\r\nYour new balance is ■{currentGroupCredits + gambleAmount} Credits.\r\n";
+            string displayText = $"Congratulations! You won ■{gambleAmount} credits!\n\nYour new balance is ■{currentGroupCredits + gambleAmount} Credits.\n";
             return (currentGroupCredits + gambleAmount, displayText);
         }
         else
@@ -149,19 +149,19 @@ internal class GambaCommands
             {
                 if (ConfigSettings.GamblePityCredits.Value <= 60) //capping pity credits to 60 to avoid abuses of this system.
                 {
-                    string displayText = $"Sorry, you lost ■{gambleAmount} credits.\n\nHowever, you've received {ConfigSettings.GamblePityCredits.Value} Pity Credits.\r\n\r\nYour new balance is ■{ConfigSettings.GamblePityCredits.Value} Credits.\r\n";
+                    string displayText = $"Sorry, you lost ■{gambleAmount} credits.\n\nHowever, you've received {ConfigSettings.GamblePityCredits.Value} Pity Credits.\n\nYour new balance is ■{ConfigSettings.GamblePityCredits.Value} Credits.\n";
                     return (ConfigSettings.GamblePityCredits.Value, displayText);
                 }
                 else
                 {
-                    string displayText = $"Sorry, you lost ■{gambleAmount} credits.\n\nUnfortunately we're also fresh out of Pity Credits due to malicious actors.\r\n\r\nYour new balance is ■{localResult} Credits.\r\n";
+                    string displayText = $"Sorry, you lost ■{gambleAmount} credits.\n\nUnfortunately we're also fresh out of Pity Credits due to malicious actors.\n\nYour new balance is ■{localResult} Credits.\n";
                     return (currentGroupCredits - gambleAmount, displayText);
                 }
 
             }
             else
             {
-                string displayText = $"Sorry, you lost ■{gambleAmount} credits.\r\n\r\nYour new balance is ■{localResult} Credits.\r\n";
+                string displayText = $"Sorry, you lost ■{gambleAmount} credits.\n\nYour new balance is ■{localResult} Credits.\n";
                 return (currentGroupCredits - gambleAmount, displayText);
             }
         }

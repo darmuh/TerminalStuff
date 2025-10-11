@@ -39,23 +39,23 @@ internal class SuitCommands
                     {
                         SuitName = Unlockables[randomSuit.syncedSuitID.Value].unlockableName;
                         randomSuit.SwitchSuitToThis();
-                        displayText = $"Changing suit to {SuitName}!\r\n";
+                        displayText = $"Changing suit to {SuitName}!\n";
                         return;
                     }
                 }
 
-                displayText = "A suit could not be found.\r\n";
+                displayText = "A suit could not be found.\n";
                 Plugin.Log.LogInfo($"Random suit ID was invalid or null");
                 return;
             }
 
-            displayText = "A suit could not be found.\r\n";
+            displayText = "A suit could not be found.\n";
             Plugin.Log.LogInfo($"Unlockables are null");
             return;
         }
         else
         {
-            displayText = "Not enough suits detected.\r\n";
+            displayText = "Not enough suits detected.\n";
             Plugin.Log.LogInfo($"allsuits count too low");
             return;
         }

@@ -124,9 +124,9 @@ internal class StartofHandling
     internal static void SyncTerminal(TerminalNode resultNode)
     {
         CheckNetNode(resultNode);
-        NetHandler.Instance.SyncRadarZoomServerRpc(GameStuff.TerminalMapRenderer.cam.orthographicSize);
+        NetHandler.Instance.SyncRadarZoomRpc(GameStuff.TerminalMapRenderer.cam.orthographicSize);
         if (Plugin.instance.TwoRadarMapsMod)
-            NetHandler.Instance.SyncRadarMapServerRpc((int)StartOfRound.Instance.localPlayerController.playerClientId, GameStuff.TerminalMapRenderer.targetTransformIndex);
+            NetHandler.Instance.SyncRadarMapRpc(GameStuff.TerminalMapRenderer.targetTransformIndex);
     }
 
     internal static void CheckNetNode(TerminalNode resultNode)
@@ -140,16 +140,14 @@ internal class StartofHandling
             if (Commands.GetSpecialCommands().Any(x => x.terminalNode == resultNode))
             {
                 int nodeNum = FindViewInt(resultNode);
-                NetHandler.NetNodeReset(true);
-                NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, resultNode.name, resultNode.displayText, nodeNum);
+                NetHandler.Instance.SyncNodesRpc(Plugin.instance.Terminal.topRightText.text, resultNode.name, resultNode.displayText, nodeNum);
                 Loggers.LogInfo($"Valid node detected, nNS true & nodeNum: {nodeNum}");
                 return;
             }
             else
             {
                 int nodeNum = FindViewIntByString();
-                NetHandler.NetNodeReset(true);
-                NetHandler.Instance.NodeLoadServerRpc(Plugin.instance.Terminal.topRightText.text, resultNode.name, resultNode.displayText, nodeNum);
+                NetHandler.Instance.SyncNodesRpc(Plugin.instance.Terminal.topRightText.text, resultNode.name, resultNode.displayText, nodeNum);
                 Loggers.LogInfo($"Valid node detected, nNS true & nodeNum is detected as: {nodeNum}");
                 return;
             }

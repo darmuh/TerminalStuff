@@ -1,15 +1,37 @@
-﻿namespace TerminalStuff.StoreTweaks;
+﻿using OpenLib.InteractiveMenus;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using TerminalStuff.MoonsTweaks;
+using TerminalStuff.SpecialStuff;
+
+namespace TerminalStuff.StoreTweaks;
 
 public class StoreSettings
 {
-    public static int savings = 0;
-    public static StoreMenuItem settings = new("Settings", true);
-    public static StoreMenuItem sortAbc = new("Sort Alphabetically", true);
-    public static StoreMenuItem sort123 = new("Sort By Price", true);
-    public static StoreMenuItem sortNone = new("Remove Sorting", true);
-    public static StoreMenuItem keepCreds = new($"Increase Savings: <color=#1cde2b>${savings}</color> (5%)", true);
-    public static StoreMenuItem clearSavings = new($"Clear Savings", true);
-    public static SortingStyle SortStyle = new();
+    public static int Savings
+    {
+        get
+        {
+            if (StorePlusConfig.DefaultSavings != null)
+                return StorePlusConfig.DefaultSavings.Value;
+            else
+                return 0;
+        }
+        set
+        {
+            StorePlusConfig.DefaultSavings.Value = value;
+        }
+    }
+    public static StoreMenuItem Settings = new("Settings", true);
+    public static StoreMenuItem SortAbc = new("Sort Alphabetically", true);
+    public static StoreMenuItem Sort123 = new("Sort By Price", true);
+    public static StoreMenuItem SortNoneMenu = new("Remove Sorting", true);
+    public static StoreMenuItem KeepCredsMenu = new($"Increase Savings: <color=#1cde2b>${Savings}</color> (5%)", true);
+    public static StoreMenuItem ClearSavingsMenu = new($"Clear Savings", true);
+    internal static SortingStyle CurrentSort { get; set; } = SortingStyle.None;
+    internal static string CurrentSortText = string.Empty;
 
 
     public enum SortingStyle
@@ -23,68 +45,113 @@ public class StoreSettings
 
     internal static void Init()
     {
-        settings.SetParentMenu(StorePlus.TheMainMenu);
-        sortAbc.SetParentMenu(settings);
-        sortAbc.SelectionEvent.AddListener(SetSortAbc);
-        sort123.SetParentMenu(settings);
-        sort123.SelectionEvent.AddListener(SetSort123);
-        sortNone.SetParentMenu(settings);
-        sortNone.SelectionEvent.AddListener(SortNone);
-        keepCreds.SetParentMenu(settings);
-        keepCreds.SelectionEvent.AddListener(ToggleSavings);
-        clearSavings.SetParentMenu(settings);
-        clearSavings.SelectionEvent.AddListener(ClearSavings);
-        SortStyle = SortingStyle.None;
-        settings.AdditionalBottomText = $"Current Sort: [{SortStyle}]\r\n\r\n";
+        Settings.Header = () => "===== StorePlus Settings =====\n\n";
+        Settings.SetParentMenu(StorePlus.TheMainMenu);
+        Settings.Footer = () =>
+        {
+            StringBuilder message = new();
+            message.Append($"Currently Sorting by: {CurrentSort}\n");
+            message.Append($"Back Menu: [{StorePlus.StorePlusMenu.leaveMenu}]    Toggle Setting: [{StorePlus.StorePlusMenu.selectMenu}]\n\n");
+            return message.ToString();
+        };
+        SortAbc.SetParentMenu(Settings);
+        SortAbc.SelectionEvent.AddListener(SetSortAbc);
+        Sort123.SetParentMenu(Settings);
+        Sort123.SelectionEvent.AddListener(SetSort123);
+        SortNoneMenu.SetParentMenu(Settings);
+        SortNoneMenu.SelectionEvent.AddListener(SortNone);
+        KeepCredsMenu.SetParentMenu(Settings);
+        KeepCredsMenu.SelectionEvent.AddListener(ToggleSavings);
+        ClearSavingsMenu.SetParentMenu(Settings);
+        ClearSavingsMenu.SelectionEvent.AddListener(ClearSavings);
+        CurrentSort = StorePlusConfig.DefaultSortStyle.Value;
+        CurrentSortText = $"Current Sort: {CurrentSort}\n";
     }
 
     private static void SortNone()
     {
-        SortStyle = SortingStyle.None;
-        settings.AdditionalBottomText = $"Current Sort: [{SortStyle}]\r\n\r\n";
+        CurrentSort = SortingStyle.None;
+        CurrentSortText = $"Current Sort: {CurrentSort}\n";
     }
 
     private static void SetSortAbc()
     {
-        if (SortStyle == SortingStyle.AlphabeticalDown)
-            SortStyle = SortingStyle.AlphabeticalUp;
-        else if (SortStyle == SortingStyle.AlphabeticalUp)
-            SortStyle = SortingStyle.AlphabeticalDown;
+        if (CurrentSort == SortingStyle.AlphabeticalDown)
+            CurrentSort = SortingStyle.AlphabeticalUp;
+        else if (CurrentSort == SortingStyle.AlphabeticalUp)
+            CurrentSort = SortingStyle.AlphabeticalDown;
         else
-            SortStyle = SortingStyle.AlphabeticalDown;
+            CurrentSort = SortingStyle.AlphabeticalDown;
 
-        settings.AdditionalBottomText = $"Current Sort: [{SortStyle}]\r\n\r\n";
+        CurrentSortText = $"Current Sort: {CurrentSort}\n";
     }
 
     private static void SetSort123()
     {
-        if (SortStyle == SortingStyle.PriceDown)
-            SortStyle = SortingStyle.PriceUp;
-        else if (SortStyle == SortingStyle.PriceUp)
-            SortStyle = SortingStyle.PriceDown;
+        if (CurrentSort == SortingStyle.PriceDown)
+            CurrentSort = SortingStyle.PriceUp;
+        else if (CurrentSort == SortingStyle.PriceUp)
+            CurrentSort = SortingStyle.PriceDown;
         else
-            SortStyle = SortingStyle.PriceDown;
+            CurrentSort = SortingStyle.PriceDown;
 
-        settings.AdditionalBottomText = $"Current Sort: [{SortStyle}]\r\n\r\n";
+        CurrentSortText = $"Current Sort: [{CurrentSort}]\n\n";
     }
 
     private static void ToggleSavings()
     {
         int fullCreds = Plugin.instance.Terminal.groupCredits - StorePlus.SubTotal;
 
-        float mathresult = Plugin.instance.Terminal.groupCredits * 0.05f;
+        int mathresult = Convert.ToInt32(Plugin.instance.Terminal.groupCredits * 0.05f);
 
-        if (savings + (int)mathresult <= fullCreds)
-            savings += (int)mathresult;
+        if (Savings + mathresult <= fullCreds)
+            Savings += mathresult;
         else
             return;
 
-        keepCreds.Name = $"Increase Savings: <color=#1cde2b>${savings}</color> (5%)";
+        KeepCredsMenu.Name = $"Increase Savings: <color=#1cde2b>${Savings}</color> (5%)";
     }
 
     private static void ClearSavings()
     {
-        savings = 0;
-        keepCreds.Name = $"Increase Savings: <color=#1cde2b>${savings}</color> (5%)";
+        Savings = 0;
+        KeepCredsMenu.Name = $"Increase Savings: <color=#1cde2b>${Savings}</color> (5%)";
+    }
+
+    internal static void SortMenu(ref List<MenuItem> menuItems)
+    {
+        UpdateSorting(CurrentSort, ref menuItems);
+    }
+
+    internal static void UpdateSorting(SortingStyle style, ref List<MenuItem> menuItems)
+    {
+        CurrentSort = style;
+        List<StoreMenuItem> list = [];
+
+        switch (style)
+        {
+            case SortingStyle.AlphabeticalUp:
+                list = [.. menuItems.OfType<StoreMenuItem>()];
+                if (list.Count != 0)
+                    menuItems = [.. list.OrderBy(x => x.Name)];
+                break;
+            case SortingStyle.AlphabeticalDown:
+                list = [.. menuItems.OfType<StoreMenuItem>()];
+                if (list.Count != 0)
+                    menuItems = [.. list.OrderByDescending(x => x.Name)];
+                break;
+            case SortingStyle.PriceUp:
+                list = [.. menuItems.OfType<StoreMenuItem>()];
+                if (list.Count != 0)
+                    menuItems = [.. list.OrderBy(x => x.StoreItem.price)];
+                break;
+            case SortingStyle.PriceDown:
+                list = [.. menuItems.OfType<StoreMenuItem>()];
+                if (list.Count != 0)
+                    menuItems = [.. list.OrderByDescending(x => x.StoreItem.price)];
+                break;
+            case SortingStyle.None:
+                break;
+        }
     }
 }

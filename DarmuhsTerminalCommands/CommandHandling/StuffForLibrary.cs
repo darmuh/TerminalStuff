@@ -50,7 +50,7 @@ internal class StuffForLibrary
         Loggers.LogDebug($"TerminalShortcutCommands Value: {Commands.TerminalShortcutCommands.Value}");
     }
 
-    internal static void ManualManagedBools() //for any commands that can be added before awake that are not managed by one config item per command
+    internal static void ConfigSettingChange() //for any commands that can be added before awake that are not managed by one config item per command
     {
         if (!QoLConfig.TerminalShortcuts.Value && Commands.TerminalShortcutCommands.Value)
         {
@@ -60,17 +60,5 @@ internal class StuffForLibrary
         }
 
         Loggers.LogDebug($"TerminalShortcutCommands Value: {Commands.TerminalShortcutCommands.Value}");
-
-        //moved to Commands.cs
-
-        //NewManagedBool(ref defaultManaged, "bindCommand", Commands.TerminalShortcutCommands.Value, "Use this command to bind new shortcuts", false, "COMFORT", GetKeywordsPerConfigItem("bind"), DynamicCommands.BindKeyToCommand, 0, true, null, null, "", "", "bind");
-        //NewManagedBool(ref defaultManaged, "unbindCommand", Commands.TerminalShortcutCommands.Value, "Use this command to unbind a terminal shortcut from a key", false, "COMFORT", GetKeywordsPerConfigItem("unbind"), DynamicCommands.UnBindKeyToCommand, 0, true, null, null, "", "", "unbind");
-
-
-        //if (QoLConfig.TerminalRunDelay.Value)
-        //{
-        //NewManagedBool(ref defaultManaged, "delayStart", QoLConfig.TerminalRunDelay.Value, "Use this command to run another command on a delay of up to 900 seconds!", false, "COMFORT", GetKeywordsPerConfigItem(KeywordConfigs.DelayKWs.Value), HandleDelayRun.HandleCommandDelay, 0, true, null, null, "", "", "delayStart");
-        //NewManagedBool(ref defaultManaged, "stopDelay", QoLConfig.TerminalRunDelay.Value, "Use this command to stop any delayed commands!", false, "COMFORT", GetKeywordsPerConfigItem(KeywordConfigs.StopDelayKWs.Value), HandleDelayRun.StopCommandDelay, 0, true, null, null, "", "", "stopDelay");
-        //}
     }
 }

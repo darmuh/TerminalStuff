@@ -57,38 +57,23 @@ public class MoonMenuItem(string name) : MenuItem(MoonsPlusMenu)
     {
         ToggleWeather = new("Show Weather for Moons:");
         ToggleWeather.SelectionEvent.AddListener(FilterView.ToggleWeatherDisplay);
-        ToggleWeather.Suffix = $" {FilterMenuBools(MoonsFilter.Weather)}";
+        ToggleWeather.Suffix = $" {FilterMenuBools(FilterView.Styling.HasFlag(FilterView.DisplayStyle.Weather))}";
         TogglePrice = new("Show Price for Moons:");
         TogglePrice.SelectionEvent.AddListener(FilterView.TogglePriceDisplay);
-        TogglePrice.Suffix = $" {FilterMenuBools(MoonsFilter.Price)}";
+        TogglePrice.Suffix = $" {FilterMenuBools(FilterView.Styling.HasFlag(FilterView.DisplayStyle.Price))}";
         ToggleRisk = new("Show Difficulty for Moons:");
         ToggleRisk.SelectionEvent.AddListener(FilterView.ToggleRiskDisplay);
-        ToggleRisk.Suffix = $" {FilterMenuBools(MoonsFilter.Difficulty)}";
+        ToggleRisk.Suffix = $" {FilterMenuBools(FilterView.Styling.HasFlag(FilterView.DisplayStyle.Difficulty))}";
         SortLevelID = new("Sort Moons by LevelID");
         SortLevelID.SelectionEvent.AddListener(FilterView.SortByLevelID);
         SortName = new("Sort Moons Alphabetically");
         SortName.SelectionEvent.AddListener(FilterView.SortByName);
-        SortPrice = new("Sort Moons by Price:");
+        SortPrice = new("Sort Moons by Price");
         SortPrice.SelectionEvent.AddListener(FilterView.SortByPrice);
-        SortWeather = new("Sort Moons by Weather:");
+        SortWeather = new("Sort Moons by Weather");
         SortWeather.SelectionEvent.AddListener(FilterView.SortByWeather);
-        SortRisk = new("Sort Moons by Difficulty:");
+        SortRisk = new("Sort Moons by Difficulty");
         SortRisk.SelectionEvent.AddListener(FilterView.SortByRisk);
-        FilterUnaffordable = new("Hide Unaffordable Moons:");
-        FilterUnaffordable.SelectionEvent.AddListener(FilterView.ToggleHideByAffordable);
-        FilterWeather = new("Hide Unfavorable Weather");
-        FilterWeather.SelectionEvent.AddListener(FilterView.SortByLevelID);
-        FilterMain.AddNestedList([ToggleWeather, TogglePrice, ToggleRisk, SortLevelID, SortName, SortPrice, SortWeather, SortRisk, FilterUnaffordable, FilterWeather]);
-    }
-
-    internal static MenuItem GetStartMenu()
-    {
-        //"main", "favs", "change", "help"
-        if (MoonsPlusConfig.MenuStartPage.Value == "get moons")
-            return ShowMoons;
-        else if (MoonsPlusConfig.MenuStartPage.Value == "filter")
-            return FilterMain;
-        else
-            return MoonsMainMenu;
+        FilterMain.AddNestedList([ToggleWeather, TogglePrice, ToggleRisk, SortLevelID, SortName, SortPrice, SortWeather, SortRisk]);
     }
 }

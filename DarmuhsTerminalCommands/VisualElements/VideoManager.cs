@@ -57,25 +57,25 @@ internal static class VideoManager //reworked this bit of code from TVLoader by 
         }
 
         node.clearPreviousText = true;
-        FixVideoPatch.sanityCheckLOL = true;
+        FixVideoPatch.VideoCheck = true;
 
         SplitViewChecks.CheckForSplitView("neither"); // Disables split view components if enabled
         if (!isVideoPlaying)
         {
-            SetVideoToPlay(Plugin.instance.Terminal.videoPlayer, currentlyPlaying);
-            SetupVideoPlayer(Plugin.instance.Terminal.videoPlayer, Plugin.instance.Terminal);
+            SetVideoToPlay(currentlyPlaying);
+            SetupVideoPlayer();
             Plugin.instance.Terminal.videoPlayer.Play();
             Loggers.LogInfo("Synced video should be playing");
         }
         else
         {
             Loggers.LogInfo("Video detected already playing, trying to stop it");
-            FixVideoPatch.OnVideoEnd(Plugin.instance.Terminal);
+            FixVideoPatch.OnVideoEnd();
         }
 
     }
 
-    internal static string PickVideoToPlay(VideoPlayer termVP)
+    internal static string PickVideoToPlay()
     {
         string displayText;
 
@@ -86,10 +86,10 @@ internal static class VideoManager //reworked this bit of code from TVLoader by 
             Loggers.LogInfo($"Random Clip: {lastPlayedIndex} - {Videos[lastPlayedIndex]}");
 
             // Set up the video player
-            GetVideoToPlay(termVP, lastPlayedIndex);
-            SetupVideoPlayer(termVP, Plugin.instance.Terminal);
+            GetVideoToPlay(lastPlayedIndex);
+            SetupVideoPlayer();
 
-            termVP.Play();
+            Plugin.instance.Terminal.videoPlayer.Play();
             Loggers.LogInfo("Video should be playing");
 
             displayText = $"{ConfigSettings.VideoStartString.Value}\n";
@@ -98,13 +98,13 @@ internal static class VideoManager //reworked this bit of code from TVLoader by 
         else if (isVideoPlaying)
         {
             Loggers.LogInfo("Video detected playing, trying to stop it");
-            FixVideoPatch.OnVideoEnd(Plugin.instance.Terminal);
+            FixVideoPatch.OnVideoEnd();
             displayText = $"{ConfigSettings.VideoStopString.Value}\n";
             Loggers.LogInfo("Lol stop detected");
             return displayText;
         }
 
-        displayText = "Unexpected Error with displaying video... \r\n\r\n\r\n";
+        displayText = "Unexpected Error with displaying video... \n\n\n";
         return displayText;
     }
 
@@ -159,47 +159,47 @@ internal static class VideoManager //reworked this bit of code from TVLoader by 
         }
     }
 
-    private static void GetVideoToPlay(VideoPlayer termVP, int randomIndex)
+    private static void GetVideoToPlay(int randomIndex)
     {
-        termVP.clip = null;
-        termVP.url = "file://" + Videos[randomIndex];
+        Plugin.instance.Terminal.videoPlayer.clip = null;
+        Plugin.instance.Terminal.videoPlayer.url = "file://" + Videos[randomIndex];
         currentlyPlaying = Videos[randomIndex];
-        Loggers.LogInfo("URL:" + termVP.url);
+        Loggers.LogInfo("URL:" + Plugin.instance.Terminal.videoPlayer.url);
 
         if (ConfigSettings.VideoSync.Value && ConfigSettings.ModNetworking.Value && ConfigSettings.NetworkedNodes.Value)
         {
-            NetHandler.SyncMyVideoChoiceToEveryone(currentlyPlaying);
+            NetHandler.Instance.SyncMyVideoChoiceToEveryoneRpc(currentlyPlaying);
             Loggers.LogInfo("Video picked and sent to clients");
         }
     }
 
-    private static void SetVideoToPlay(VideoPlayer termVP, string VideoName)
+    private static void SetVideoToPlay(string VideoName)
     {
-        termVP.clip = null;
-        termVP.url = "file://" + VideoName;
+        Plugin.instance.Terminal.videoPlayer.clip = null;
+        Plugin.instance.Terminal.videoPlayer.url = "file://" + VideoName;
         currentlyPlaying = VideoName;
-        Loggers.LogInfo("URL:" + termVP.url);
+        Loggers.LogInfo("URL:" + Plugin.instance.Terminal.videoPlayer.url);
     }
 
-    private static void SetupVideoPlayer(VideoPlayer termVP, Terminal getTerm)
+    private static void SetupVideoPlayer()
     {
-        termVP.Stop(); // Stop for setup
-        getTerm.terminalAudio.Stop(); // Fix audio
+        Plugin.instance.Terminal.videoPlayer.Stop(); // Stop for setup
+        Plugin.instance.Terminal.terminalAudio.Stop(); // Fix audio
 
-        termVP.renderMode = VideoRenderMode.RenderTexture;
-        termVP.aspectRatio = VideoAspectRatio.Stretch;
-        termVP.isLooping = false;
-        termVP.playOnAwake = false;
+        Plugin.instance.Terminal.videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+        Plugin.instance.Terminal.videoPlayer.aspectRatio = VideoAspectRatio.Stretch;
+        Plugin.instance.Terminal.videoPlayer.isLooping = false;
+        Plugin.instance.Terminal.videoPlayer.playOnAwake = false;
 
-        getTerm.terminalImage.texture = getTerm.videoTexture;
-        termVP.targetTexture = getTerm.videoTexture;
+        Plugin.instance.Terminal.terminalImage.texture = Plugin.instance.Terminal.videoTexture;
+        Plugin.instance.Terminal.videoPlayer.targetTexture = Plugin.instance.Terminal.videoTexture;
 
-        termVP.audioOutputMode = VideoAudioOutputMode.AudioSource;
-        termVP.controlledAudioTrackCount = 1;
+        Plugin.instance.Terminal.videoPlayer.audioOutputMode = VideoAudioOutputMode.AudioSource;
+        Plugin.instance.Terminal.videoPlayer.controlledAudioTrackCount = 1;
 
-        termVP.SetTargetAudioSource(0, getTerm.terminalAudio);
-        termVP.source = VideoSource.Url;
-        termVP.enabled = true;
+        Plugin.instance.Terminal.videoPlayer.SetTargetAudioSource(0, Plugin.instance.Terminal.terminalAudio);
+        Plugin.instance.Terminal.videoPlayer.source = VideoSource.Url;
+        Plugin.instance.Terminal.videoPlayer.enabled = true;
         Loggers.LogInfo("Videoplayer setup complete");
     }
 }

@@ -46,8 +46,6 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
 
     internal string keyword = "";
 
-    public string AdditionalBottomText = "";
-
     public StoreInfo StoreItem = null!;
 
     public StoreMenuItem(string name, string kw, MenuItem Parent) : this(name)
@@ -56,6 +54,7 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
         keyword = kw;
         SetParentMenu(Parent);
         SelectionEvent.AddListener(OnExternalSelect);
+        LoadPageOnSelect = false;
         ShowIfEmptyNest = true;
     }
 
@@ -98,26 +97,5 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
             Loggers.LogDebug($"Selecting external keyword! {keyword}");
         };
         StorePlus.StorePlusMenu.ExitInTerminal();
-    }
-
-    internal static MenuItem GetStartMenu()
-    {
-        //"main", "favs", "change", "help"
-        if (StorePlusConfig.MenuStartPage.Value == "upgrades")
-            return StorePlus.Upgrades;
-        else if (StorePlusConfig.MenuStartPage.Value == "items")
-            return StorePlus.Buyables;
-        else if (StorePlusConfig.MenuStartPage.Value == "vehicles")
-            return StorePlus.Vehicles;
-        else if (StorePlusConfig.MenuStartPage.Value == "packs")
-            return StorePlus.Packs;
-        else if (StorePlusConfig.MenuStartPage.Value == "suits")
-            return StorePlus.Suits;
-        else if (StorePlusConfig.MenuStartPage.Value == "other")
-            return StorePlus.ExternalMods;
-        else if (StorePlusConfig.MenuStartPage.Value == "settings")
-            return StoreSettings.settings;
-        else
-            return StorePlus.TheMainMenu;
     }
 }

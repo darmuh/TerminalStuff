@@ -70,7 +70,7 @@ internal class CruiserTerm
     internal static TerminalNode CreateNoAccess()
     {
         TerminalNode node = OpenLib.CoreMethods.BasicTerminal.CreateNewTerminalNode();
-        node.displayText = "\r\n\r\nThis page cannot be accessed via the Cruiser Terminal!\r\n\r\nPlease return to the ship to use this command.\r\n\r\n\r\n";
+        node.displayText = "\n\nThis page cannot be accessed via the Cruiser Terminal!\n\nPlease return to the ship to use this command.\n\n\n";
         node.clearPreviousText = true;
 
         return node;

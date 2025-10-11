@@ -22,7 +22,7 @@ internal class SaveManager
 
         if (!GameNetworkManager.Instance.localPlayerController.IsHost)
         {
-            NetHandler.Instance.GetTravelHistoryServerRpc();
+            NetHandler.Instance.AskHostTravelHistoryRpc();
             return;
         }
 
@@ -43,7 +43,7 @@ internal class SaveManager
             MoonsVisited = GetTravelHistory();
             SaveTravelHistory(MoonsVisited);
             foreach (string name in MoonsVisited)
-                NetHandler.Instance.TravelHistoryServerRpc(name);
+                NetHandler.Instance.UpdateTravelHistoryRpc(name);
             //network to clients
         }
         else
@@ -52,7 +52,7 @@ internal class SaveManager
             Loggers.LogDebug("Updating MoonsPlus Travel History from save key darmuhsTerminalStuff_MoonsPlusHistory");
             Loggers.LogDebug($"MoonsVisited count: {MoonsVisited.Count}");
             foreach (string name in MoonsVisited)
-                NetHandler.Instance.TravelHistoryServerRpc(name);
+                NetHandler.Instance.UpdateTravelHistoryRpc(name);
             //network to clients
         }
 
@@ -81,7 +81,7 @@ internal class SaveManager
 
         if (!GameNetworkManager.Instance.isHostingGame)
         {
-            NetHandler.Instance.AskUpgradeStatusServerRpc();
+            NetHandler.Instance.AskHostUpgradeStatusRpc();
             return;
         }
 
@@ -91,7 +91,7 @@ internal class SaveManager
             AllUpgradesUnlocked = GetUnlockList();
             SaveUnlocks(AllUpgradesUnlocked);
             foreach (string name in AllUpgradesUnlocked)
-                NetHandler.Instance.UpgradeStatusServerRpc(name);
+                NetHandler.Instance.UpgradeStatusRpc(name);
             //network to clients
         }
         else
@@ -100,7 +100,7 @@ internal class SaveManager
             Loggers.LogDebug("Updating upgrades unlock status from save key darmuhsTerminalStuff_Upgrades");
             Loggers.LogDebug($"AllUpgrades count: {AllUpgradesUnlocked.Count}");
             foreach (string name in AllUpgradesUnlocked)
-                NetHandler.Instance.UpgradeStatusServerRpc(name);
+                NetHandler.Instance.UpgradeStatusRpc(name);
             //network to clients
         }
     }
@@ -138,7 +138,7 @@ internal class SaveManager
         if (GameNetworkManager.Instance.isHostingGame)
             SaveUnlocks(AllUpgradesUnlocked);
 
-        NetHandler.Instance.UpgradeStatusServerRpc(unlockName);
+        NetHandler.Instance.UpgradeStatusRpc(unlockName);
     }
 
     internal static void SaveUnlocks(List<string> unlockList)
@@ -176,6 +176,6 @@ internal class SaveManager
         if (GameNetworkManager.Instance.localPlayerController.IsHost)
             SaveTravelHistory(MoonsVisited);
 
-        NetHandler.Instance.TravelHistoryServerRpc(moon.LevelName);
+        NetHandler.Instance.UpdateTravelHistoryRpc(moon.LevelName);
     }
 }

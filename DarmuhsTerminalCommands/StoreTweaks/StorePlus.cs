@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
+using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;
 using UnityEngine;
 using static TerminalStuff.Patching.AllMyTerminalPatches;
@@ -15,7 +16,7 @@ using static TerminalStuff.TerminalEvents;
 
 namespace TerminalStuff.StoreTweaks;
 
-internal class StorePlus
+public class StorePlus
 {
     //BetterMenus
     internal static BetterMenu<StoreMenuItem> StorePlusMenu = new("StorePlus");
@@ -35,7 +36,7 @@ internal class StorePlus
     internal static StoreMenuItem Current { get; set; } = null!;
 
     //TerminalNodes
-    internal static TerminalNode OriginalStorePage = null!;
+    internal static TerminalNode OriginalStorePage { get; set; } = null!;
 
     //Misc
     //internal static string LoadExtKey = ""; // 
@@ -44,6 +45,42 @@ internal class StorePlus
     internal static List<StoreInfo> StoreSelection { get; set; } = [];
     internal static List<TerminalNode> ExcludedNodesFromAutoGen { get; set; } = [];
     internal static List<string> ManualUpgradeNames = [];
+
+    public enum StartingPage
+    {
+        MainMenu,
+        Items,
+        Upgrades,
+        Vehicles,
+        Suits,
+        Packs,
+        Settings
+    }
+
+    internal static MenuItem GetStartMenu()
+    {
+        switch (StorePlusConfig.MenuStartPage.Value)
+        {
+            case StartingPage.MainMenu:
+                return TheMainMenu;
+            case StartingPage.Items:
+                return Buyables;
+            case StartingPage.Upgrades:
+                return Upgrades;
+            case StartingPage.Vehicles:
+                return Vehicles;
+            case StartingPage.Suits:
+                return Suits;
+            case StartingPage.Packs:
+                return Packs;
+            case StartingPage.Settings:
+                return StoreSettings.Settings;
+            default:
+                break;
+        }
+
+        return TheMainMenu;
+    }
 
     internal static void SetToVanilla()
     {
@@ -55,8 +92,10 @@ internal class StorePlus
         if (DynamicBools.TryGetKeyword("store", out TerminalKeyword Store))
         {
             Store.specialKeywordResult = OriginalStorePage;
-            Loggers.LogDebug("Moons keyword set back to original");
+            Loggers.LogDebug("Store keyword set back to original");
         }
+        else
+            Loggers.ERROR("Store keyword has been deleted!!!");
     }
 
     private static void SetKeys()
@@ -80,36 +119,41 @@ internal class StorePlus
         StorePlusMenu.AcceptAnyKeyEvent.AddListener(ReturnToStore);
 
         //Main Menu
-        TheMainMenu.Header = () => "================= Store Plus =================\r\n\r\n";
+        TheMainMenu.Header = () => "================= Store Plus =================\n\n";
         TheMainMenu.Footer = GetMainFooter;
 
         //Items
-        Buyables.Header = () => "================= Items =================\r\n\r\n";
+        Buyables.Header = () => "================= Items =================\n\n";
         Buyables.Footer = GetStoreFooter;
         Buyables.SetParentMenu(TheMainMenu);
+        Buyables.AdjustNestedMenuList.AddListener(StoreSettings.SortMenu);
 
         //Upgrades & Furniture
-        Upgrades.Header = () => "================= Upgrades =================\r\n\r\n";
+        Upgrades.Header = () => "================= Upgrades =================\n\n";
         Upgrades.Footer = GetStoreFooter;
         Upgrades.SetParentMenu(TheMainMenu);
+        Upgrades.AdjustNestedMenuList.AddListener(StoreSettings.SortMenu);
 
         //Vehicles
-        Vehicles.Header = () => "================= Vehicles =================\r\n\r\n";
+        Vehicles.Header = () => "================= Vehicles =================\n\n";
         Vehicles.Footer = GetStoreFooter;
         Vehicles.SetParentMenu(TheMainMenu);
+        Vehicles.AdjustNestedMenuList.AddListener(StoreSettings.SortMenu);
 
         //Suits
-        Suits.Header = () => "============= Buyable Suits =============\r\n\r\n";
+        Suits.Header = () => "============= Buyable Suits =============\n\n";
         Suits.Footer = GetStoreFooter;
         Suits.SetParentMenu(TheMainMenu);
+        Suits.AdjustNestedMenuList.AddListener(StoreSettings.SortMenu);
 
         //Purchase Packs
-        Packs.Header = () => "============= Purchase Packs =============\r\n\r\n";
+        Packs.Header = () => "============= Purchase Packs =============\n\n";
         Packs.Footer = GetStoreFooter;
         Packs.SetParentMenu(TheMainMenu);
+        Packs.AdjustNestedMenuList.AddListener(StoreSettings.SortMenu);
 
         //Other Mod Menus
-        ExternalMods.Header = () => "============= Other Menus =============\r\n\r\n";
+        ExternalMods.Header = () => "============= Other Menus =============\n\n";
         ExternalMods.Footer = GetOtherFooter;
         ExternalMods.SetParentMenu(TheMainMenu);
 
@@ -119,7 +163,7 @@ internal class StorePlus
     internal static string EnterStoreMenu()
     {
         StorePlusMenu.ExitAction = null!;
-        StorePlusMenu.EnterAtPage(StoreMenuItem.GetStartMenu());
+        StorePlusMenu.EnterAtPage(GetStartMenu());
         return "";
     }
 
@@ -152,7 +196,7 @@ internal class StorePlus
         if (selection.IsVehicle())
             return;
 
-        if (SubTotal + selection.price > Plugin.instance.Terminal.groupCredits - StoreSettings.savings)
+        if (SubTotal + selection.price > Plugin.instance.Terminal.groupCredits - StoreSettings.Savings)
             return;
 
         if (selection.SelectionCount >= ConfigGetters.GetMaxItems() || selectedCount >= ConfigGetters.GetMaxItems())
@@ -246,14 +290,14 @@ internal class StorePlus
         StorePlusMenu.AcceptAnything = true;
         StringBuilder message = new();
 
-        message.Append($"\r\n");
+        message.Append($"\n");
 
         foreach (StoreInfo item in StoreSelection)
         {
             if (item.IsPurchasePack)
             {
                 List<string> packList = StorePacks.GetItemListFromNode(item.terminalNode);
-                message.Append($"${item.price} [{item.name}] x {item.SelectionCount}\r\n");
+                message.Append($"${item.price} [{item.name}] x {item.SelectionCount}\n");
                 foreach (string packItem in packList)
                     message.Append($"    {packItem}\n");
                 continue;
@@ -262,68 +306,55 @@ internal class StorePlus
             message.Append($"${item.price} {item.name} x {item.SelectionCount}\n");
         }
 
-        message.Append($"\r\n\r\nTotal Value of Purchase: <color=#e6b800>{SubTotal}</color>");
-        message.Append($"\r\nNew Credits Ammount: {Plugin.instance.Terminal.groupCredits}");
+        message.Append($"\n\nTotal Value of Purchase: <color=#e6b800>{SubTotal}</color>");
+        message.Append($"\nNew Credits Ammount: {Plugin.instance.Terminal.groupCredits}");
 
-        message.Append("\r\n\r\nPress any key to continue...");
+        message.Append("\n\nPress any key to continue...");
         return message.ToString();
     }
 
     internal static string GetMainFooter()
     {
-        string bottomText = string.Empty;
-
-        if (Current != null)
-            bottomText = Current.AdditionalBottomText;
+        string bottomText = StoreSettings.CurrentSortText;
 
         StringBuilder message = new();
-        message.Append($"\r\n\r\nCurrent Selection Total: [ <color=#e6b800>${SubTotal}</color> ]\r\n\r\n");
+        message.Append($"\n\nCurrent Selection Total: [ <color=#e6b800>${SubTotal}</color> ]\n\n");
         if (bottomText.Length > 0)
             message.Append(bottomText);
-        message.Append($"Page [LeftArrow] < {StorePlusMenu.CurrentPage}/{Mathf.CeilToInt((float)StorePlusMenu.DisplayMenuItemsOfType.Count / StorePlusMenu.PageSize)} > [RightArrow]\r\n");
-        message.Append($"Select Store Category: [Enter]\r\n");
-        message.Append($"Leave Menu: [BackSpace]\r\n\r\n");
+        message.Append($"Page [LeftArrow] < {StorePlusMenu.CurrentPage}/{Mathf.CeilToInt((float)StorePlusMenu.DisplayMenuItemsOfType.Count / StorePlusMenu.PageSize)} > [RightArrow]\n");
+        message.Append($"Select Store Category: [Enter]\n");
+        message.Append($"Leave Menu: [BackSpace]\n\n");
         return message.ToString();
     }
 
     internal static string GetOtherFooter()
     {
-        string bottomText = string.Empty;
-
-        if (Current != null)
-            bottomText = Current.AdditionalBottomText;
-
         StringBuilder message = new();
-        message.Append($"\r\n\r\nCurrent Selection Total: [ <color=#e6b800>${SubTotal}</color> ]\r\n\r\n");
-        if (bottomText.Length > 0)
-            message.Append(bottomText);
-        message.Append($"Page [LeftArrow] < {StorePlusMenu.CurrentPage}/{Mathf.CeilToInt((float)StorePlusMenu.DisplayMenuItemsOfType.Count / StorePlusMenu.PageSize)} > [RightArrow]\r\n");
-        message.Append($"Make Selection: [Enter]\r\n");
-        message.Append($"Back Menu: [BackSpace]\r\n\r\n");
+        message.Append($"\n\nCurrent Selection Total: [ <color=#e6b800>${SubTotal}</color> ]\n\n");
+        message.Append($"Page [LeftArrow] < {StorePlusMenu.CurrentPage}/{Mathf.CeilToInt((float)StorePlusMenu.DisplayMenuItemsOfType.Count / StorePlusMenu.PageSize)} > [RightArrow]\n");
+        message.Append($"Make Selection: [Enter]\n");
+        message.Append($"Back Menu: [BackSpace]\n\n");
         return message.ToString();
     }
 
     internal static string GetStoreFooter()
     {
-        string bottomText = string.Empty;
-
-        if (Current != null)
-            bottomText = Current.AdditionalBottomText;
+        string bottomText = StoreSettings.CurrentSortText;
 
         StringBuilder message = new();
-        message.Append($"\r\n\r\nCurrent Selection Total: [ <color=#e6b800>${SubTotal}</color> ]\r\n\r\n");
+        message.Append($"\n\nCurrent Selection Total: [ <color=#e6b800>${SubTotal}</color> ]\n\n");
         if (bottomText.Length > 0)
             message.Append(bottomText);
-        message.Append($"Page [LeftArrow] < {StorePlusMenu.CurrentPage}/{Mathf.CeilToInt((float)StorePlusMenu.DisplayMenuItemsOfType.Count / StorePlusMenu.PageSize)} > [RightArrow]\r\n");
-        message.Append($"Decrease Count [Z] / Increase Count [X]\r\n");
-        message.Append($"Add/Remove Item: [Enter]  / Complete Purchase: [P]\r\n");
-        message.Append($"Back Menu: [BackSpace]\r\n\r\n");
+        message.Append($"Page [LeftArrow] < {StorePlusMenu.CurrentPage}/{Mathf.CeilToInt((float)StorePlusMenu.DisplayMenuItemsOfType.Count / StorePlusMenu.PageSize)} > [RightArrow]\n");
+        message.Append($"Decrease Count [Z] / Increase Count [X]\n");
+        message.Append($"Add/Remove Item: [Enter]  / Complete Purchase: [P]\n");
+        message.Append($"Back Menu: [BackSpace]\n\n");
         return message.ToString();
     }
 
     internal static int GetProjectedCredits()
     {
-        return Plugin.instance.Terminal.groupCredits - SubTotal - StoreSettings.savings;
+        return Plugin.instance.Terminal.groupCredits - SubTotal - StoreSettings.Savings;
     }
 
     internal static void UpdateSubtotal()
@@ -431,7 +462,7 @@ internal class StorePlus
         SortStoreItems();
         CreateStorePacks();
 
-        if (!StoreCommand.KeywordList.Any(x => OpenLib.Common.Misc.CompareStringsInvariant(x, "store")))
+        if (!StorePlusConfig.StorePlusKeywords.Value.Contains("store", System.StringComparison.InvariantCultureIgnoreCase))
         {
             StoreCommand.RegisterCommand();
             StorePlusMenu.MenuNode = StoreCommand.terminalNode;
@@ -527,7 +558,7 @@ internal class StorePlus
         }
 
         //this should never happen but just in case lol
-        if (Plugin.instance.Terminal.groupCredits - StoreSettings.savings < SubTotal)
+        if (Plugin.instance.Terminal.groupCredits - StoreSettings.Savings < SubTotal)
         {
             Plugin.Log.LogMessage("Not enough credits!");
             Plugin.instance.Terminal.PlayTerminalAudioServerRpc(1);

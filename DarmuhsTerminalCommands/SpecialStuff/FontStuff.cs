@@ -176,10 +176,10 @@ internal static class FontStuff
 
         if (CustomizeConfig.CustomFontSizeMain.Value > -1)
         {
-            if (Plugin.instance.LethalLevelLoader)
-                LLLCompat.UpdateLLLFontSize((float)CustomizeConfig.CustomFontSizeMain.Value);
-            else
+            if (!Plugin.instance.LethalLevelLoader)
                 Plugin.instance.Terminal.screenText.textComponent.fontSize = CustomizeConfig.CustomFontSizeMain.Value;
+            else
+                LLLCompat.UpdateLLLFontSize(CustomizeConfig.CustomFontSizeMain.Value);                
         }
 
         if (CustomizeConfig.CustomFontSizeMoney.Value > -1)

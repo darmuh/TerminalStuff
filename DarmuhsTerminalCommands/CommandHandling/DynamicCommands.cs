@@ -40,7 +40,7 @@ internal class DynamicCommands //Non-terminalAPI commands
         if (!Plugin.instance.FovAdjust)
         {
             validFovNum = false;
-            string displayText = "Unable to change your fov at this time...\r\n\tRequired mod [FOVAdjust] is not loaded!\r\n\r\n";
+            string displayText = "Unable to change your fov at this time...\n\tRequired mod [FOVAdjust] is not loaded!\n\n";
             Loggers.WARNING("not enough words for the fov command!");
             return displayText;
         }
@@ -50,7 +50,7 @@ internal class DynamicCommands //Non-terminalAPI commands
         if (val.Length < 1)
         {
             validFovNum = false;
-            string displayText = "Unable to change your fov at this time...\r\n\tInvalid input detected, no digits were provided!\r\n\r\n";
+            string displayText = "Unable to change your fov at this time...\n\tInvalid input detected, no digits were provided!\n\n";
             Loggers.WARNING("not enough words for the fov command!");
             return displayText;
         }
@@ -67,7 +67,7 @@ internal class DynamicCommands //Non-terminalAPI commands
         else
         {
             validFovNum = false;
-            string displayText = $"Unable to change your fov at this time...\r\n\tInvalid input detected!\n\tInput: {val}\r\n\r\n";
+            string displayText = $"Unable to change your fov at this time...\n\tInvalid input detected!\n\tInput: {val}\n\n";
             Loggers.WARNING("there are no digits for the fov command!");
             return displayText;
         }
@@ -94,7 +94,7 @@ internal class DynamicCommands //Non-terminalAPI commands
         if (validFovNum)
         {
             Loggers.LogInfo("Valid fov value detected, but fov has been canceled");
-            string displayText = $"Fov change to {ParsedValue} has been canceled.\r\n\r\n\r\n";
+            string displayText = $"Fov change to {ParsedValue} has been canceled.\n\n\n";
             return displayText;
         }
         else
@@ -112,7 +112,7 @@ internal class DynamicCommands //Non-terminalAPI commands
 
         if (!Plugin.instance.FovAdjust)
         {
-            displayText = "FovAdjust mod is not installed, command can not be run.\r\n";
+            displayText = "FovAdjust mod is not installed, command can not be run.\n";
         }
         else
         {

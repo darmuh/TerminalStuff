@@ -1,5 +1,6 @@
-﻿using LethalLevelLoader;
-using System.Linq;
+﻿using System.Linq;
+using TerminalStuff.EventSub;
+using TerminalStuff.MoonsTweaks;
 using TerminalStuff.Util;
 
 namespace TerminalStuff.Compatibility;
@@ -11,8 +12,8 @@ internal class LLLCompat
         if (!Plugin.instance.LethalLevelLoader)
             return;
 
-        TerminalManager.defaultTerminalFontSize = fontSize;
-        Plugin.instance.Terminal.screenText.textComponent.fontSize = TerminalManager.defaultTerminalFontSize;
+        LethalLevelLoader.TerminalManager.defaultTerminalFontSize = fontSize;
+        Plugin.instance.Terminal.screenText.textComponent.fontSize = LethalLevelLoader.TerminalManager.defaultTerminalFontSize;
         Loggers.LogDebug($"TerminalManager.defaultTerminalFontSize set to {fontSize}!");
     }
 
@@ -21,7 +22,7 @@ internal class LLLCompat
         if (!Plugin.instance.LethalLevelLoader)
             return 0;
 
-        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+        if (LethalLevelLoader.LevelManager.TryGetExtendedLevel(level, out LethalLevelLoader.ExtendedLevel extendedLevel))
         {
             return extendedLevel.RoutePrice;
         }
@@ -33,7 +34,7 @@ internal class LLLCompat
         if (!Plugin.instance.LethalLevelLoader)
             return false;
 
-        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+        if (LethalLevelLoader.LevelManager.TryGetExtendedLevel(level, out LethalLevelLoader.ExtendedLevel extendedLevel))
             return extendedLevel.IsRouteLocked;
 
         return false;
@@ -44,7 +45,7 @@ internal class LLLCompat
         if (!Plugin.instance.LethalLevelLoader)
             return false;
 
-        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+        if (LethalLevelLoader.LevelManager.TryGetExtendedLevel(level, out LethalLevelLoader.ExtendedLevel extendedLevel))
             return extendedLevel.IsRouteHidden;
 
         return false;
@@ -55,10 +56,8 @@ internal class LLLCompat
         if (!Plugin.instance.LethalLevelLoader)
             return false;
 
-        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
-        {
-            return !TerminalManager.routeKeyword.compatibleNouns.Any(x => x.result == extendedLevel.RouteNode);
-        }
+        if (LethalLevelLoader.LevelManager.TryGetExtendedLevel(level, out LethalLevelLoader.ExtendedLevel extendedLevel))
+            return MoonInfo.IsRouteEnabled(extendedLevel.RouteNode);
 
         return false;
     }
@@ -67,21 +66,21 @@ internal class LLLCompat
     {
         if (!Plugin.instance.LethalLevelLoader)
             return;
-
-        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+        
+        if (LethalLevelLoader.LevelManager.TryGetExtendedLevel(level, out LethalLevelLoader.ExtendedLevel extendedLevel))
         {
             extendedLevel.IsRouteHidden = false;
             extendedLevel.IsRouteLocked = false;
             Loggers.LogDebug($"Unlocked/Unhidden - {extendedLevel.NumberlessPlanetName}");
-        }
+        } 
     }
 
     internal static void ChangeHiddenStatus(SelectableLevel level, bool shouldHide)
     {
         if (!Plugin.instance.LethalLevelLoader)
             return;
-
-        if (LevelManager.TryGetExtendedLevel(level, out ExtendedLevel extendedLevel))
+        
+        if (LethalLevelLoader.LevelManager.TryGetExtendedLevel(level, out LethalLevelLoader.ExtendedLevel extendedLevel))
         {
             extendedLevel.IsRouteHidden = shouldHide;
             Loggers.LogDebug($"IsHidden {shouldHide} - {extendedLevel.NumberlessPlanetName}");

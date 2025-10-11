@@ -16,7 +16,7 @@ internal static class HandleDelayRun
     internal static string HandleCommandDelay()
     {
         List<string> keywords = GetKeywordsPerConfigItem(KeywordConfigs.DelayKWs.Value);
-        string failText = $"Invalid usage of {keywords[0]} command! Please follow the following format:\r\n\r\n\t{keywords[0]} <time> <command>\r\n\r\n";
+        string failText = $"Invalid usage of {keywords[0]} command! Please follow the following format:\n\n\t{keywords[0]} <time> <command>\n\n";
         string command = GetAfterKeyword(keywords);
         if (command.Length < 1)
         {
@@ -45,7 +45,7 @@ internal static class HandleDelayRun
             {
                 DelayRun delayRun = new(givenCommand, delay);
                 Plugin.instance.Terminal.StartCoroutine(delayRun.CommandRunner());
-                return $"You have initiated a delayed command of {givenCommand} which will run in {delay} seconds...\r\n\r\n";
+                return $"You have initiated a delayed command of {givenCommand} which will run in {delay} seconds...\n\n";
             }
         }
     }
@@ -53,7 +53,7 @@ internal static class HandleDelayRun
     internal static string StopCommandDelay()
     {
         List<string> keywords = GetKeywordsPerConfigItem(KeywordConfigs.StopDelayKWs.Value);
-        string failText = $"Invalid usage of {keywords[0]} command! Please follow the following format:\r\n\r\n\t{keywords[0]} <time> <command>\r\n\r\n";
+        string failText = $"Invalid usage of {keywords[0]} command! Please follow the following format:\n\n\t{keywords[0]} <time> <command>\n\n";
         string command = GetAfterKeyword(keywords);
         if (command.Length < 1)
             return failText;

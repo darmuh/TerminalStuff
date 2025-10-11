@@ -41,8 +41,6 @@ internal class TerminalGeneral
                 StorePacksInfo.CancelConfirmation();
         }
 
-
-        Loggers.LogInfo($"LoadNewNode patch, nNS: {NetHandler.netNodeSet}");
         Loggers.LogDebug("Line count: " + Plugin.instance.Terminal.screenText.textComponent.textInfo.lineCount.ToString());
 
         if (Commands.TerminalMoonsPlus.Value && MoonsPlusConfig.OneTimePurchase.Value)
@@ -123,7 +121,7 @@ internal class TerminalGeneral
             return;
         }
 
-        NetHandler.Instance.SyncDropShipServerRpc();
+        NetHandler.Instance.SyncDropShipRpc(false);
         Loggers.LogDebug($"items: {Plugin.instance.Terminal.orderedItemsFromTerminal.Count}");
     }
 

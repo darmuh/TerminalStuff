@@ -24,7 +24,7 @@ internal class TerminalQuit
             ShouldLockPlayerCamera(true, StartOfRound.Instance.localPlayerController);
 
         //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}");
-        if (!alwaysOnDisplay || screenSettings.inUse)
+        if (!AlwaysOnDisplay || screenSettings.inUse)
         {
             HandleRegularQuit();
         }

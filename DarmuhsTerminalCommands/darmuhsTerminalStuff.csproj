@@ -22,6 +22,5 @@
 	<!-- EmbeddedResource assets-->
   <ItemGroup>
     <EmbeddedResource Include="Assets\hidden169" />
-    <EmbeddedResource Include="darmuhngo" />
   </ItemGroup>
 </Project>

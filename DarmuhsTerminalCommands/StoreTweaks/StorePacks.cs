@@ -90,24 +90,24 @@ internal class StorePacks
     internal static string AskPurchasePack()
     {
         if (Selected == null)
-            return "Purchase pack has FAILED at AskPurchasePack due to a null selection!\r\n";
+            return "Purchase pack has FAILED at AskPurchasePack due to a null selection!\n";
 
         Selected.GetContents();
         StringBuilder packAsk = new();
-        packAsk.AppendLine($"Would you like to purchase the [{CurrentPackName}] PurchasePack?\r\n\r\n\tContents:\r\n");
+        packAsk.AppendLine($"Would you like to purchase the [{CurrentPackName}] PurchasePack?\n\n\tContents:\n");
         packAsk.Append(Selected.Contents);
         int totalCost = Selected.GetTotalCost(out int itemCount); //items
 
         if (totalCost <= Plugin.instance.Terminal.groupCredits)
         {
-            packAsk.AppendLine($"\r\n\tTotal Cost: ■{totalCost}({itemCount} items)\r\n\r\nPlease CONFIRM or DENY.\n");
+            packAsk.AppendLine($"\n\tTotal Cost: ■{totalCost}({itemCount} items)\n\nPlease CONFIRM or DENY.\n");
             return packAsk.ToString();
         }
         else
         {
             Loggers.LogInfo("not enough credits to purchase, sending to cannot afford display");
             TerminalGeneral.CancelConfirmation = true;
-            return $"You cannot afford the {CurrentPackName} PurchasePack ({itemCount} items).\r\n\r\n\tTotal Cost: ■<color=#BD3131>{totalCost}</color>\r\n\r\n";
+            return $"You cannot afford the {CurrentPackName} PurchasePack ({itemCount} items).\n\n\tTotal Cost: ■<color=#BD3131>{totalCost}</color>\n\n";
         }
     }
 
@@ -141,14 +141,14 @@ internal class StorePacks
     internal static string CompletePurchasePack()
     {
         if (Selected == null)
-            return "Purchase pack has FAILED at AskPurchasePack due to a null selection!\r\n";
+            return "Purchase pack has FAILED at AskPurchasePack due to a null selection!\n";
 
         Selected.GetContents();
 
         Selected.commandManager.ConfirmBase.Confirm.result.itemCost = 0;
 
         StringBuilder packBuy = new();
-        packBuy.AppendLine($"You have purchased the {CurrentPackName} PurchasePack!\r\n\r\n\tContents:\r\n");
+        packBuy.AppendLine($"You have purchased the {CurrentPackName} PurchasePack!\n\n\tContents:\n");
         packBuy.Append(Selected.Contents);
         int totalCost = Selected.GetTotalCost(out int itemCount);
 
@@ -160,7 +160,7 @@ internal class StorePacks
 
         BuyAll(totalCost, itemCount);
 
-        packBuy.AppendLine($"\r\n\r\nYour new balance is ■{Plugin.instance.Terminal.groupCredits} credits\r\n\r\n\tEnjoy!\r\n");
+        packBuy.AppendLine($"\n\nYour new balance is ■{Plugin.instance.Terminal.groupCredits} credits\n\n\tEnjoy!\n");
         Plugin.instance.Terminal.PlayTerminalAudioServerRpc(0);
         return packBuy.ToString();
     }

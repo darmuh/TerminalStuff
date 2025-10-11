@@ -2,11 +2,11 @@
 using OpenLib.Events;
 using TerminalStuff.CommandHandling;
 using TerminalStuff.Configs;
-using TerminalStuff.Patching;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
 using static TerminalStuff.EventSub.TerminalStart;
+using static TerminalStuff.Patching.OtherPatches;
 
 namespace TerminalStuff.EventSub;
 

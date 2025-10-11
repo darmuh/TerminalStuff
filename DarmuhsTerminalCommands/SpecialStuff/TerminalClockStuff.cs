@@ -22,7 +22,7 @@ internal class TerminalClockStuff
         if (string.IsNullOrEmpty(clockTime))
             return;
 
-        textComponent.text = clockTime.Replace("\n", "").Replace("\r", "");
+        textComponent.text = clockTime.Replace("\n", "").Replace("", "");
         //Loggers.LogDebug($"Time {textComponent.text}");
     }
 

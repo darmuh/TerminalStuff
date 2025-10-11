@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TerminalStuff.Configs;
 using TerminalStuff.Networking;
@@ -17,6 +18,89 @@ internal class ColorCommands
     internal static string flashLightColor = string.Empty;
     internal static bool usingHexCode = false;
     internal static bool RainbowFlash = false;
+    private static GameObject _frontlight1 = null!;
+    private static GameObject _frontlight2 = null!;
+    private static GameObject _midlight1 = null!;
+    private static GameObject _midlight2 = null!;
+    private static GameObject _backlight1 = null!;
+    private static GameObject _backlight2 = null!;
+
+    internal static GameObject FrontLight1
+    {
+        get
+        {
+            if (_frontlight1 == null)
+                _frontlight1 = GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (3)");
+
+            return _frontlight1;
+        }
+    }
+    internal static GameObject FrontLight2
+    {
+        get
+        {
+            if (_frontlight2 == null)
+                _frontlight2 = GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (9)");
+
+            return _frontlight2;
+        }
+    }
+
+    internal static GameObject MidLight1
+    {
+        get
+        {
+            if (_midlight1 == null)
+                _midlight1 = GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (4)");
+
+            return _midlight1;
+        }
+    }
+
+    internal static GameObject MidLight2
+    {
+        get
+        {
+            if (_midlight2 == null)
+                _midlight2 = GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (8)");
+
+            return _midlight2;
+        }
+    }
+
+    internal static GameObject BackLight1
+    {
+        get
+        {
+            if (_backlight1 == null)
+                _backlight1 = GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (5)");
+
+            return _backlight1;
+        }
+    }
+
+    internal static GameObject BackLight2
+    {
+        get
+        {
+            if (_backlight2 == null)
+                _backlight2 = GameObject.Find("Environment/HangarShip/ShipElectricLights/Area Light (7)");
+
+            return _backlight2;
+        }
+    }
+
+    internal static void SetLightColors(List<GameObject> objects, Color newColor)
+    {
+        if (objects.Count == 0)
+            return;
+
+        foreach(GameObject obj in objects)
+        {
+            if(obj.GetComponent<Light>() != null)
+                obj.GetComponent<Light>().color = newColor;
+        }
+    }
 
     internal static void FlashLightCommandAction(out string displayText)
     {
@@ -24,7 +108,7 @@ internal class ColorCommands
         Color fColor = CustomFlashColor ?? Color.white; // Use white as a default color
         Loggers.LogInfo($"got {flashLightColor} - {fColor}");
 
-        displayText = $"The next time you turn on your flashlight, the color will be set to {flashLightColor}!\r\n\r\n";
+        displayText = $"The next time you turn on your flashlight, the color will be set to {flashLightColor}!\n\n";
         return;
     }
 
@@ -100,22 +184,22 @@ internal class ColorCommands
 
         if (OpenLib.Common.Misc.StringContainsInvariant(val, "all"))
         {
-            NetHandler.Instance.ShipColorALLServerRpc(newColor, targetColor);
+            NetHandler.Instance.ShipColorAllRpc(newColor, targetColor);
             return displayText;
         }
         else if (OpenLib.Common.Misc.StringContainsInvariant(val, "front"))
         {
-            NetHandler.Instance.ShipColorFRONTServerRpc(newColor, targetColor);
+            NetHandler.Instance.ShipColorFrontRpc(newColor, targetColor);
             return displayText;
         }
         else if (OpenLib.Common.Misc.StringContainsInvariant(val, "mid"))
         {
-            NetHandler.Instance.ShipColorMIDServerRpc(newColor, targetColor);
+            NetHandler.Instance.ShipColorMidRpc(newColor, targetColor);
             return displayText;
         }
         else if (OpenLib.Common.Misc.StringContainsInvariant(val, "back"))
         {
-            NetHandler.Instance.ShipColorBACKServerRpc(newColor, targetColor);
+            NetHandler.Instance.ShipColorBackRpc(newColor, targetColor);
             return displayText;
         }
         else
@@ -143,14 +227,14 @@ internal class ColorCommands
         if (ShipColor.HasValue && targetColor != null)
         {
             newColor = ShipColor.Value;
-            displayText = $"Color of {words[0]} ship lights set to {targetColor}!\r\n\r\n";
+            displayText = $"Color of {words[0]} ship lights set to {targetColor}!\n\n";
             return true;
         }
         else
         {
             targetColor = "";
             newColor = Color.white;
-            displayText = $"Unable to set {words[0]} ship light color...\r\n\tInvalid color [{targetColor}] detected!\r\n\r\n";
+            displayText = $"Unable to set {words[0]} ship light color...\n\tInvalid color [{targetColor}] detected!\n\n";
             Loggers.WARNING("invalid color for the color command!");
             return false;
         }
@@ -159,7 +243,7 @@ internal class ColorCommands
     internal static string ShipColorList()
     {
         string sColor = GetKeywordsPerConfigItem(KeywordConfigs.ScolorKeywords.Value)[0];
-        string listContent = $"========= Ship Lights Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"{sColor} all normal\" or \"{sColor} all default\"\r\nRed: \"{sColor} back red\"\r\nGreen: \"{sColor} mid green\"\r\nBlue: \"{sColor} front blue\"\r\nYellow: \"{sColor} middle yellow\"\r\nCyan: \"{sColor} all cyan\"\r\nMagenta: \"{sColor} back magenta\"\r\nPurple: \"{sColor} mid purple\"\r\nLime: \"{sColor} all lime\"\r\nPink: \"{sColor} front pink\"\r\nMaroon: \"{sColor} middle maroon\"\r\nOrange: \"{sColor} back orange\"\r\nSasstro's Color: \"{sColor} all sasstro\"\r\nSamstro's Color: \"{sColor} all samstro\"\r\nANY HEXCODE: \"{sColor} all FF00FF\"\r\n\r\n\r\n";
+        string listContent = $"========= Ship Lights Color Options List =========\nColor Name: \"command used\"\n\nDefault: \"{sColor} all normal\" or \"{sColor} all default\"\nRed: \"{sColor} back red\"\nGreen: \"{sColor} mid green\"\nBlue: \"{sColor} front blue\"\nYellow: \"{sColor} middle yellow\"\nCyan: \"{sColor} all cyan\"\nMagenta: \"{sColor} back magenta\"\nPurple: \"{sColor} mid purple\"\nLime: \"{sColor} all lime\"\nPink: \"{sColor} front pink\"\nMaroon: \"{sColor} middle maroon\"\nOrange: \"{sColor} back orange\"\nSasstro's Color: \"{sColor} all sasstro\"\nSamstro's Color: \"{sColor} all samstro\"\nANY HEXCODE: \"{sColor} all FF00FF\"\n\n\n";
         return listContent;
     }
 
@@ -192,7 +276,7 @@ internal class ColorCommands
             Loggers.LogInfo("Player no longer wants a custom flashlight color!");
             CustomFlashColor = null;
             RainbowFlash = false;
-            return "Flashlight color preference set back to default!\n\nFlashlight's with the default color will no longer be updated!\r\n\r\n";
+            return "Flashlight color preference set back to default!\n\nFlashlight's with the default color will no longer be updated!\n\n";
         }
 
         string targetColor = val.TrimStart();
@@ -204,13 +288,13 @@ internal class ColorCommands
         if (CustomFlashColor.HasValue)
         {
             Loggers.LogInfo($"Using flashlight color: {targetColor}");
-            NetHandler.Instance.endFlashRainbow = true;
+            NetHandler.Instance.EndFlashRainbow = true;
             FlashLightCommandAction(out string displayText);
             return displayText;
         }
         else
         {
-            string displayText = $"Unable to set flashlight color...\r\n\tInvalid color: [{targetColor}] detected!\r\n\r\n";
+            string displayText = $"Unable to set flashlight color...\n\tInvalid color: [{targetColor}] detected!\n\n";
             Loggers.WARNING("invalid color for the color command!");
             return displayText;
         }
@@ -219,7 +303,7 @@ internal class ColorCommands
     internal static string FlashColorList()
     {
         string fColor = GetKeywordsPerConfigItem(KeywordConfigs.FcolorKeywords.Value)[0];
-        string listContent = $"========= Flashlight Color Options List =========\r\nColor Name: \"command used\"\r\n\r\nDefault: \"{fColor} normal\" or \"{fColor} default\"\r\nRed: \"{fColor} red\"\r\nGreen: \"{fColor} green\"\r\nBlue: \"{fColor} blue\"\r\nYellow: \"{fColor} yellow\"\r\nCyan: \"{fColor} cyan\"\r\nMagenta: \"{fColor} magenta\"\r\nPurple: \"{fColor} purple\"\r\nLime: \"{fColor} lime\"\r\nPink: \"{fColor} pink\"\r\nMaroon: \"{fColor} maroon\"\r\nOrange: \"{fColor} orange\"\r\nSasstro's Color: \"{fColor} sasstro\"\r\nSamstro's Color: \"{fColor} samstro\"\r\n\r\nRainbow Color (animated): \"{fColor} rainbow\"\r\nANY HEXCODE: \"{fColor} FF00FF\"\r\n\r\n";
+        string listContent = $"========= Flashlight Color Options List =========\nColor Name: \"command used\"\n\nDefault: \"{fColor} normal\" or \"{fColor} default\"\nRed: \"{fColor} red\"\nGreen: \"{fColor} green\"\nBlue: \"{fColor} blue\"\nYellow: \"{fColor} yellow\"\nCyan: \"{fColor} cyan\"\nMagenta: \"{fColor} magenta\"\nPurple: \"{fColor} purple\"\nLime: \"{fColor} lime\"\nPink: \"{fColor} pink\"\nMaroon: \"{fColor} maroon\"\nOrange: \"{fColor} orange\"\nSasstro's Color: \"{fColor} sasstro\"\nSamstro's Color: \"{fColor} samstro\"\n\nRainbow Color (animated): \"{fColor} rainbow\"\nANY HEXCODE: \"{fColor} FF00FF\"\n\n";
         return listContent;
     }
 
@@ -228,13 +312,13 @@ internal class ColorCommands
         if (DoIhaveFlash(StartOfRound.Instance.localPlayerController))
         {
             NetHandler.Instance.CycleThroughRainbowFlash();
-            string displayText = $"Flashlight color set to Rainbow Mode! (performance may vary)\r\n\r\n";
+            string displayText = $"Flashlight color set to Rainbow Mode! (performance may vary)\n\n";
             return displayText;
         }
         else
         {
             RainbowFlash = true;
-            string displayText = $"The next flashlight you hold will be set to rainbow mode! (performance may vary)\r\n\r\n";
+            string displayText = $"The next flashlight you hold will be set to rainbow mode! (performance may vary)\n\n";
             return displayText;
         }
 
@@ -242,16 +326,11 @@ internal class ColorCommands
 
     private static bool DoIhaveFlash(PlayerControllerB player)
     {
-        GrabbableObject[] objectsOfType = Object.FindObjectsOfType<GrabbableObject>();
-
-        foreach (GrabbableObject thisFlash in objectsOfType)
+        foreach (GrabbableObject item in player.ItemSlots)
         {
-            if (thisFlash.playerHeldBy != null)
+            if (item is FlashlightItem)
             {
-                if (thisFlash.playerHeldBy.playerUsername == player.playerUsername && thisFlash.gameObject.name.Contains("Flashlight"))
-                {
-                    return true;
-                }
+                return true;
             }
         }
 

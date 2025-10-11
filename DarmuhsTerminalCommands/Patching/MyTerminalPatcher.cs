@@ -7,13 +7,12 @@ using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
-using UnityEngine;
 using UnityEngine.Video;
 
 
 namespace TerminalStuff.Patching;
 
-public class AllMyTerminalPatches : MonoBehaviour
+public class AllMyTerminalPatches
 {
     public class ConfigGetters
     {
@@ -41,7 +40,7 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "ParseWord")]
+    [HarmonyPatch(typeof(Terminal), nameof(ParseWord))]
     public class ConflictResolution : Terminal
     {
         static void Postfix(string playerWord, ref TerminalKeyword __result)
@@ -53,8 +52,8 @@ public class AllMyTerminalPatches : MonoBehaviour
             ConflictRes.InitRes(playerWord, ref __result); //should modify the keyword to whatever resolution finds as the best match
         }
     }
-    [HarmonyPatch(typeof(Terminal), "TextPostProcess")]
-    public class CustomReplacements
+    [HarmonyPatch(typeof(Terminal), nameof(TextPostProcess))]
+    public class CustomReplacements : Terminal
     {
         static void Postfix(ref string __result)
         {
@@ -78,7 +77,7 @@ public class AllMyTerminalPatches : MonoBehaviour
     }
 
 
-    [HarmonyPatch(typeof(Terminal), "waitUntilFrameEndToSetActive")]
+    [HarmonyPatch(typeof(Terminal), nameof(waitUntilFrameEndToSetActive))]
     public class QuitTerminalPatch : Terminal
     {
         [HarmonyPrefix]
@@ -86,7 +85,7 @@ public class AllMyTerminalPatches : MonoBehaviour
         {
             Loggers.LogDebug("waitUntilFrameEndToSetActive");
 
-            if (EventSub.TerminalStart.alwaysOnDisplay)
+            if (EventSub.TerminalStart.AlwaysOnDisplay)
             {
                 Loggers.LogDebug("alwaysOnDisplay is TRUE");
 
@@ -99,7 +98,7 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "BeginUsingTerminal")]
+    [HarmonyPatch(typeof(Terminal), nameof(BeginUsingTerminal))]
     [HarmonyPriority(Priority.Last)]
     public class BeginUsingTranspiler : Terminal
     {
@@ -122,7 +121,7 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "BuyItemsServerRpc")]
+    [HarmonyPatch(typeof(Terminal), nameof(BuyItemsServerRpc))]
     [HarmonyPriority(Priority.Last)]
     public class PurchaseLimitPatch1 : Terminal
     {
@@ -146,7 +145,7 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "LoadNewNodeIfAffordable")]
+    [HarmonyPatch(typeof(Terminal), nameof(LoadNewNodeIfAffordable))]
     [HarmonyPriority(Priority.Last)]
     public class PurchaseLimitPatch2 : Terminal
     {
@@ -196,7 +195,7 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "SyncBoughtItemsWithServer")]
+    [HarmonyPatch(typeof(Terminal), nameof(SyncBoughtItemsWithServer))]
     [HarmonyPriority(Priority.Last)]
     public class PurchaseLimitPatch3 : Terminal
     {
@@ -227,9 +226,9 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "ParsePlayerSentence")]
+    [HarmonyPatch(typeof(Terminal), nameof(ParsePlayerSentence))]
     [HarmonyPriority(Priority.Last)]
-    public class PurchaseLimitPatch4
+    public class PurchaseLimitPatch4 : Terminal
     {
         static int replacements = 0;
         [HarmonyTranspiler]
@@ -254,13 +253,13 @@ public class AllMyTerminalPatches : MonoBehaviour
         }
     }
 
-    [HarmonyPatch(typeof(Terminal), "LoadTerminalImage")]
+    [HarmonyPatch(typeof(Terminal), nameof(LoadTerminalImage))]
     public class FixVideoPatch : Terminal
     {
-        public static bool sanityCheckLOL = false;
+        internal static bool VideoCheck { get; set; } = false;
         static void Postfix(TerminalNode node)
         {
-            if (node.name == "darmuh's videoPlayer" && sanityCheckLOL)
+            if (node.name == "darmuh's videoPlayer" && VideoCheck)
             {
                 VideoManager.videoPlayerNode = node;
 
@@ -268,12 +267,12 @@ public class AllMyTerminalPatches : MonoBehaviour
                 {
                     Plugin.instance.Terminal.videoPlayer.enabled = true;
                     Plugin.instance.Terminal.terminalImage.enabled = true;
-                    Plugin.instance.Terminal.videoPlayer.loopPointReached += vp => OnVideoEnd(Plugin.instance.Terminal);
+                    Plugin.instance.Terminal.videoPlayer.loopPointReached += vp => OnVideoEnd();
 
                     Plugin.instance.Terminal.videoPlayer.Play();
                     ViewCommands.isVideoPlaying = true;
                     Loggers.LogInfo("isVideoPlaying set to TRUE");
-                    sanityCheckLOL = false;
+                    VideoCheck = false;
                     return;
                 }
             }
@@ -298,22 +297,22 @@ public class AllMyTerminalPatches : MonoBehaviour
 
         }
 
-        public static void OnVideoEnd(Terminal instance)
+        public static void OnVideoEnd()
         {
             // This method will be called when the video is done playing
             // Disable the video player and terminal image here
             if (ViewCommands.isVideoPlaying)
             {
-                instance.videoPlayer.enabled = false;
-                instance.terminalImage.enabled = false;
+                Plugin.instance.Terminal.videoPlayer.enabled = false;
+                Plugin.instance.Terminal.terminalImage.enabled = false;
                 ViewCommands.isVideoPlaying = false;
-                sanityCheckLOL = false;
+                VideoCheck = false;
                 Loggers.LogInfo("isVideoPlaying set to FALSE");
-                instance.videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
-                instance.videoPlayer.source = VideoSource.VideoClip;
-                instance.videoPlayer.aspectRatio = VideoAspectRatio.FitHorizontally;
-                instance.videoPlayer.isLooping = true;
-                instance.videoPlayer.playOnAwake = true;
+                Plugin.instance.Terminal.videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
+                Plugin.instance.Terminal.videoPlayer.source = VideoSource.VideoClip;
+                Plugin.instance.Terminal.videoPlayer.aspectRatio = VideoAspectRatio.FitHorizontally;
+                Plugin.instance.Terminal.videoPlayer.isLooping = true;
+                Plugin.instance.Terminal.videoPlayer.playOnAwake = true;
 
             }
         }

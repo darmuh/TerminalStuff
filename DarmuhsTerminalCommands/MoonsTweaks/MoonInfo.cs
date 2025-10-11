@@ -45,10 +45,10 @@ public class MoonInfo
             if (IsCompany)
                 return false;
 
-            if (Plugin.instance.LethalLevelLoader)
-                disabled = LLLCompat.IsDisabled(Level);
-            else
+            if (!Plugin.instance.LethalLevelLoader)
                 disabled = false;
+            else
+                disabled = LLLCompat.IsDisabled(Level);
 
             if (disabled)
                 Loggers.LogDebug($"{Level} is disabled by LLL!");
@@ -66,10 +66,11 @@ public class MoonInfo
             if (IsCompany)
                 return false;
 
-            if (Plugin.instance.LethalLevelLoader)
-                isHidden = LLLCompat.IsHidden(Level);
+            if (!Plugin.instance.LethalLevelLoader)
+                isHidden = (!Plugin.instance.Terminal.moonsCatalogueList.Contains(Level) && !IsCurrent);
             else
-                isHidden = !Plugin.instance.Terminal.moonsCatalogueList.Contains(Level);
+                isHidden = LLLCompat.IsHidden(Level);
+                
 
             Loggers.LogDebug($"{LevelName} IsHidden - {isHidden}");
 
@@ -87,10 +88,10 @@ public class MoonInfo
     {
         get
         {
-            if (Plugin.instance.LethalLevelLoader)
-                isLocked = LLLCompat.IsLocked(Level);
-            else
+            if (!Plugin.instance.LethalLevelLoader)
                 isLocked = false;
+            else
+                isLocked = LLLCompat.IsLocked(Level);
 
             Loggers.LogDebug($"{LevelName} IsLocked - {isLocked}");
 
@@ -175,7 +176,6 @@ public class MoonInfo
         ResultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
         MenuItem = new(LevelName);
         MenuItem.SelectionEvent.AddListener(SelectThisMoon);
-        MenuItem.SetParentMenu(ShowMoons);
         MenuItem.OnPageLoad = AddToMenuName;
         MenuItem.moonInfo = this;
 
@@ -191,7 +191,6 @@ public class MoonInfo
         ResultNode = AllNodes.FirstOrDefault(x => x.buyRerouteToMoon == Level.levelID);
         MenuItem ??= new(LevelName);
         MenuItem.SelectionEvent.AddListener(SelectThisMoon);
-        MenuItem.SetParentMenu(ShowMoons);
         MenuItem.OnPageLoad = AddToMenuName;
         MenuItem.moonInfo = this;
 
@@ -210,7 +209,7 @@ public class MoonInfo
         else if (IsHidden)
             MenuItem.Name = "[ ??? ]";
 
-        if (MoonsFilter.Price)
+        if (FilterView.Styling.HasFlag(FilterView.DisplayStyle.Price))
             MenuItem.Prefix += $"${DisplayPrice} ";
 
         if (IsCurrent)
@@ -219,10 +218,10 @@ public class MoonInfo
             MenuItem.Suffix += ">>";
         }
 
-        if (MoonsFilter.Weather && GetWeatherName(Level).Length > 1)
-            MenuItem.Suffix += GetWeatherName(Level);
+        if (FilterView.Styling.HasFlag(FilterView.DisplayStyle.Weather) && GetWeatherName(Level).Length > 1)
+            MenuItem.Suffix += $" ({GetWeatherName(Level)})";
 
-        if (MoonsFilter.Difficulty)
+        if (FilterView.Styling.HasFlag(FilterView.DisplayStyle.Difficulty))
             MenuItem.Suffix += $" ({Level.riskLevel})";
 
         if (AdditionalInfo.Length > 0) //add any additional stuff from other mods accessing this attribute
@@ -297,7 +296,7 @@ public class MoonInfo
                 CommonTerminal.LoadNewNode(PurchaseNode);
                 Loggers.LogDebug("Loading vanilla node!");
             };
-            MoonsPlusMenu.ExitInTerminal();
+            MoonsPlusMenu.ExitMenu(true);
             return;
         }
 
@@ -322,7 +321,7 @@ public class MoonInfo
         }
     }
 
-    internal bool ShowInListing()
+    internal bool ShowInListing(bool priceCheck = false, bool weatherCheck = false)
     {
         if (IsCurrent)
             return true;
@@ -342,10 +341,10 @@ public class MoonInfo
         if (IsManuallyHidden())
             return false;
 
-        if (HasBadWeather())
+        if (HasBadWeather(weatherCheck))
             return false;
 
-        if (MoonsFilter.RemoveTooExpensive && DisplayPrice < Plugin.instance.Terminal.groupCredits)
+        if (priceCheck && DisplayPrice > Plugin.instance.Terminal.groupCredits)
             return false;
 
         return true;
@@ -372,9 +371,9 @@ public class MoonInfo
 
     }
 
-    internal bool HasBadWeather()
+    internal bool HasBadWeather(bool weatherCheck)
     {
-        if (!MoonsFilter.RemoveBadWeather || AcceptableWeathers.Count == 0)
+        if (!weatherCheck || AcceptableWeathers.Count == 0)
             return false;
 
 
@@ -418,13 +417,15 @@ public class MoonInfo
     {
         Loggers.LogDebug($"GETPRICE FOR {LevelName}");
 
-        if (Plugin.instance.LethalLevelLoader)
-            return LLLCompat.GetPrice(Level);
+        if (!Plugin.instance.LethalLevelLoader)
+        {
+            if (PurchaseNode == null)
+                return 0;
 
-        if (PurchaseNode == null)
-            return 0;
+            return PurchaseNode.itemCost;
+        }
 
-        return PurchaseNode.itemCost;
+        return LLLCompat.GetPrice(Level);
     }
 
     internal void UpdateHistory()
@@ -486,9 +487,7 @@ public class MoonInfo
         Loggers.LogDebug($"Hiding {LevelName}");
         //IsHidden = shouldHide;
 
-        if (Plugin.instance.LethalLevelLoader)
-            LLLCompat.ChangeHiddenStatus(Level, shouldHide);
-        else
+        if (!Plugin.instance.LethalLevelLoader)
         {
             List<SelectableLevel> catalogue = [.. Plugin.instance.Terminal.moonsCatalogueList];
             if (catalogue.Contains(Level))
@@ -496,6 +495,8 @@ public class MoonInfo
 
             Plugin.instance.Terminal.moonsCatalogueList = [.. catalogue];
         }
+        else
+            LLLCompat.ChangeHiddenStatus(Level, shouldHide);
     }
 
     internal void UnlockUnhide()
@@ -505,10 +506,11 @@ public class MoonInfo
 
         Loggers.LogDebug($"Unlock/Unhide {LevelName}");
 
-        if (Plugin.instance.LethalLevelLoader)
-            LLLCompat.UnlockUnhide(Level);
-        else
+        if (!Plugin.instance.LethalLevelLoader)
             Hide(false);
+        else
+            LLLCompat.UnlockUnhide(Level);
+            
     }
 
     internal bool IsDisabled()
@@ -537,5 +539,10 @@ public class MoonInfo
                 PurchaseNode.itemCost = Price;
             OTP = false;
         }
+    }
+
+    internal static bool IsRouteEnabled(TerminalNode query)
+    {
+        return !EventSub.TerminalStart.RouteKeyword.compatibleNouns.Any(x => x.result == query);
     }
 }

@@ -69,7 +69,7 @@ internal class Bools
         quitTerminalEnum = false;
         leverEnum = false;
         fovEnum = false;
-        rainbowFlashEnum = false;
+        RainbowFlashRoutine = false;
         kickEnum = false;
         walkieEnum = false;
     }

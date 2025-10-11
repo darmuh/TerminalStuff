@@ -106,9 +106,9 @@ internal class ShipControls
 
         StartOfRound.Instance.shipRoomLights.ToggleShipLights();
         if (StartOfRound.Instance.shipRoomLights.areLightsOn)
-            displayText = $"Ship Lights are [ON]\r\n\r\n";
+            displayText = $"Ship Lights are [ON]\n\n";
         else
-            displayText = $"Ship Lights are [OFF]\r\n\r\n";
+            displayText = $"Ship Lights are [OFF]\n\n";
         return displayText;
     }
 
@@ -148,7 +148,7 @@ internal class ShipControls
 
 
             }
-            else displayText = $"Teleporter has {Mathf.Round(cooldownTime)} seconds remaining on cooldown.\r\n";
+            else displayText = $"Teleporter has {Mathf.Round(cooldownTime)} seconds remaining on cooldown.\n";
             return displayText;
         }
         else displayText = "Can't teleport at this time.\n Do you even have a teleporter?\n";
@@ -205,12 +205,12 @@ internal class ShipControls
             }
             else if (Mathf.Round(cooldownTime) > 0)
             {
-                displayText = $"Inverse Teleporter has {Mathf.Round(cooldownTime)} seconds remaining on cooldown.\r\n";
+                displayText = $"Inverse Teleporter has {Mathf.Round(cooldownTime)} seconds remaining on cooldown.\n";
                 return displayText;
             }
             else
             {
-                displayText = $"Can't Inverse Teleport from space...\r\n"; //test
+                displayText = $"Can't Inverse Teleport from space...\n"; //test
                 return displayText;
             }
 
@@ -235,12 +235,12 @@ internal class ShipControls
         }
         else if (StartOfRound.Instance.travellingToNewLevel)
         {
-            string displayText = $"We have not yet arrived to {getLevelName}, please wait.\r\n";
+            string displayText = $"We have not yet arrived to {getLevelName}, please wait.\n";
             return displayText;
         }
         else
         {
-            string displayText = "Cannot pull the lever at this time.\r\n\r\n\tNOTE: If the game has not been started, only the host can do this.\r\n\r\n";
+            string displayText = "Cannot pull the lever at this time.\n\n\tNOTE: If the game has not been started, only the host can do this.\n\n";
             return displayText;
         }
     }
@@ -265,7 +265,7 @@ internal class ShipControls
 
     internal static string DenyLever()
     {
-        string displayText = "Lever pull canceled...\r\n\r\n\r\n";
+        string displayText = "Lever pull canceled...\n\n\n";
         return displayText;
     }
 
@@ -329,14 +329,14 @@ internal class ShipControls
         }
         else if (!GameNetworkManager.Instance.localPlayerController.isHostPlayerObject)
         {
-            string displayText = "Only the host can do this...\r\n";
+            string displayText = "Only the host can do this...\n";
             return displayText;
         }
 
         else
         {
             string displayText = "Restart lobby confirmed, getting new ship...\n\n";
-            NetHandler.Instance.QuickRestartServerRpc();
+            NetHandler.Instance.QuickRestartRpc();
             Loggers.LogInfo("restarting lobby");
             return displayText;
         }

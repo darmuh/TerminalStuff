@@ -110,14 +110,14 @@ internal class CostCommands
             }
             else
             {
-                displayText = "Not enough credits to run Biomatter Scanner.\r\n";
+                displayText = "Not enough credits to run Biomatter Scanner.\n";
                 Loggers.LogInfo("brokeboy detected");
                 return displayText;
             }
         }
         else
         {
-            displayText = "Cannot scan for Biomatter at this time.\r\n";
+            displayText = "Cannot scan for Biomatter at this time.\n";
             return displayText;
         }
     }
@@ -129,7 +129,7 @@ internal class CostCommands
 
     private static string GetBasicBioscanResult(int scannedEnemies, int costCreds, int newCreds)
     {
-        return $"Biomatter scanner charged {costCreds} credits and has detected [{scannedEnemies}] non-employee organic objects.\r\n\r\nYour new balance is ■{newCreds} Credits.\r\n";
+        return $"Biomatter scanner charged {costCreds} credits and has detected [{scannedEnemies}] non-employee organic objects.\n\nYour new balance is ■{newCreds} Credits.\n";
     }
 
     private static List<EnemyAI> GetLivingEnemiesList()
@@ -145,15 +145,15 @@ internal class CostCommands
     }
     private static string GetBioscanResult(int scannedEnemies, int costCreds, int newCreds, string filteredLivingEnemiesString)
     {
-        string bioscanResult = $"Biomatter scanner charged {costCreds} credits and has detected [{scannedEnemies}] non-employee organic objects.\r\n\r\n";
+        string bioscanResult = $"Biomatter scanner charged {costCreds} credits and has detected [{scannedEnemies}] non-employee organic objects.\n\n";
 
         if (!string.IsNullOrEmpty(filteredLivingEnemiesString))
         {
-            bioscanResult += $"Your new balance is ■{newCreds} Credits.\r\n\r\nDetailed scan has defined these objects as the following in the registry: \r\n{filteredLivingEnemiesString}\r\n";
+            bioscanResult += $"Your new balance is ■{newCreds} Credits.\n\nDetailed scan has defined these objects as the following in the registry: \n{filteredLivingEnemiesString}\n";
         }
         else
         {
-            bioscanResult += $"Your new balance is ■{newCreds} Credits.\r\n";
+            bioscanResult += $"Your new balance is ■{newCreds} Credits.\n";
             Loggers.LogInfo("v1 scanner utilized, only numbers shown");
         }
 
@@ -222,7 +222,7 @@ internal class CostCommands
         else
         {
             TerminalGeneral.CancelConfirmation = true;
-            string displayText = $"BioScanner software has already been updated to the latest patch (2.0).\r\n\r\n";
+            string displayText = $"BioScanner software has already been updated to the latest patch (2.0).\n\n";
             return displayText;
         }
     }
@@ -236,7 +236,7 @@ internal class CostCommands
         else
         {
             TerminalGeneral.CancelConfirmation = true;
-            string displayText = $"Vitals Scanner software has already been updated to the latest patch (2.0).\r\n\r\n";
+            string displayText = $"Vitals Scanner software has already been updated to the latest patch (2.0).\n\n";
             return displayText;
         }
     }
@@ -246,7 +246,7 @@ internal class CostCommands
         if (enemyScanUpgradeEnabled == false)
         {
             int newCreds = Plugin.instance.Terminal.groupCredits - Commands.BioScanUpgradeCost.Value;
-            string displayText = $"Biomatter Scanner software has been updated to the latest patch (2.0) and now provides more detailed information!\r\n\r\nYour new balance is ■{newCreds} Credits\r\n";
+            string displayText = $"Biomatter Scanner software has been updated to the latest patch (2.0) and now provides more detailed information!\n\nYour new balance is ■{newCreds} Credits\n";
             SaveManager.NewUnlock("BioscanPatch");
             Plugin.instance.Terminal.SyncGroupCreditsServerRpc(newCreds, Plugin.instance.Terminal.numberOfItemsInDropship);
             Plugin.instance.Terminal.PlayTerminalAudioServerRpc(0);
@@ -254,7 +254,7 @@ internal class CostCommands
         }
         else
         {
-            string displayText = $"BioScanner software has already been updated to the latest patch (2.0).\r\n\r\n";
+            string displayText = $"BioScanner software has already been updated to the latest patch (2.0).\n\n";
             return displayText;
         }
     }
@@ -311,14 +311,14 @@ internal class CostCommands
             Loggers.LogDebug($"new creds: {newCreds}");
             Plugin.instance.Terminal.orderedItemsFromTerminal.Clear();
             storeCart.Clear();
-            NetHandler.Instance.SyncDropShipServerRpc(true);
+            NetHandler.Instance.SyncDropShipRpc(true);
 
-            NetHandler.Instance.SyncCreditsServerRpc(newCreds, 0);
+            NetHandler.Instance.SyncHostCreditsRpc(newCreds, 0);
 
             string allitems = ListToStringBuild(returnlist);
 
             Loggers.LogInfo($"Refund total: ${refund}");
-            displayText = $"Cancelling order for:\n{allitems}\nYou have been refunded ■{refund} Credits!\r\n";
+            displayText = $"Cancelling order for:\n{allitems}\nYou have been refunded ■{refund} Credits!\n";
             Plugin.instance.Terminal.PlayTerminalAudioServerRpc(0);
             return displayText;
         }
@@ -346,7 +346,7 @@ internal class CostCommands
         {
             int newCreds = Plugin.instance.Terminal.groupCredits - Commands.VitalsUpgradeCost.Value;
             SaveManager.NewUnlock("VitalsPatch");
-            string displayText = $"Vitals Scanner software has been updated to the latest patch (2.0) and no longer requires credits to scan.\r\n\r\nYour new balance is ■{newCreds} credits\r\n";
+            string displayText = $"Vitals Scanner software has been updated to the latest patch (2.0) and no longer requires credits to scan.\n\nYour new balance is ■{newCreds} credits\n";
             Plugin.instance.Terminal.SyncGroupCreditsServerRpc(newCreds, Plugin.instance.Terminal.numberOfItemsInDropship);
             Plugin.instance.Terminal.PlayTerminalAudioServerRpc(0);
             return displayText;
@@ -368,7 +368,7 @@ internal class CostCommands
         int newCreds = getCreds - costCreds;
         frompatch.groupCredits = newCreds;
 
-        NetHandler.Instance.SyncCreditsServerRpc(newCreds, frompatch.numberOfItemsInDropship);
+        NetHandler.Instance.SyncHostCreditsRpc(newCreds, frompatch.numberOfItemsInDropship);
         return newCreds;
     }
 
@@ -393,7 +393,7 @@ internal class CostCommands
 
     private static string GetCreditsInfo(int newCreds)
     {
-        return $"Your new balance is ■{newCreds} Credits.\r\n";
+        return $"Your new balance is ■{newCreds} Credits.\n";
     }
 
 }
