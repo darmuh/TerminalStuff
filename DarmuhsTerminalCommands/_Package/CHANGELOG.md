@@ -8,6 +8,8 @@ This project does NOT adhere to perfect Semantic Versioning. Mostly because I do
 ## [3.9.0] (V73 Update)
  - Networking updated for Lethal Company v73
 	- This included many optimizations/changes on the backend of this mod.
+	- Now utilizing Openlib networker.
+	- Networking is now entirely dependent on host.
  - MoonsPlus updates
 	- Menu now has separate pages for affordable moons & good weather only moons
 	- Sorting logic has been modified and a new config item has been provided to change the default
@@ -19,7 +21,6 @@ This project does NOT adhere to perfect Semantic Versioning. Mostly because I do
  - Overhauled commands to use OpenLib's newer command addition system. 
 	- This is a backend change and should not make a notice-able difference but did take me some time to implement.
  - Many more undocumented changes.
-
 
 ## [3.8.5]
  - Fixed some issues with MoonsPlus when networking is disabled.

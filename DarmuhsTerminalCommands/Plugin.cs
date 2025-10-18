@@ -84,7 +84,7 @@ public partial class Plugin : BaseUnityPlugin
     {
         instance = this;
         Log = base.Logger;
-        Log.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded with version {MyPluginInfo.PLUGIN_VERSION}!");
+        Log.LogInfo($"{MyPluginInfo.PLUGIN_NAME} is loaded with version {MyPluginInfo.PLUGIN_VERSION}!\nThis mod has been compiled for v73 of LethalCompany!");
         ConfigSettings.BindConfigSettings();
         //Addkeywords used to be here
         VideoManager.Load();

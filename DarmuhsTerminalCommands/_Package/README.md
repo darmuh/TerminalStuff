@@ -1,6 +1,9 @@
-# darmuhsTerminalStuff (All-In-One Terminal Expansion Mod)
+# darmuhsTerminalStuff (All-In-One Terminal Expansion Mod) *v73*  
 
-## **For vanilla compatibility, disable ModNetworking in config (found in the "Networking" section)**
+## **For vanilla compatibility, disable ModNetworking in config (found in the "Networking" section)**  
+
+### Version 3.9+ of this mod has been compiled for v73 of Lethal Company.  
+- For compatibility with earlier versions of Lethal Company please use version 3.8.5 or earlier.  
 
 ---
 
