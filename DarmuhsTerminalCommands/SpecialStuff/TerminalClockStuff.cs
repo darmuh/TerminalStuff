@@ -1,5 +1,4 @@
-﻿using TerminalStuff.CommandHandling;
-using TerminalStuff.Configs;
+﻿using TerminalStuff.Configs;
 using TerminalStuff.Util;
 using TMPro;
 using UnityEngine;
@@ -22,7 +21,8 @@ internal class TerminalClockStuff
         if (string.IsNullOrEmpty(clockTime))
             return;
 
-        textComponent.text = clockTime.Replace("\n", "").Replace("", "");
+        if(clockTime.Contains('\n'))
+            textComponent.text = clockTime.Replace("\n", "");
         //Loggers.LogDebug($"Time {textComponent.text}");
     }
 

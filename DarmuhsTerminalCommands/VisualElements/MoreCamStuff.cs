@@ -25,7 +25,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         Plugin.instance.isOnOverlay = false;
         Plugin.instance.activeCam = false;
 
-        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
             Plugin.instance.activeCam = false;
         else
             NetHandler.Instance.SyncMyCamsBoolToEveryoneRpc(false);

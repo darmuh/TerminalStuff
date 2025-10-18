@@ -112,7 +112,7 @@ internal class TerminalGeneral
 
     internal static void OnLoadAffordable(TerminalNode node)
     {
-        if (!Commands.TerminalRefund.Value || !ConfigSettings.ModNetworking.Value)
+        if (!Commands.TerminalRefund.Value || NetHandler.Instance == null)
             return;
 
         if (node == null)

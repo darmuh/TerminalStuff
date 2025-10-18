@@ -28,9 +28,6 @@ public static class ConfigSettings
     public static ConfigEntry<bool> ModNetworking { get; internal set; } = null!;
     public static ConfigEntry<bool> NetworkedNodes { get; internal set; } = null!; //enable or disable networked terminal nodes (beta)
 
-    public static ConfigEntry<bool> ExtensiveLogging { get; internal set; } = null!;
-    public static ConfigEntry<bool> DeveloperLogging { get; internal set; } = null!;
-
     //Strings for display messages
     public static ConfigEntry<bool> CanOpenDoorInSpace { get; internal set; } = null!; //bool to allow for opening door in space
     public static ConfigEntry<string> DoorOpenString { get; internal set; } = null!; //Door String

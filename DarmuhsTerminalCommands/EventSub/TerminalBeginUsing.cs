@@ -65,7 +65,7 @@ internal class TerminalBeginUsing
         }
 
         //refund init
-        if (Commands.TerminalRefund.Value && ConfigSettings.ModNetworking.Value)
+        if (Commands.TerminalRefund.Value && NetHandler.Instance != null)
         {
             Loggers.LogDebug("Syncing items between players for refund command");
             NetHandler.Instance.SyncDropShipRpc(false);

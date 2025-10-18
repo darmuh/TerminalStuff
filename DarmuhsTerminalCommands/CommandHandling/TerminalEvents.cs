@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TerminalStuff.Configs;
+using TerminalStuff.Networking;
 using TerminalStuff.SpecialStuff;
+using TerminalStuff.StoreTweaks;
+using TerminalStuff.Util;
 using UnityEngine;
+using static TerminalStuff.Util.StringStuff;
 using static TerminalStuff.VisualElements.MoreCamStuff;
 using static TerminalStuff.VisualElements.TerminalCustomizer;
-using static TerminalStuff.Util.StringStuff;
-using TerminalStuff.Util;
-using TerminalStuff.StoreTweaks;
 
 #pragma warning disable IDE0130 // OpenLib depdendent class name
 namespace TerminalStuff;
@@ -268,7 +269,7 @@ public static class TerminalEvents
         Plugin.instance.Terminal.LoadNewNode(node);
         Loggers.LogDebug($"Loading node!");
 
-        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
             return;
 
         Loggers.LogDebug($"Syncing with TerminalStuff!");

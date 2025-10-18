@@ -24,7 +24,7 @@ public partial class Plugin : BaseUnityPlugin
     public static Plugin instance = null!;
 
     //Networking
-    internal NetworkPrefabGen<NetHandler> Networker = null!;
+    internal NetworkClass<NetHandler> Networker = null!;
 
     internal static ManualLogSource Log = null!;
 
@@ -95,7 +95,7 @@ public partial class Plugin : BaseUnityPlugin
 
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
-        Networker = new NetworkPrefabGen<NetHandler>("darmuhsTerminalStuff Networker", ConfigSettings.ModNetworking);
+        Networker = new NetworkClass<NetHandler>("darmuhsTerminalStuff NetHandler", ConfigSettings.ModNetworking);
     }
 
     internal void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)

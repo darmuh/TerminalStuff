@@ -94,7 +94,7 @@ public class FilterView
         }
 
         int thisIndex = menuItems.IndexOf(expectedTop);
-        Loggers.LogDebug($"{MoonsPlusConfig.ThisAlwaysOnTop.Value} = {thisIndex}");
+        Loggers.LogDebug($"AlwaysOnTopIndex for [{MoonsPlusConfig.ThisAlwaysOnTop.Value}] = {thisIndex}");
         if (thisIndex > 0)
         {
             menuItems.RemoveAt(thisIndex);
@@ -109,7 +109,7 @@ public class FilterView
         if(menuItems.Count == 0) return;
 
         UpdateSorting(Sorting, ref menuItems);
-        MoonOnTopCheck(ref menuItems);
+        
     }
 
     internal static void SortByLevelID()
@@ -213,6 +213,8 @@ public class FilterView
                     menuItems = [.. list.OrderByDescending(x => x.moonInfo.DisplayPrice)];
                 break;
         }
+
+        MoonOnTopCheck(ref menuItems);
     }
 
     internal static void ToggleGeneric(DisplayStyle flag, out bool isEnabled)

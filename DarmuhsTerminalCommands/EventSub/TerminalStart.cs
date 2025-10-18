@@ -189,7 +189,7 @@ public class TerminalStart
         if (startNode == null)
             startNode = Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[13];
 
-        if (!ConfigSettings.ModNetworking.Value || !ConfigSettings.NetworkedNodes.Value)
+        if (NetHandler.Instance == null || !ConfigSettings.NetworkedNodes.Value)
         {
             Loggers.LogDebug("Networking disabled, returning...");
             thisterm.LoadNewNode(startNode);

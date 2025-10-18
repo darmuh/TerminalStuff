@@ -198,7 +198,7 @@ internal class MoreCommands
     internal static string AlwaysOnDisplay()
     {
         string displayText;
-        if (!EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
+        if (!EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && NetHandler.Instance != null)
         {
             keepAlwaysOnDisabled = false;
             NetHandler.Instance.AlwaysOnDisplaySyncRpc(true);
@@ -206,7 +206,7 @@ internal class MoreCommands
             return displayText;
             //Plugin.Log.LogInfo("set alwaysondisplay to true");
         }
-        else if (EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
+        else if (EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && NetHandler.Instance != null)
         {
             keepAlwaysOnDisabled = true;
             NetHandler.Instance.AlwaysOnDisplaySyncRpc(false);

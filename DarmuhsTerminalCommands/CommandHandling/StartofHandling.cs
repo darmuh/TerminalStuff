@@ -131,7 +131,7 @@ internal class StartofHandling
 
     internal static void CheckNetNode(TerminalNode resultNode)
     {
-        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
             return;
 
         Loggers.LogInfo("Networked nodes enabled, sending result to server.");

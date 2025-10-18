@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.9.0] (V73 Update)
+ - Networking updated for Lethal Company v73
+	- This included many optimizations/changes on the backend of this mod.
+ - MoonsPlus updates
+	- Menu now has separate pages for affordable moons & good weather only moons
+	- Sorting logic has been modified and a new config item has been provided to change the default
+	- Overall code overhaul should fix many issues from v3.8.5
+ - StorePlus updates
+	- New default config items for sorting style/savings
+	- Overall code overhaul should fix many issues from v3.8.5
+ - Removed hard-coded spaces from HomePage text. Config defaults have been updated with this in mind.
+ - Overhauled commands to use OpenLib's newer command addition system. 
+	- This is a backend change and should not make a notice-able difference but did take me some time to implement.
+ - Many more undocumented changes.
+
+
 ## [3.8.5]
  - Fixed some issues with MoonsPlus when networking is disabled.
 	- Added notes for all config items that require networking

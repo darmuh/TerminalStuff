@@ -14,7 +14,7 @@ internal class SaveManager
     internal static void InitMoonPlusSave()
     {
         //networking disabled
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         if (!Commands.TerminalMoonsPlus.Value)
@@ -33,7 +33,7 @@ internal class SaveManager
     internal static void HistorySaveInit()
     {
         //networking disabled
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         if (!ES3.KeyExists("darmuhsTerminalStuff_MoonsPlusHistory", GameNetworkManager.Instance.currentSaveFileName))
@@ -70,13 +70,13 @@ internal class SaveManager
     internal static void InitUnlocks()
     {
         //networking disabled
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         CostCommands.enemyScanUpgradeEnabled = false;
         CostCommands.vitalsUpgradeEnabled = false;
 
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         if (!GameNetworkManager.Instance.isHostingGame)
@@ -129,7 +129,7 @@ internal class SaveManager
     internal static void NewUnlock(string unlockName)
     {
         //networking disabled
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         if (!AllUpgradesUnlocked.Contains(unlockName))
@@ -164,7 +164,7 @@ internal class SaveManager
     internal static void AddToTravelHistory(MoonInfo moon)
     {
         //networking disabled
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         if (GameNetworkManager.Instance.localPlayerController == null)

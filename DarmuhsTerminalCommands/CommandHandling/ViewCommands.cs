@@ -89,7 +89,7 @@ internal class ViewCommands
     {
         GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(target);
 
-        if (Plugin.instance.TwoRadarMapsMod && ConfigSettings.ModNetworking.Value && ConfigSettings.NetworkedNodes.Value)
+        if (Plugin.instance.TwoRadarMapsMod && NetHandler.Instance != null && ConfigSettings.NetworkedNodes.Value)
         {
             Loggers.LogDebug("Second radar requires syncing!");
             NetHandler.Instance.SyncRadarMapRpc(target);
@@ -519,7 +519,7 @@ internal class ViewCommands
 
     internal static void SetAnyCamsTrue()
     {
-        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
             Plugin.instance.activeCam = true;
         else
             NetHandler.Instance.SyncMyCamsBoolToEveryoneRpc(true);

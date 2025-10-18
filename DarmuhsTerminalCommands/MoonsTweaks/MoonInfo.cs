@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
+using TerminalStuff.Networking;
 using TerminalStuff.Util;
 using static TerminalStuff.MoonsTweaks.MoonsPlus;
 
@@ -378,7 +379,7 @@ public class MoonInfo
 
 
         string currentWeather = GetWeatherName(Level);
-        Loggers.LogDebug($"Checking {LevelName} weather - {currentWeather}");
+        //Loggers.LogDebug($"Checking {LevelName} weather - {currentWeather}");
 
         if (currentWeather.Length < 1)
             return false;
@@ -404,7 +405,7 @@ public class MoonInfo
 
     internal bool NoPrice()
     {
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return false;
 
         if (StartOfRound.Instance == null)
@@ -415,7 +416,7 @@ public class MoonInfo
 
     internal int GetPrice()
     {
-        Loggers.LogDebug($"GETPRICE FOR {LevelName}");
+        //Loggers.LogDebug($"GETPRICE FOR {LevelName}");
 
         if (!Plugin.instance.LethalLevelLoader)
         {
@@ -430,7 +431,7 @@ public class MoonInfo
 
     internal void UpdateHistory()
     {
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         Loggers.LogDebug($"{LevelName} UpdateHistory");
@@ -456,7 +457,7 @@ public class MoonInfo
 
     internal void UpdateInfo()
     {
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         if (!IsCurrent)
@@ -481,7 +482,7 @@ public class MoonInfo
 
     internal void Hide(bool shouldHide)
     {
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         Loggers.LogDebug($"Hiding {LevelName}");
@@ -501,7 +502,7 @@ public class MoonInfo
 
     internal void UnlockUnhide()
     {
-        if (!ConfigSettings.ModNetworking.Value)
+        if (NetHandler.Instance == null)
             return;
 
         Loggers.LogDebug($"Unlock/Unhide {LevelName}");

@@ -102,7 +102,7 @@ internal class TerminalCustomizer
     {
         Loggers.LogDebug("Updating home displaytext");
         startNode = Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[1];
-        startNode.displayText = $"{CustomizeConfig.HomeLine1.Value}\n{CustomizeConfig.HomeLine2.Value}\n\n{CustomizeConfig.HomeHelpLines.Value}\n{CustomizeConfig.HomeTextArt.Value}\n\n{CustomizeConfig.HomeLine3.Value}\n\n";
+        startNode.displayText = $"{CustomizeConfig.HomeLine1.Value}\n{CustomizeConfig.HomeLine2.Value}\n{CustomizeConfig.HomeHelpLines.Value}\n{CustomizeConfig.HomeTextArt.Value}\n{CustomizeConfig.HomeLine3.Value}\n\n";
     }
 
     private static void AutoResizeMoneyBG()

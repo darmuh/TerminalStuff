@@ -166,7 +166,7 @@ internal static class VideoManager //reworked this bit of code from TVLoader by 
         currentlyPlaying = Videos[randomIndex];
         Loggers.LogInfo("URL:" + Plugin.instance.Terminal.videoPlayer.url);
 
-        if (ConfigSettings.VideoSync.Value && ConfigSettings.ModNetworking.Value && ConfigSettings.NetworkedNodes.Value)
+        if (ConfigSettings.VideoSync.Value && NetHandler.Instance != null && ConfigSettings.NetworkedNodes.Value)
         {
             NetHandler.Instance.SyncMyVideoChoiceToEveryoneRpc(currentlyPlaying);
             Loggers.LogInfo("Video picked and sent to clients");

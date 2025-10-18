@@ -1,8 +1,6 @@
 ﻿using HarmonyLib;
 using OpenLib.CoreMethods;
 using OpenLib.InteractiveMenus;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +8,6 @@ using System.Text;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.Util;
-using TerminalStuff.VisualElements;
 using UnityEngine;
 using UnityEngine.Video;
 
@@ -288,14 +285,21 @@ public class MoonsPlus
     private static void UpdateMoonListing(ref MoonMenuItem Parent, bool price = false, bool weather = false)
     {
         Parent.NestedMenus = [];
+        MoonInfo currentMoon = null!;
         foreach (MoonInfo moon in MoonListing)
         {
             moon.MenuItem.ShowIfEmptyNest = moon.ShowInListing(price, weather);
             Parent.AddNestedItem(moon.MenuItem);
+
+            if (MoonsPlusMenu.ActiveSelection < 0 || MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count)
+                continue;
+
+            if (moon.MenuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection])
+                currentMoon = moon;
         }
 
         // Video Reel Section
-        VideoReelStuff();
+        VideoReelStuff(currentMoon);
         List<MoonInfo> currentList = [];
         MoonListing.DoIf(x => x.MenuItem.moonInfo != null && x.MenuItem.ShowIfEmptyNest, x => currentList.Add(x));
 
@@ -317,26 +321,8 @@ public class MoonsPlus
         UpdateMoonListing(ref GoodWeatherMoons, false, true);
     }
 
-    internal static void VideoReelStuff()
+    internal static void VideoReelStuff(MoonInfo current)
     {
-        MenuItem activeMenu = MoonsPlusMenu.AllMenuItemsOfType.FirstOrDefault(x => x.IsActive);
-        if (activeMenu == null)
-        {
-            Loggers.ERROR("Unable to get activeMenu!");
-            return;
-        }
-
-        if (activeMenu != AllMoons)
-        {
-            ShowReel(false);
-            return;
-        }
-
-        if (MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count || MoonsPlusMenu.ActiveSelection < 0)
-            return;
-
-        MoonInfo current = MoonListing.FirstOrDefault(x => x.MenuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection]);
-
         if (current == null)
         {
             Loggers.WARNING($"Could not get current moon from active index [{MoonsPlusMenu.ActiveSelection}]");

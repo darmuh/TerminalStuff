@@ -34,7 +34,7 @@ public class TerminalParse
 
     public static void NetSync(TerminalNode node)
     {
-        if (!ConfigSettings.NetworkedNodes.Value || !ConfigSettings.ModNetworking.Value)
+        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
             return;
 
         Loggers.LogInfo("Networked nodes enabled, sending result to server.");

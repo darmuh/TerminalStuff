@@ -96,6 +96,6 @@ public class StoreMenuItem(string name) : MenuItem(StorePlus.StorePlusMenu)
             StartofHandling.HandleShortcutFinal(keyword);
             Loggers.LogDebug($"Selecting external keyword! {keyword}");
         };
-        StorePlus.StorePlusMenu.ExitInTerminal();
+        StorePlus.StorePlusMenu.ExitMenu(true);
     }
 }

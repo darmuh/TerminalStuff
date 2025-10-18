@@ -118,7 +118,7 @@ internal class OtherPatches
             if (!on)
                 return;
 
-            if (!ConfigSettings.ModNetworking.Value)
+            if (NetHandler.Instance == null)
                 return;
 
             if (ColorCommands.RainbowFlash)
