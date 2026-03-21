@@ -110,7 +110,7 @@ public class StorePlus
         if (InitOnce)
             return;
 
-        StorePlusMenu.PageSize = 6; // add config item
+        StorePlusMenu.PageSize = StorePlusConfig.MenuPageSize;
         StorePlusMenu.MainMenu = TheMainMenu;
         StorePlusMenu.OnExit.AddListener(OnExit);
 

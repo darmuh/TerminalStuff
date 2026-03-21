@@ -108,7 +108,7 @@ public class MoonsPlus
             return;
 
         MoonsPlusMenu.MainMenu = MoonsMainMenu;
-        MoonsPlusMenu.PageSize = 10;
+        MoonsPlusMenu.PageSize = MoonsPlusConfig.MenuPageSize;
         MoonsMainMenu.Header = () => "============= MoonsPlus Main  =============\n\n";
         AllMoons.SetParentMenu(MoonsMainMenu);
         AllMoons.Header = () => "============= Select a Moon  =============\n\n";
