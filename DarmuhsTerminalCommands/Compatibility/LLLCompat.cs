@@ -62,6 +62,7 @@ internal class LLLCompat
         return false;
     }
 
+    // Unused, would probably need a method to relock/hide on lobby reset
     internal static void UnlockUnhide(SelectableLevel level)
     {
         if (!Plugin.instance.LethalLevelLoader)

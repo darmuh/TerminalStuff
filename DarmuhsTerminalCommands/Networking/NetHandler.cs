@@ -77,14 +77,12 @@ public class NetHandler : NetworkBehaviour
     {
         if (newNode != null && vanillaNodes.Contains(newNode))
         {
-            MoreCamStuff.CamPersistance(nodeName);
-            MoreCamStuff.VideoPersist(nodeName);
+            MoreCamStuff.CheckVisualPersistance(nodeName);
             Plugin.instance.Terminal.LoadNewNode(newNode);
             return;
         }
 
-        MoreCamStuff.CamPersistance(nodeName);
-        MoreCamStuff.VideoPersist(nodeName);
+        MoreCamStuff.CheckVisualPersistance(nodeName);
         NetNode.displayText = nodeText;
         Plugin.instance.Terminal.LoadNewNode(NetNode);
 
@@ -117,13 +115,6 @@ public class NetHandler : NetworkBehaviour
     {
         VideoManager.currentlyPlaying = videoPlaying;
         Loggers.LogInfo($"currentlyPlaying set to {videoPlaying}");
-    }
-
-    [Rpc(SendTo.Everyone, RequireOwnership = false)]
-    internal void SyncMyCamsBoolToEveryoneRpc(bool value)
-    {
-        Plugin.instance.activeCam = value;
-        Loggers.LogInfo($"activeCam set to {value}");
     }
 
     [Rpc(SendTo.Owner, RequireOwnership = false)]

@@ -63,7 +63,7 @@ public static class ConfigSettings
     public static ConfigEntry<bool> VideoSync { get; internal set; } = null!; //Should videos be synced between players (good for AOD)
     public static ConfigEntry<bool> AlwaysUniqueVideo { get; internal set; } = null!;
 
-    public static ConfigEntry<bool> MonitoringNeverHide { get; internal set; } = null!;
+    public static ConfigEntry<string> KeepMonitoringNodes { get; internal set; } = null!;
     public static ConfigEntry<string> MonitoringDefaultView { get; internal set; } = null!;
     public static ConfigEntry<int> OverlayOpacity { get; internal set; } = null!; //Opacity Percentage for Overlay Cams View
     public static ConfigEntry<string> CustomLink { get; internal set; } = null!;
@@ -107,8 +107,6 @@ public static class ConfigSettings
         RouteRandomBannedWeather = MakeGeneric(Plugin.instance.Config, "Fun Configuration", "RouteRandomBannedWeather", "Eclipsed;Flooded;Foggy", "This semi-colon separated list will be used to exclude moons from the route random command");
         RouteRandomCost = MakeGeneric(Plugin.instance.Config, "Fun Configuration", "RouteRandomCost", 100, "Flat rate for running the route random command to get a random moon...", 0, 99999);
         RouteOnlyInCurrentConstellation = MakeGeneric(Plugin.instance.Config, "Fun Configuration", "RouteOnlyInCurrentConstellation", true, "When LethalConstellations mod is present, setting this to true will only choose a random moon within the current constellation");
-
-
 
         Loggers.LogDebug("cost configs section done");
         KeywordConfigs.Init();
@@ -156,7 +154,7 @@ public static class ConfigSettings
         ObcResolutionBodyCam = MakeGeneric(Plugin.instance.Config, "Extras Configuration", "ObcResolutionBodyCam", "1000; 700", "Set the resolution of the Body Camera created with OpenBodyCams for darmuhsTerminalStuff");
         MirrorZoom = MakeGeneric(Plugin.instance.Config, "Extras Configuration", "MirrorZoom", 3.4f, "Set the mirror zoom level, the higher the value the more zoomed out the mirror will be.\nThis requires [Mirror2DStyle] to be enabled", 0.2f, 9f);
         Mirror2DStyle = MakeGeneric(Plugin.instance.Config, "Extras Configuration", "Mirror2DStyle", false, "Change whether the mirror will use Orthographic (2D) Styling.\n Old versions of this mod had this enabled by default.");
-        MonitoringNeverHide = MakeGeneric(Plugin.instance.Config, "Extras Configuration", "MonitoringNeverHide", false, "Setting this to true will make it so no command will ever auto-hide any monitoring view.");
+        KeepMonitoringNodes = MakeGeneric(Plugin.instance.Config, "Extras Configuration", "KeepMonitoringNodes", "Fov, Radar Zoom, Door Button, Lightswitch, Always-On Toggle, Use Inverse Teleporter, Use Teleporter, Clear, Danger, Vitals, Heal, Loot, Random Suit, Clock toggle, Previous, SwitchRadarCamPlayer 1, SwitchedCam, switchDummy, EnteredCode, FlashedRadarBooster, SendSignalTranslator, GeneralError, ParserError1, ParserError2, ParserError3, PingedRadarBooster, SendSignalTranslator, FinishedRadarBooster", "Comma-separate listing of TerminalNode names that will NOT hide monitoring. Set to \"everything\" to never hide monitoring");
         MonitoringDefaultView = MakeGeneric(Plugin.instance.Config, "Extras Configuration", "MonitoringDefaultView", "Map", "Set the default monitoring view to use when using the switch/previous commands and there is no active monitoring view.\nSet to \"None\" to not automatically enable any views when switch/previous commands are used.", new AcceptableValueList<string>("None", "Map", "Cams", "Minicams", "Minimap", "Overlay"));
         OverlayOpacity = MakeGeneric(Plugin.instance.Config, "Extras Configuration", "OverlayOpacity", 10, "Opacity percentage for Overlay View.", 0, 100);
 

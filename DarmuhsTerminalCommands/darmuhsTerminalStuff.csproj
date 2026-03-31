@@ -5,8 +5,8 @@
 	<RootNamespace>TerminalStuff</RootNamespace>
 	<AssemblyName>darmuhsTerminalStuff</AssemblyName>
 	<AssemblyTitle>darmuhsTerminalStuff</AssemblyTitle>
-	<Version>3.9.0</Version>
-	<AssemblyVersion>3.9.0</AssemblyVersion>
+	<Version>3.10.0</Version>
+	<AssemblyVersion>3.10.0</AssemblyVersion>
 	<Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -22,5 +22,10 @@
 	<!-- EmbeddedResource assets-->
   <ItemGroup>
     <EmbeddedResource Include="Assets\hidden169" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Update="OpenLib">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
 </Project>

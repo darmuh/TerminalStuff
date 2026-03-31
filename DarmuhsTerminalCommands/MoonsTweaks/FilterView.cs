@@ -80,36 +80,11 @@ public class FilterView
         DebugFlags();
     }
 
-    internal static void MoonOnTopCheck(ref List<MenuItem> menuItems)
-    {
-        if (MoonsPlusConfig.ThisAlwaysOnTop.Value.Length < 1)
-            return;
-
-        MenuItem expectedTop = menuItems.FirstOrDefault(x => OpenLib.Common.Misc.StringContainsInvariant(x.Name, MoonsPlusConfig.ThisAlwaysOnTop.Value));
-
-        if (expectedTop == null)
-        {
-            Plugin.Log.LogMessage($"Could not find {MoonsPlusConfig.ThisAlwaysOnTop.Value} on this page");
-            return;
-        }
-
-        int thisIndex = menuItems.IndexOf(expectedTop);
-        Loggers.LogDebug($"AlwaysOnTopIndex for [{MoonsPlusConfig.ThisAlwaysOnTop.Value}] = {thisIndex}");
-        if (thisIndex > 0)
-        {
-            menuItems.RemoveAt(thisIndex);
-            menuItems.Insert(0, expectedTop);
-
-            Loggers.LogDebug($"{MoonsPlusConfig.ThisAlwaysOnTop.Value} is now first in list!");
-        }
-    }
-
     internal static void OrderMenu(ref List<MenuItem> menuItems)
     {
         if(menuItems.Count == 0) return;
 
         UpdateSorting(Sorting, ref menuItems);
-        
     }
 
     internal static void SortByLevelID()
@@ -160,61 +135,83 @@ public class FilterView
         if (MoonListing.Count == 0)
             return;
 
+        list = [.. menuItems.OfType<MoonMenuItem>()];
+        HoveredMoon = null;
+
+        if (list.Count == 0)
+            return;
+
+        // null unless assigned successfully
+        MoonMenuItem? expectedTop = null;
+
+        // assign expected first level from config value
+        if (!string.IsNullOrEmpty(MoonsPlusConfig.ThisAlwaysOnTop.Value))
+            expectedTop = list.FirstOrDefault(x => OpenLib.Common.Misc.StringContainsInvariant(x.Name, MoonsPlusConfig.ThisAlwaysOnTop.Value));
+
+        // if not null, remove from list to be added later during sorting
+        if (expectedTop != null)
+            list.Remove(expectedTop);
+
         switch (style)
         {
             case SortingStyle.ID_Up:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if(list.Count != 0)
-                    menuItems = [.. list.OrderBy(x => x.moonInfo.LevelID)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderBy(x => x.moonInfo.LevelID)] : [.. list.OrderBy(x => x.moonInfo.LevelID)];
                 break;
             case SortingStyle.ID_Down:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderByDescending(x => x.moonInfo.LevelID)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderByDescending(x => x.moonInfo.LevelID)] : [.. list.OrderByDescending(x => x.moonInfo.LevelID)];
                 break;
             case SortingStyle.AlphabeticalUp:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderBy(x => x.moonInfo.LevelName)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderBy(x => x.moonInfo.LevelName)] : [.. list.OrderBy(x => x.moonInfo.LevelName)];
                 break;
             case SortingStyle.AlphabeticalDown:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderByDescending(x => x.moonInfo.LevelName)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderBy(x => x.moonInfo.LevelName)] : [.. list.OrderByDescending(x => x.moonInfo.LevelName)];
                 break;
             case SortingStyle.WeatherUp:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderBy(x => GetWeatherName(x.moonInfo.Level))];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderBy(x => GetWeatherName(x.moonInfo.Level))] : [.. list.OrderBy(x => GetWeatherName(x.moonInfo.Level))];
                 break;
             case SortingStyle.WeatherDown:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderByDescending(x => GetWeatherName(x.moonInfo.Level))];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderByDescending(x => GetWeatherName(x.moonInfo.Level))] : [.. list.OrderByDescending(x => GetWeatherName(x.moonInfo.Level))];
                 break;
             case SortingStyle.DifficultyUp:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderBy(x => x.moonInfo.Level.riskLevel)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderBy(x => x.moonInfo.Level.riskLevel)] : [.. list.OrderBy(x => x.moonInfo.Level.riskLevel)];
                 break;
             case SortingStyle.DifficultyDown:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderByDescending(x => x.moonInfo.Level.riskLevel)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderByDescending(x => x.moonInfo.Level.riskLevel)] : [.. list.OrderByDescending(x => x.moonInfo.Level.riskLevel)];
                 break;
             case SortingStyle.PriceUp:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderBy(x => x.moonInfo.DisplayPrice)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderBy(x => x.moonInfo.DisplayPrice)] : [.. list.OrderBy(x => x.moonInfo.DisplayPrice)];
                 break;
             case SortingStyle.PriceDown:
-                list = [.. menuItems.OfType<MoonMenuItem>()];
-                if (list.Count != 0)
-                    menuItems = [.. list.OrderByDescending(x => x.moonInfo.DisplayPrice)];
+                menuItems = expectedTop != null ? [expectedTop, .. list.OrderByDescending(x => x.moonInfo.DisplayPrice)] : [.. list.OrderByDescending(x => x.moonInfo.DisplayPrice)];
                 break;
         }
 
-        MoonOnTopCheck(ref menuItems);
+        if (MoonsPlusMenu.ActiveSelection > 0 && MoonsPlusMenu.ActiveSelection < menuItems.Count)
+        {
+            if (menuItems[MoonsPlusMenu.ActiveSelection] is MoonMenuItem moonMenu)
+                HoveredMoon = moonMenu?.moonInfo;
+        }
+
+        MoonsPlusMenu.MenuNode.displayVideo = null;
+
+        if (HoveredMoon != null)
+        {
+            if (HoveredMoon.Level.videoReel == null)
+                return;
+
+            if (HoveredMoon.IsHidden && MoonsPlusConfig.ObscureHiddenInfo.Value)
+            {
+                if (HiddenClip != null)
+                {
+                    MoonsPlusMenu.MenuNode.displayVideo = HiddenClip;
+                }
+
+                return;
+            }
+
+            Loggers.LogDebug($"Hovered Moon video reel - {HoveredMoon.LevelName}");
+            MoonsPlusMenu.MenuNode.displayVideo = HoveredMoon.Level.videoReel;
+        }
     }
 
     internal static void ToggleGeneric(DisplayStyle flag, out bool isEnabled)

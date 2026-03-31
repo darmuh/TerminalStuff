@@ -1,4 +1,5 @@
 ﻿using TerminalStuff.EventSub;
+using TerminalStuff.SpecialStuff;
 using TerminalStuff.StoreTweaks;
 using TerminalStuff.Util;
 
@@ -24,6 +25,9 @@ internal class InteractiveAPI
         Loggers.LogDebug("Adding InteractiveTerminalAPI menus to storeplus");
         foreach (var pair in InteractiveTerminalAPI.UI.InteractiveTerminalManager.registeredApplications)
         {
+            if (OpenLib.Common.Misc.DoesListHaveInvariant(StorePlusConfig.DontAddToOtherListing, pair.Key))
+                continue;
+
             if (OpenLib.Common.Misc.CompareStringsInvariant(pair.Key, "lgu") && !StoreMenuItem.DoesMenuItemExist(pair.Key))
             {
                 _ = new StoreMenuItem("Lategame Upgrades", pair.Key, StorePlus.ExternalMods);
@@ -45,7 +49,6 @@ internal class InteractiveAPI
                     _ = new StoreMenuItem(pair.Key, pair.Key, StorePlus.ExternalMods);
                 }
             }
-
         }
     }
 

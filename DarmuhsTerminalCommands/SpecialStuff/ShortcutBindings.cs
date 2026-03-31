@@ -282,8 +282,7 @@ public class ShortcutBindings
                     keyword.specialKeywordResult.displayText = displayText;
                 }
 
-                MoreCamStuff.CamPersistance(keyword.specialKeywordResult.name, keyword.specialKeywordResult);
-                MoreCamStuff.VideoPersist(keyword.specialKeywordResult.name);
+                MoreCamStuff.CheckVisualPersistance(keyword.specialKeywordResult.name);
                 Plugin.instance.Terminal.LoadNewNode(keyword.specialKeywordResult);
                 return;
             }
@@ -321,7 +320,7 @@ public class ShortcutBindings
             if (value.Contains(' '))
             {
                 LogicHandling.SetTerminalInput(value);
-                Plugin.Log.LogDebug($"Terminal Input set to:{value}");
+                Loggers.LogDebug($"Terminal Input set to:{value}");
                 Plugin.instance.Terminal.OnSubmit();
                 return;
             }
@@ -330,7 +329,7 @@ public class ShortcutBindings
                 Loggers.LogDebug("terminalhistory [previous] bind detected and feature is enabled");
                 TerminalHistory.historyIndex = TerminalHistory.PreviousIndex();
                 LogicHandling.SetTerminalInput(TerminalHistory.GetFromCommandHistory(ref TerminalHistory.historyIndex));
-                Plugin.Log.LogDebug($"Terminal Input set to:{TerminalHistory.GetFromCommandHistory(ref TerminalHistory.historyIndex)}");
+                Loggers.LogDebug($"Terminal Input set to:{TerminalHistory.GetFromCommandHistory(ref TerminalHistory.historyIndex)}");
                 return;
 
             }
@@ -339,7 +338,7 @@ public class ShortcutBindings
                 Loggers.LogDebug("terminalhistory [next] bind detected and feature is enabled");
                 TerminalHistory.historyIndex = TerminalHistory.NextIndex();
                 LogicHandling.SetTerminalInput(TerminalHistory.GetFromCommandHistory(ref TerminalHistory.historyIndex));
-                Plugin.Log.LogDebug($"Terminal Input set to:{TerminalHistory.GetFromCommandHistory(ref TerminalHistory.historyIndex)}");
+                Loggers.LogDebug($"Terminal Input set to:{TerminalHistory.GetFromCommandHistory(ref TerminalHistory.historyIndex)}");
                 return;
             }
             else if (value.Equals("[autocomplete]") && QoLConfig.TerminalAutoComplete.Value)
@@ -349,7 +348,7 @@ public class ShortcutBindings
                 if (AutoComplete.CheckCurrentInput(AutoComplete.AutoCompleteResults, TerminalEvents.GetCleanedScreenText(Plugin.instance.Terminal)))
                 {
                     LogicHandling.SetTerminalInput(AutoComplete.ShowMatchingKeywords(AutoComplete.AutoCompleteResults, ref AutoComplete.AutoCompleteIndex));
-                    Plugin.Log.LogDebug($"Terminal Input set to:{AutoComplete.ShowMatchingKeywords(AutoComplete.AutoCompleteResults, ref AutoComplete.AutoCompleteIndex)}");
+                    Loggers.LogDebug($"Terminal Input set to:{AutoComplete.ShowMatchingKeywords(AutoComplete.AutoCompleteResults, ref AutoComplete.AutoCompleteIndex)}");
                 }
 
                 else
@@ -357,7 +356,7 @@ public class ShortcutBindings
                     AutoComplete.AutoCompleteResults = AutoComplete.GetMatchingKeywords(TerminalEvents.GetCleanedScreenText(Plugin.instance.Terminal));
                     Loggers.LogDebug("setting AutoCompleteResults");
                     LogicHandling.SetTerminalInput(AutoComplete.ShowMatchingKeywords(AutoComplete.AutoCompleteResults, ref AutoComplete.AutoCompleteIndex));
-                    Plugin.Log.LogDebug($"Terminal Input set to:{AutoComplete.ShowMatchingKeywords(AutoComplete.AutoCompleteResults, ref AutoComplete.AutoCompleteIndex)}");
+                    Loggers.LogDebug($"Terminal Input set to:{AutoComplete.ShowMatchingKeywords(AutoComplete.AutoCompleteResults, ref AutoComplete.AutoCompleteIndex)}");
                 }
                 return;
             }

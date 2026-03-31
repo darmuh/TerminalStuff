@@ -290,6 +290,7 @@ internal class StorePacks
     {
         List<string> itemList = OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(configValue, ',');
         List<string> itemNames = [];
+        Plugin.refreshNodes = true; //only refresh nodes list ONCE
 
         foreach (string item in itemList)
         {
@@ -349,7 +350,6 @@ internal class StorePacks
     {
         Loggers.LogDebug($"TryGetUpgrade from {upgradeName}");
         Loggers.LogDebug("Getting all nodes");
-        Plugin.refreshNodes = true;
         List<TerminalNode> allNodes = Plugin.Allnodes;
         allNodes.RemoveAll(x => x.creatureName == null);
         Loggers.LogDebug($"iterating through allNodes {allNodes.Count}");

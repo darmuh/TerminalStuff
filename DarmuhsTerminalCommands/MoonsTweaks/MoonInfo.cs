@@ -46,9 +46,19 @@ public class MoonInfo
             if (IsCompany)
                 return false;
 
-            if (!Plugin.instance.LethalLevelLoader)
-                disabled = false;
-            else
+            bool UseDawn = false;
+            bool UseLLL = false;
+            disabled = false;
+
+            if (!Plugin.instance.NoLevelLoader)
+            {
+                UseDawn = Plugin.instance.DawnLibPresent && (!Plugin.instance.DawnLLLCombo || !Dawnlib.UseLLLInstead());
+                UseLLL = Plugin.instance.LethalLevelLoader && (!Plugin.instance.DawnLLLCombo || Dawnlib.UseLLLInstead());
+            }
+
+            if (UseDawn)
+                disabled = Dawnlib.IsDisabled(Level);
+            if (UseLLL)
                 disabled = LLLCompat.IsDisabled(Level);
 
             if (disabled)
@@ -67,11 +77,19 @@ public class MoonInfo
             if (IsCompany)
                 return false;
 
-            if (!Plugin.instance.LethalLevelLoader)
+            if (Plugin.instance.NoLevelLoader)
                 isHidden = (!Plugin.instance.Terminal.moonsCatalogueList.Contains(Level) && !IsCurrent);
             else
-                isHidden = LLLCompat.IsHidden(Level);
-                
+            {
+                bool UseDawn = Plugin.instance.DawnLibPresent && (!Plugin.instance.DawnLLLCombo || !Dawnlib.UseLLLInstead());
+                bool UseLLL = Plugin.instance.LethalLevelLoader && (!Plugin.instance.DawnLLLCombo || Dawnlib.UseLLLInstead());
+
+                if (UseDawn)
+                    isHidden = Dawnlib.IsHidden(Level);
+
+                if (UseLLL)
+                    isHidden = LLLCompat.IsHidden(Level);
+            }
 
             Loggers.LogDebug($"{LevelName} IsHidden - {isHidden}");
 
@@ -89,9 +107,20 @@ public class MoonInfo
     {
         get
         {
-            if (!Plugin.instance.LethalLevelLoader)
-                isLocked = false;
-            else
+            bool UseDawn = false;
+            bool UseLLL = false;
+            isLocked = false;
+
+            if (!Plugin.instance.NoLevelLoader)
+            {
+                UseDawn = Plugin.instance.DawnLibPresent && (!Plugin.instance.DawnLLLCombo || !Dawnlib.UseLLLInstead());
+                UseLLL = Plugin.instance.LethalLevelLoader && (!Plugin.instance.DawnLLLCombo || Dawnlib.UseLLLInstead());
+            }
+
+            if (UseDawn)
+                isLocked = Dawnlib.IsLocked(Level);
+                
+            if (UseLLL)
                 isLocked = LLLCompat.IsLocked(Level);
 
             Loggers.LogDebug($"{LevelName} IsLocked - {isLocked}");
@@ -209,6 +238,8 @@ public class MoonInfo
             MenuItem.Name = "[ROUTE LOCKED]";
         else if (IsHidden)
             MenuItem.Name = "[ ??? ]";
+        else
+            MenuItem.Name = LevelName;
 
         if (FilterView.Styling.HasFlag(FilterView.DisplayStyle.Price))
             MenuItem.Prefix += $"${DisplayPrice} ";
@@ -417,16 +448,25 @@ public class MoonInfo
     internal int GetPrice()
     {
         //Loggers.LogDebug($"GETPRICE FOR {LevelName}");
+        bool UseDawn = false;
+        bool UseLLL = false;
 
-        if (!Plugin.instance.LethalLevelLoader)
+        if (!Plugin.instance.NoLevelLoader)
         {
-            if (PurchaseNode == null)
-                return 0;
-
-            return PurchaseNode.itemCost;
+            UseDawn = Plugin.instance.DawnLibPresent && (!Plugin.instance.DawnLLLCombo || !Dawnlib.UseLLLInstead());
+            UseLLL = Plugin.instance.LethalLevelLoader && (!Plugin.instance.DawnLLLCombo || Dawnlib.UseLLLInstead());
         }
 
-        return LLLCompat.GetPrice(Level);
+        if (UseDawn)
+            return Dawnlib.GetPrice(Level);
+        
+        if (UseLLL)
+            return LLLCompat.GetPrice(Level);
+
+        if (PurchaseNode == null)
+            return 0;
+
+        return PurchaseNode.itemCost;
     }
 
     internal void UpdateHistory()
@@ -486,20 +526,34 @@ public class MoonInfo
             return;
 
         Loggers.LogDebug($"Hiding {LevelName}");
-        //IsHidden = shouldHide;
+        
 
-        if (!Plugin.instance.LethalLevelLoader)
+        if (!Plugin.instance.NoLevelLoader)
         {
-            List<SelectableLevel> catalogue = [.. Plugin.instance.Terminal.moonsCatalogueList];
-            if (catalogue.Contains(Level))
-                catalogue.Remove(Level);
+            bool UseDawn = Plugin.instance.DawnLibPresent && (!Plugin.instance.DawnLLLCombo || !Dawnlib.UseLLLInstead());
+            bool UseLLL = Plugin.instance.LethalLevelLoader && (!Plugin.instance.DawnLLLCombo || Dawnlib.UseLLLInstead());
+        
+            if (UseDawn)
+            {
+                Dawnlib.ChangeHiddenStatus(Level, shouldHide);
+                return;
+            }
 
-            Plugin.instance.Terminal.moonsCatalogueList = [.. catalogue];
+            if (UseLLL)
+            {
+                LLLCompat.ChangeHiddenStatus(Level, shouldHide);
+                return;
+            }
         }
-        else
-            LLLCompat.ChangeHiddenStatus(Level, shouldHide);
+
+        // not using dawnlib or LLL
+        List<SelectableLevel> catalogue = [.. Plugin.instance.Terminal.moonsCatalogueList];
+        catalogue.Remove(Level);
+
+        Plugin.instance.Terminal.moonsCatalogueList = [.. catalogue];            
     }
 
+    // This is unused currently
     internal void UnlockUnhide()
     {
         if (NetHandler.Instance == null)

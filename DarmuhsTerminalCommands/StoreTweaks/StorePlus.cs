@@ -1,11 +1,11 @@
-﻿using BepInEx;
-using HarmonyLib;
-using OpenLib.CoreMethods;
-using OpenLib.InteractiveMenus;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using BepInEx;
+using HarmonyLib;
+using OpenLib.CoreMethods;
+using OpenLib.InteractiveMenus;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.SpecialStuff;
@@ -110,7 +110,7 @@ public class StorePlus
         if (InitOnce)
             return;
 
-        StorePlusMenu.PageSize = 6; // add config item
+        StorePlusMenu.PageSize = StorePlusConfig.MenuPageSize.Value; // add config item
         StorePlusMenu.MainMenu = TheMainMenu;
         StorePlusMenu.OnExit.AddListener(OnExit);
 
@@ -385,7 +385,7 @@ public class StorePlus
         StorePlusMenu.CurrentPage = 1;
         SetKeys();
 
-        if (Commands.TerminalRefund.Value)
+        if (Commands.TerminalRefund.Value && !OpenLib.Common.Misc.DoesListHaveInvariant(StorePlusConfig.DontAddToOtherListing, "refund"))
         {
             _ = new StoreMenuItem($"Refund", $"{OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(KeywordConfigs.RefundKeywords.Value)[0]}", TheMainMenu);
         }
@@ -393,12 +393,11 @@ public class StorePlus
         if (Plugin.instance.ITAPI)
             InteractiveAPI.AddToStorePlus();
 
-        if (OpenLib.Plugin.instance.TooManyEmotes)
+        if (OpenLib.Plugin.instance.TooManyEmotes && !OpenLib.Common.Misc.DoesListHaveInvariant(StorePlusConfig.DontAddToOtherListing, "emote"))
         {
             StoreMenuItem emote = new("TooManyEmotes Store", "emote", ExternalMods);
             Loggers.LogDebug("Added TooManyEmotes menu item!");
         }
-
 
         ManualUpgradeNames.AddRange(["Inverse Teleporter", "Teleporter", "Signal Translator", "Loud Horn"]);
 
@@ -409,12 +408,15 @@ public class StorePlus
 
         foreach (TerminalNode node in unlockables)
         {
+            //don't process items that cost less than 0
             if (node.itemCost < 0)
                 continue;
 
+            //Don't process specific nodes
             if (ExcludedNodesFromAutoGen.Contains(node))
                 continue;
 
+            //Don't process null names or empty names
             if (node.creatureName.IsNullOrWhiteSpace())
                 continue;
 

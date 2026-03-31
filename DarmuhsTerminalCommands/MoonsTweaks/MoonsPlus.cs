@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using TerminalStuff.CommandHandling;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.Util;
+using TerminalStuff.VisualElements;
 using UnityEngine;
 using UnityEngine.Video;
 
@@ -45,10 +47,12 @@ public class MoonsPlus
     //Assets
     internal static AssetBundle HiddenAsset = null!;
     internal static VideoClip HiddenClip = null!;
+    internal static MoonInfo? CurrentMoon;
+    internal static MoonInfo? HoveredMoon;
 
     //Misc
     internal static bool RunOnce = false; //will only run once per game launch
-    public static bool ShowingReel = false;
+    public static bool ShowingReel { get; set; } = false;
     public enum StartPage
     {
         Main,
@@ -102,14 +106,23 @@ public class MoonsPlus
         HiddenAsset.Unload(true);
     }
 
+    internal static bool IsNodeMoonsPlus(TerminalNode node)
+    {
+        if(node == null) return false;
+        if(MoonsPlusMenu.MenuNode == null) return false;
+
+        return MoonsPlusMenu.MenuNode == node;
+    }
+
     internal static void SetupBetterMenu()
     {
         if (RunOnce)
             return;
 
         MoonsPlusMenu.MainMenu = MoonsMainMenu;
-        MoonsPlusMenu.PageSize = 10;
+        MoonsPlusMenu.PageSize = MoonsPlusConfig.MenuPageSize.Value;
         MoonsMainMenu.Header = () => "============= MoonsPlus Main  =============\n\n";
+        MoonsMainMenu.OnPageLoad = DisableReel;
         AllMoons.SetParentMenu(MoonsMainMenu);
         AllMoons.Header = () => "============= Select a Moon  =============\n\n";
         AllMoons.Footer = GetMoonsFooter;
@@ -129,7 +142,15 @@ public class MoonsPlus
         FilterMain.Header = () => "===== Settings =====\n\n";
         FilterMain.Footer = GetFilterFooter;
         MoonMenuItem.CreateFilterMenus();
+        MoonsPlusMenu.OnExit.AddListener(DisableReel);
+
         RunOnce = true;
+    }
+
+    private static void DisableReel()
+    {
+        MoonsPlusMenu.MenuNode.displayVideo = null;
+        TerminalReelSetDimensions(false);
     }
 
     private static void CreateMoonInfos()
@@ -177,7 +198,7 @@ public class MoonsPlus
 
         CreateMoonInfos();
 
-        if (!MoonsPlusConfig.MoonsPlusKeywords.Value.Contains("moons", System.StringComparison.InvariantCultureIgnoreCase))
+        if (!MoonsPlusConfig.MoonsPlusKeywords.Value.Contains("moons,", System.StringComparison.InvariantCultureIgnoreCase))
         {
             MoonsCommand.RegisterCommand();
             MoonsPlusMenu.MenuNode = MoonsCommand.terminalNode;
@@ -200,6 +221,7 @@ public class MoonsPlus
 
     internal static string GetFilterFooter()
     {
+        TerminalReelSetDimensions(false);
         StringBuilder message = new();
         message.Append($"Currently Sorting by: {FilterView.Sorting}\n");
         message.Append($"Back Menu: [{MoonsPlusMenu.leaveMenu}]    Toggle Setting: [{MoonsPlusMenu.selectMenu}]\n\n");
@@ -209,16 +231,16 @@ public class MoonsPlus
     internal static string GetMoonsFooter()
     {
         string currentLevel;
-        MoonInfo currentMoon = MoonListing.FirstOrDefault(x => x.Level == StartOfRound.Instance.currentLevel);
+        CurrentMoon = MoonListing.FirstOrDefault(x => x.Level == StartOfRound.Instance.currentLevel);
 
-        if (currentMoon != null)
+        if (CurrentMoon != null)
         {
-            if (currentMoon.IsHidden && !MoonsPlusConfig.RevealHiddenOnRoute.Value)
+            if (CurrentMoon.IsHidden && !MoonsPlusConfig.RevealHiddenOnRoute.Value)
                 currentLevel = "?????";
-            else if (currentMoon.IsCompany)
+            else if (CurrentMoon.IsCompany)
                 currentLevel = "71 Gordion (Company)";
             else
-                currentLevel = currentMoon.Level.PlanetName;
+                currentLevel = CurrentMoon.Level.PlanetName;
         }
         else
             currentLevel = StartOfRound.Instance.currentLevel.PlanetName;
@@ -285,21 +307,13 @@ public class MoonsPlus
     private static void UpdateMoonListing(ref MoonMenuItem Parent, bool price = false, bool weather = false)
     {
         Parent.NestedMenus = [];
-        MoonInfo currentMoon = null!;
+        HoveredMoon = null!;
         foreach (MoonInfo moon in MoonListing)
         {
             moon.MenuItem.ShowIfEmptyNest = moon.ShowInListing(price, weather);
             Parent.AddNestedItem(moon.MenuItem);
-
-            if (MoonsPlusMenu.ActiveSelection < 0 || MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count)
-                continue;
-
-            if (moon.MenuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection])
-                currentMoon = moon;
         }
 
-        // Video Reel Section
-        VideoReelStuff(currentMoon);
         List<MoonInfo> currentList = [];
         MoonListing.DoIf(x => x.MenuItem.moonInfo != null && x.MenuItem.ShowIfEmptyNest, x => currentList.Add(x));
 
@@ -321,68 +335,37 @@ public class MoonsPlus
         UpdateMoonListing(ref GoodWeatherMoons, false, true);
     }
 
-    internal static void VideoReelStuff(MoonInfo current)
+    internal static bool HijackTerminalImage()
     {
-        if (current == null)
-        {
-            Loggers.WARNING($"Could not get current moon from active index [{MoonsPlusMenu.ActiveSelection}]");
-            return;
-        }
-
-        if (current.Level.videoReel != null)
-            ShowReel(true);
-        else
-            ShowReel(false);
-    }
-
-    internal static void ShowReel(bool show)
-    {
-        if (show == ShowingReel)
-            return;
-
         if (!MoonsPlusConfig.ShowVideoReels.Value)
         {
             Loggers.LogDebug($"Video Reels Disabled! (ShowVideoReels is {MoonsPlusConfig.ShowVideoReels.Value})");
-            MoonsPlusMenu.MenuNode.displayVideo = null!;
-            return;
+            return false;
         }
 
-        if (MoonsPlusMenu.ActiveSelection >= MoonsPlusMenu.DisplayMenuItemsOfType.Count)
+        if (MoonsPlusMenu.CurrentMenuItem == MoonsMainMenu || MoonsPlusMenu.CurrentMenuItem == FilterMain || MoonsPlusMenu.CurrentMenuItem == null)
+            return false;
+
+        if (MoonsPlusMenu.MenuNode.displayVideo == null)
+            return false;
+
+        return true;  
+    }
+
+    internal static void TerminalReelSetDimensions(bool activeReel)
+    {
+        Loggers.LogDebug($"TerminalShowingReel {activeReel}");
+        if (activeReel)
         {
-            Loggers.LogDebug($"Video Reel Disabled! ActiveSelection is greater than or equal to the display items count!");
-            MoonsPlusMenu.MenuNode.displayVideo = null!;
-            return;
-        }
-
-        ShowingReel = show;
-
-        if (show)
-        {
-            MoonInfo currentMoon = MoonListing.FirstOrDefault(x => x.MenuItem == MoonsPlusMenu.DisplayMenuItemsOfType[MoonsPlusMenu.ActiveSelection]);
-
-            if (currentMoon != null)
-            {
-                if (currentMoon.IsHidden && MoonsPlusConfig.ObscureHiddenInfo.Value)
-                {
-                    if (HiddenClip != null)
-                    {
-                        Plugin.instance.Terminal.terminalImage.rectTransform.sizeDelta = new Vector2(200, 150);
-                        Plugin.instance.Terminal.terminalImage.rectTransform.anchoredPosition = new Vector2(80, 0);
-                        MoonsPlusMenu.MenuNode.displayVideo = HiddenClip;
-                        return;
-                    }
-
-                    MoonsPlusMenu.MenuNode.displayVideo = null!;
-                    return;
-                }
-
-                Plugin.instance.Terminal.terminalImage.rectTransform.sizeDelta = new Vector2(200, 150);
-                Plugin.instance.Terminal.terminalImage.rectTransform.anchoredPosition = new Vector2(80, 0);
-                MoonsPlusMenu.MenuNode.displayVideo = currentMoon.Level.videoReel;
-            }
+            Plugin.instance.Terminal.terminalImage.rectTransform.sizeDelta = new Vector2(200, 150);
+            Plugin.instance.Terminal.terminalImage.rectTransform.anchoredPosition = new Vector2(80, 0);
         }
         else
-            MoonsPlusMenu.MenuNode.displayVideo = null!;
+        {
+            CamEvents.SetRawImageDimensions(Plugin.instance.Terminal.terminalImage.rectTransform, isFullScreen: true);
+        }
+
+        ShowingReel = activeReel;
     }
 
     internal static void HideLevelFromMapScreen()

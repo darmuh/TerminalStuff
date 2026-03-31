@@ -50,7 +50,7 @@ internal class AlwaysOnStuff
         else
             TerminalClockStuff.SetClockVisible(false);
 
-        if (ViewCommands.AnyActiveMonitoring() && Plugin.instance.splitViewCreated || Plugin.instance.isOnMirror)
+        if (ViewCommands.AnyActiveMonitoring() && Plugin.instance.splitViewCreated || ViewCommands.CurrentView == ViewCommands.ViewMode.Mirror)
         {
             Loggers.LogInfo("Adjusting camera views to screen status");
             SplitViewChecks.ShowCameraView(visible);

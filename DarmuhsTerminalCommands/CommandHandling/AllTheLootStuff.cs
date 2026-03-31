@@ -116,7 +116,7 @@ internal class AllTheLootStuff
     {
         List<GrabbableObject> list = [.. GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>().Where<GrabbableObject>(obj => obj.name != "ClipboardManual" && obj.name != "StickyNoteItem" && obj.name != "Key(Clone)")]; //!obj.name.Contains("Key") or Key(Clone)
 
-        Plugin.Log.LogDebug("Calculating total ship scrap value.");
+        Loggers.LogDebug("Calculating total ship scrap value.");
 
         HarmonyLib.CollectionExtensions.Do<GrabbableObject>(list, scrap => Plugin.Log.LogDebug(string.Format("{0} - ${1}", scrap.name, scrap.scrapValue)));
 

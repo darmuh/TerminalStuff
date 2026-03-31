@@ -26,7 +26,6 @@ public class MoonsPlusConfig
     public static ConfigEntry<StartPage> MenuStartPage { get; internal set; } = null!;
     public static ConfigEntry<int> MenuPageSize { get; internal set; } = null!;
 
-
     internal static void Init()
     {
         DefaultDisplayStyle = MakeGeneric(Plugin.instance.Config, "MoonsPlus", "DefaultDisplayStyle", "weather,price", "Comma-separated list of what to show by default alongside each moon.\nValid names include: \"weather\", \"price\", and \"difficulty\"");

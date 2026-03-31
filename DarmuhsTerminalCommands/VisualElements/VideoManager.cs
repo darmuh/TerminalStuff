@@ -59,7 +59,7 @@ internal static class VideoManager //reworked this bit of code from TVLoader by 
         node.clearPreviousText = true;
         FixVideoPatch.VideoCheck = true;
 
-        SplitViewChecks.CheckForSplitView("neither"); // Disables split view components if enabled
+        CamEvents.UpdateCamsEvent.Invoke(ViewMode.Video);
         if (!isVideoPlaying)
         {
             SetVideoToPlay(currentlyPlaying);

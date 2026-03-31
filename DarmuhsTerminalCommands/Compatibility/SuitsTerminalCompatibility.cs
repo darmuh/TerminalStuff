@@ -1,6 +1,6 @@
 ﻿using TerminalStuff.Util;
 using UnityEngine;
-using static suitsTerminal.AdvancedMenu;
+using static suitsTerminal.OfTerminal.Menu;
 
 namespace TerminalStuff.Compatibility;
 

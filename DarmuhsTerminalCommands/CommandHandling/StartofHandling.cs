@@ -17,7 +17,7 @@ internal class StartofHandling
     internal static void HandleShortcutFinal(string cleanedText)
     {
         SetTerminalInput(cleanedText);
-        Plugin.Log.LogDebug($"Terminal Input set to:{cleanedText}");
+        Loggers.LogDebug($"Terminal Input set to:{cleanedText}");
         Plugin.instance.Terminal.OnSubmit();
     }
 
@@ -40,73 +40,6 @@ internal class StartofHandling
         }
 
         return -1;
-    }
-
-    internal static int FindViewIntByString()
-    {
-        if (!ViewCommands.AnyActiveMonitoring())
-            return -1;
-
-        string currentMode = GetViewMode(out int specialNum);
-
-        Loggers.LogDebug($"Current Mode: {currentMode}");
-
-        return specialNum;
-    }
-
-    private static string GetViewMode(out int specialNum)
-    {
-        string mode;
-
-        if (Plugin.instance.isOnCamera)
-        {
-            mode = "cams";
-            Loggers.LogInfo("cams mode detected");
-            specialNum = 1;
-            return mode;
-        }
-        else if (Plugin.instance.isOnMap)
-        {
-            mode = "map";
-            Loggers.LogInfo("map mode detected");
-            specialNum = 5;
-            return mode;
-        }
-        else if (Plugin.instance.isOnOverlay)
-        {
-            mode = "overlay";
-            Loggers.LogInfo("overlay mode detected");
-            specialNum = 2;
-            return mode;
-        }
-        else if (Plugin.instance.isOnMiniMap)
-        {
-            mode = "minimap";
-            Loggers.LogInfo("minimap mode detected");
-            specialNum = 3;
-            return mode;
-        }
-        else if (Plugin.instance.isOnMiniCams)
-        {
-            mode = "minicams";
-            Loggers.LogInfo("minicams mode detected");
-            specialNum = 4;
-            return mode;
-        }
-        else if (Plugin.instance.isOnMirror)
-        {
-            mode = "mirror";
-            Loggers.LogInfo("Mirror mode detected");
-            specialNum = 6;
-            return mode;
-        }
-        else
-        {
-            Plugin.Log.LogError("Error with mode return, setting to default value");
-            mode = "none";
-            specialNum = -1;
-            return mode;
-        }
     }
 
     internal static TerminalNode FindViewNode(int givenInt)
@@ -146,7 +79,7 @@ internal class StartofHandling
             }
             else
             {
-                int nodeNum = FindViewIntByString();
+                int nodeNum = ((int)ViewCommands.CurrentView);
                 NetHandler.Instance.SyncNodesRpc(Plugin.instance.Terminal.topRightText.text, resultNode.name, resultNode.displayText, nodeNum);
                 Loggers.LogInfo($"Valid node detected, nNS true & nodeNum is detected as: {nodeNum}");
                 return;
@@ -205,8 +138,7 @@ internal class StartofHandling
         if (QoLConfig.TerminalHistory.Value && !initialResult.name.Contains("ParserError") && !initialResult.name.Contains("GeneralError"))
             TerminalHistory.AddToCommandHistory(query);
 
-        VideoPersist(initialResult.name);
-        CamPersistance(initialResult.name, initialResult);
+        CheckVisualPersistance(initialResult.name);
 
         return;
     }

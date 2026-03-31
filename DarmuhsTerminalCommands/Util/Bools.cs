@@ -1,17 +1,19 @@
 ﻿using OpenLib.InteractiveMenus;
+using TerminalStuff.CommandHandling;
+using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
+using TerminalStuff.MoonsTweaks;
 using TerminalStuff.VisualElements;
 using UnityEngine.InputSystem;
 using static TerminalStuff.AdminCommands;
+using static TerminalStuff.CommandHandling.ShipControls;
+using static TerminalStuff.CommandHandling.ViewCommands;
 using static TerminalStuff.DynamicCommands;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.Networking.NetHandler;
-using static TerminalStuff.CommandHandling.ShipControls;
 using static TerminalStuff.SpecialStuff.ShortcutBindings;
-using static TerminalStuff.TerminalEvents;
 using static TerminalStuff.SpecialStuff.WalkieInTerm;
-using TerminalStuff.CommandHandling;
-using TerminalStuff.Compatibility;
+using static TerminalStuff.TerminalEvents;
 
 namespace TerminalStuff.Util;
 
@@ -94,7 +96,19 @@ internal class Bools
         if (!StartOfRound.Instance.localPlayerController.isInHangarShipRoom) //not in ship
             return false;
 
-        if (Plugin.instance.isOnMap || Plugin.instance.isOnMiniCams || Plugin.instance.isOnMiniMap || Plugin.instance.isOnOverlay || (bool)Plugin.instance.Terminal.displayingPersistentImage)
+        if(CurrentView == ViewMode.Map)
+            return true;
+
+        if (CurrentView == ViewMode.MiniMap)
+            return true;
+
+        if (CurrentView == ViewMode.MiniCams)
+            return true;
+
+        if (CurrentView == ViewMode.Overlay)
+            return true;
+
+        if ((bool)Plugin.instance.Terminal.displayingPersistentImage)
             return true;
 
         return false;
@@ -108,28 +122,48 @@ internal class Bools
         {
             if (SuitsTerminalCompatibility.CheckForSuitsMenu())
             {
-                SplitViewChecks.ResetPluginInstanceBools();
-                SplitViewChecks.DisableSplitView("neither");
+                CamEvents.UpdateCamsEvent.Invoke(ViewMode.None);
                 return false;
             }
+        }
+
+        if (MoonsPlus.IsNodeMoonsPlus(node))
+        {
+            Plugin.instance.Terminal.displayingPersistentImage = null;
+            CurrentView = ViewMode.None;
+            bool result = MoonsPlus.HijackTerminalImage();
+            MoonsPlus.TerminalReelSetDimensions(result);
+            return result;
         }
 
         if (node.displayVideo != null)
             return true;
 
         if (node.displayTexture != null)
+        {
+            if (node.name == "ViewInsideShipCam 1" && StartOfRound.Instance.inShipPhase)
+                return false;
+
+            if (CurrentView == ViewMode.Vanilla)
+            {
+                CamEvents.UpdateCamsEvent.Invoke(ViewMode.None);
+                Loggers.LogDebug("Disabling vanilla view monitor image");
+                return false;
+            }
+            else
+            {
+                Loggers.LogDebug("Something else is using node.displayTexture, keeping it enabled");
+                return true;
+            }    
+        } 
+
+        if (AnyActiveMonitoring())
             return true;
 
-        if (ViewCommands.AnyActiveMonitoring())
+        if (CurrentView == ViewMode.Mirror)
             return true;
 
-        if (Plugin.instance.isOnMirror)
-            return true;
-
-        if (Plugin.instance.Terminal.currentNode == null)
-            return false;
-
-        if (MoreCamStuff.excludedNames.Contains(node.name) && !MoreCamStuff.HideCams() && Plugin.instance.Terminal.terminalImage.enabled)
+        if (MoreCamStuff.DontHideMonitoringNodes.Contains(node.name) && !MoreCamStuff.CanHideCams() && Plugin.instance.Terminal.terminalImage.enabled && CurrentView != ViewMode.None)
             return true;
 
         return false;

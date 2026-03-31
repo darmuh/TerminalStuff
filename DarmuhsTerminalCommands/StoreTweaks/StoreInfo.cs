@@ -58,6 +58,10 @@ public class StoreInfo
         if (terminalNode.buyItemIndex != -1 && BuyableItem == null)
             return false;
 
+        //hide items defined by user
+        if (OpenLib.Common.Misc.DoesListHaveInvariant(StorePlusConfig.HideItemListing, name))
+            return false;
+
         return true;
     }
 

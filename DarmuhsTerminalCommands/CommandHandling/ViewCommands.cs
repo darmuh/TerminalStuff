@@ -10,16 +10,32 @@ using TerminalStuff.VisualElements;
 using TerminalStuff.Util;
 using TerminalStuff.Networking;
 using TerminalStuff.Compatibility;
+using System.Collections.Generic;
 
 namespace TerminalStuff.CommandHandling;
 
-internal class ViewCommands
+public class ViewCommands
 {
     internal static bool isVideoPlaying = false;
     internal static RenderTexture mycamTexture = null!;
     internal static Camera playerCam = null!;
 
     internal static float radarZoom;
+
+    public static ViewMode CurrentView = ViewMode.None;
+
+    public enum ViewMode
+    {
+        None = -1,
+        Mirror = 6,
+        Video = 0,
+        Camera = 1,
+        Map = 5,
+        Overlay = 2,
+        MiniMap = 3,
+        MiniCams = 4,
+        Vanilla = 999
+    }
 
     internal static string TermMapEvent()
     {
@@ -40,16 +56,16 @@ internal class ViewCommands
 
     private static void HandleMapEvent(out string displayText)
     {
-        if (!Plugin.instance.isOnMap)
+        if (CurrentView != ViewMode.Map)
         {
-            UpdateCamsEvent.Invoke("map");
+            UpdateCamsEvent.Invoke(ViewMode.Map);
             DisplayTextUpdater(out string message);
             displayText = message;
             return;
         }
         else
         {
-            SplitViewChecks.DisableSplitView("map");
+            UpdateCamsEvent.Invoke(ViewMode.None);
             displayText = $"{ConfigSettings.MapOffString.Value}\n";
             return;
         }
@@ -63,7 +79,7 @@ internal class ViewCommands
         node.clearPreviousText = true;
         node.loadImageSlowly = false;
         displayText = "Radar view not available in orbit.\n";
-        ResetPluginInstanceBools();
+        UpdateCamsEvent.Invoke(ViewMode.None);
         return;
     }
 
@@ -167,41 +183,6 @@ internal class ViewCommands
         }
         else
             return "There is no active monitoring to switch!\n\n";
-    }
-
-    internal static int GetCurrentNodeNum()
-    {
-        if (isVideoPlaying) //VideoPlayer
-        {
-            return 0;
-        }
-        else if (Plugin.instance.isOnCamera) // cams
-        {
-            return 1;
-        }
-        else if (Plugin.instance.isOnOverlay) //overlay
-        {
-            return 2;
-        }
-        else if (Plugin.instance.isOnMiniMap) //minimap
-        {
-            return 3;
-        }
-        else if (Plugin.instance.isOnMiniCams) //minicams
-        {
-            return 4;
-        }
-        else if (Plugin.instance.isOnMap) //map
-        {
-            return 5;
-        }
-        else if (Plugin.instance.isOnMirror) //mirror
-        {
-            return 6;
-        }
-
-        Loggers.LogInfo("No matching views detected");
-        return -1;
     }
 
     internal static bool GetDefaultNodeNum(out int modeNum)
@@ -316,10 +297,10 @@ internal class ViewCommands
         if (Plugin.instance.OpenBodyCamsMod && OpenBodyCamsCompatibility.IsCreatingCommands())
             return OBCTerminalCommand();
 
-        if (Plugin.instance.isOnMirror == false || (bool)Plugin.instance.Terminal.displayingPersistentImage)
+        if (CurrentView != ViewMode.Mirror || (bool)Plugin.instance.Terminal.displayingPersistentImage)
         {
             SetMirrorState(true);
-            UpdateCamsEvent.Invoke("mirror");
+            UpdateCamsEvent.Invoke(ViewMode.Mirror);
 
             Loggers.LogInfo("Mirror added to terminal screen");
             DisplayTextUpdater(out string displayText);
@@ -328,7 +309,7 @@ internal class ViewCommands
         else
         {
             SetMirrorState(false);
-            SplitViewChecks.DisableSplitView("mirror");
+            UpdateCamsEvent.Invoke(ViewMode.None);
             Loggers.LogInfo("mirror removed");
             return $"\n\n\t>>Mirror Camera removed from terminal.\n\n";
         }
@@ -346,12 +327,9 @@ internal class ViewCommands
                 return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
-        if (Plugin.instance.isOnCamera == false && Plugin.instance.splitViewCreated)
+        if (CurrentView != ViewMode.Camera && Plugin.instance.splitViewCreated)
         {
-            UpdateCamsEvent.Invoke("cams");
-
-            // Enable split view and update bools
-            SplitViewChecks.EnableSplitView("cams");
+            UpdateCamsEvent.Invoke(ViewMode.Camera);
 
             Loggers.LogInfo("Cam added to terminal screen");
             DisplayTextUpdater(out string displayText);
@@ -359,7 +337,7 @@ internal class ViewCommands
         }
         else
         {
-            SplitViewChecks.DisableSplitView("cams");
+            UpdateCamsEvent.Invoke(ViewMode.None);
             string displayText = $"{ConfigSettings.CamOffString.Value}\n";
             Loggers.LogInfo("Cams removed");
             return displayText;
@@ -379,16 +357,16 @@ internal class ViewCommands
                 return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
-        if (Plugin.instance.splitViewCreated && !Plugin.instance.isOnMiniCams)
+        if (Plugin.instance.splitViewCreated && CurrentView != ViewMode.MiniCams)
         {
-            UpdateCamsEvent.Invoke("minicams");
+            UpdateCamsEvent.Invoke(ViewMode.MiniCams);
 
             DisplayTextUpdater(out string displayText);
             return displayText;
         }
         else
         {
-            SplitViewChecks.DisableSplitView("minicams");
+            UpdateCamsEvent.Invoke(ViewMode.None);
             return $"{ConfigSettings.MiniCamsOffString.Value}\n";
         }
     }
@@ -474,16 +452,16 @@ internal class ViewCommands
                 return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
-        if (Plugin.instance.splitViewCreated && !Plugin.instance.isOnMiniMap)
+        if (Plugin.instance.splitViewCreated && CurrentView != ViewMode.MiniMap)
         {
-            UpdateCamsEvent.Invoke("minimap");
+            UpdateCamsEvent.Invoke(ViewMode.MiniMap);
 
             DisplayTextUpdater(out string displayText);
             return displayText;
         }
         else
         {
-            SplitViewChecks.DisableSplitView("minimap");
+            UpdateCamsEvent.Invoke(ViewMode.None);
             return $"{ConfigSettings.MiniMapOffString.Value}\n";
         }
     }
@@ -501,42 +479,31 @@ internal class ViewCommands
                 return "\tThis command is currently <color=#ff1a1a>unavailable</color>!\n\nPlease purchase the <color=#ffff66>BodyCam upgrade</color> to use this command.\n\n";
         }
 
-        if (Plugin.instance.splitViewCreated && !Plugin.instance.isOnOverlay)
+        if (Plugin.instance.splitViewCreated && CurrentView != ViewMode.Overlay)
         {
-            UpdateCamsEvent.Invoke("overlay");
+            UpdateCamsEvent.Invoke(ViewMode.Overlay);
 
             DisplayTextUpdater(out string displayText);
             return displayText;
         }
         else
         {
-            SplitViewChecks.DisableSplitView("overlay");
+            UpdateCamsEvent.Invoke(ViewMode.None);
             return $"{ConfigSettings.OverlayOffString.Value}\n";
         }
-    }
-
-
-
-    internal static void SetAnyCamsTrue()
-    {
-        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
-            Plugin.instance.activeCam = true;
-        else
-            NetHandler.Instance.SyncMyCamsBoolToEveryoneRpc(true);
     }
 
     internal static string LolVideoPlayerEvent()
     {
         Loggers.LogInfo("Start of LolEvent");
-
-        TerminalNode node = Plugin.instance.Terminal.currentNode;
-
-        SplitViewChecks.CheckForSplitView("neither"); // Disables split view components if enabled
+        UpdateCamsEvent.Invoke(ViewMode.Video);
 
         if (VideoManager.Videos.Count == 0) //if videos failed to load at launch
+        {
+            CurrentView = ViewMode.None; //no videos to play
             return "No videos available to play!\n\nWomp Womp.\n\n";
+        }
 
-        node.clearPreviousText = true;
         FixVideoPatch.VideoCheck = true;
 
         string displayText = VideoManager.PickVideoToPlay();
@@ -555,97 +522,51 @@ internal class ViewCommands
     {
         StringBuilder message = new();
         message.AppendLine("\tThis command has been <color=#ff1a1a>replaced</color>!\n\nPlease use one of the following alternatives:\n");
-        /*
-        List<TerminalMenuItem> menus = TerminalMenuItems()
 
-        foreach (TerminalMenuItem menuItem in menus)
+        foreach(var command in Commands.GetSpecialCommands())
         {
-            if (menuItem.itemKeywords.Count == 0)
+            //not real alternatives
+            if (command.Name == "Show Video" || command.Name == "Show Mirror")
                 continue;
-            message.AppendLine($"> <color=#ffff66>{OpenLib.Common.CommonStringStuff.GetKeywordsForMenuItem(menuItem.itemKeywords)}</color>\n{menuItem.itemDescription}\n");
-        }*/
+
+            message.AppendLine($"> <color=#ffff66>{OpenLib.Common.CommonStringStuff.GetKeywordsForMenuItem(command.KeywordList).ToUpperInvariant()}</color>\n{command.IsEnabled.ConfigItem.Description.Description}\n");
+        }
 
         return message.ToString();
     }
 
     internal static void DisplayTextUpdater(out string displayText, int givenIndex = -1)
     {
-
         Loggers.LogInfo("updating displaytext!!!");
-        GetCurrentMode(out string mode);
 
         string playerName = givenIndex == -1
             ? GameStuff.TerminalMapRenderer.radarTargets[GameStuff.TerminalMapRenderer.targetTransformIndex].name
             : GameStuff.TerminalMapRenderer.radarTargets[givenIndex].name;
 
-        if (mode == "Mirror")
+        if (CurrentView == ViewMode.Mirror)
             displayText = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMirror Enabled.\n\n";
         else if (!Plugin.instance.splitViewCreated)
-            displayText = $"Monitoring: {playerName} [{mode}]\n\n";
+            displayText = $"Monitoring: {playerName} [{CurrentView}]\n\n";
         else
-            displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {playerName} [{mode}]\n\n";
+            displayText = $"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMonitoring: {playerName} [{CurrentView}]\n\n";
         return;
-    }
-
-    private static void GetCurrentMode(out string mode)
-    {
-        if (Plugin.instance.isOnCamera)
-        {
-            mode = ConfigSettings.CamOnString.Value;
-            Loggers.LogInfo("cams mode detected");
-            return;
-        }
-        else if (Plugin.instance.isOnMap)
-        {
-            mode = ConfigSettings.MapOnString.Value;
-            Loggers.LogInfo("map mode detected");
-            return;
-        }
-        else if (Plugin.instance.isOnOverlay)
-        {
-            mode = ConfigSettings.OverlayOnString.Value;
-            Loggers.LogInfo("overlay mode detected");
-            return;
-        }
-        else if (Plugin.instance.isOnMiniMap)
-        {
-            mode = ConfigSettings.MiniMapOnString.Value;
-            Loggers.LogInfo("minimap mode detected");
-            return;
-        }
-        else if (Plugin.instance.isOnMiniCams)
-        {
-            mode = ConfigSettings.MiniCamsOnString.Value;
-            Loggers.LogInfo("minicams mode detected");
-            return;
-        }
-        else if (Plugin.instance.isOnMirror)
-        {
-            mode = "Mirror";
-            Loggers.LogInfo("Mirror mode detected");
-            return;
-        }
-        else if (!Plugin.instance.splitViewCreated && (bool)Plugin.instance.Terminal.displayingPersistentImage)
-        {
-            mode = "View Monitor";
-            Loggers.LogInfo("Vanilla \"view monitor\" detected!");
-            return;
-        }
-        else
-        {
-            Plugin.Log.LogError("Error with mode return, setting to default value");
-            mode = "???";
-            return;
-        }
     }
 
     internal static bool AnyActiveMonitoring()
     {
-        if (Plugin.instance.isOnMap || Plugin.instance.isOnCamera || Plugin.instance.isOnMiniMap || Plugin.instance.isOnMiniCams || Plugin.instance.isOnOverlay || Plugin.instance.activeCam)
+        if (CurrentView != ViewMode.None && CurrentView != ViewMode.Video && CurrentView != ViewMode.Mirror)
+        {
+            Loggers.LogDebug($"Active monitoring detected for current view {CurrentView}");
             return true;
+        }
+            
 
         if (!Plugin.instance.splitViewCreated && (bool)Plugin.instance.Terminal.displayingPersistentImage)
+        {
+            Loggers.LogDebug($"Active monitoring detected, displayingPersistentImage {(bool)Plugin.instance.Terminal.displayingPersistentImage}");
             return true;
+        }
+            
 
         return false;
     }

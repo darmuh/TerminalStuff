@@ -7,71 +7,34 @@ using TerminalStuff.Util;
 using UnityEngine;
 using static TerminalStuff.Patching.AllMyTerminalPatches;
 using static TerminalStuff.CommandHandling.ViewCommands;
-using TerminalStuff.Networking;
 using TerminalStuff.Compatibility;
-using System.Linq;
 
 namespace TerminalStuff.VisualElements;
 
-internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes that dont specify nodeName!!!
+internal class MoreCamStuff
 {
-    internal static void ResetPluginInstanceBools()
-    {
-        Plugin.instance.isOnMiniMap = false;
-        Plugin.instance.isOnMiniCams = false;
-        Plugin.instance.isOnMap = false;
-        Plugin.instance.isOnCamera = false;
-        Plugin.instance.isOnMirror = false;
-        Plugin.instance.isOnOverlay = false;
-        Plugin.instance.activeCam = false;
 
-        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
-            Plugin.instance.activeCam = false;
-        else
-            NetHandler.Instance.SyncMyCamsBoolToEveryoneRpc(false);
+    internal static List<string> DontHideMonitoringNodes
+    {
+        get
+        {
+            List<string> result = CommonStringStuff.GetKeywordsPerConfigItem(ConfigSettings.KeepMonitoringNodes.Value, ',');
+
+            foreach(var node in Commands.GetSpecialCommands())
+            {
+                result.Add(node.Name);
+            }
+
+            return result;
+        }
     }
 
-    internal static List<string> excludedNames =
-            //stuff that should not disable cams
-            [
-                "Fov",
-                "Show Cameras",
-                "Show Map",
-                "Show MiniMap",
-                "Show MiniCams",
-                "Show Overlay",
-                "Show Mirror",
-                "ViewInsideShipCam 1",
-                "Radar Zoom",
-                "Door Button",
-                "Lightswitch",
-                "Always-On Toggle",
-                "Use Inverse Teleporter",
-                "Use Teleporter",
-                "Clear",
-                "Danger",
-                "Vitals",
-                "Heal",
-                "Loot",
-                "Random Suit",
-                "Clock toggle",
-                "Previous",
-                "SwitchRadarCamPlayer 1",
-                "SwitchedCam",
-                "switchDummy",
-                "EnteredCode",
-                "FlashedRadarBooster",
-                "SendSignalTranslator",
-                "GeneralError",
-                "ParserError1",
-                "ParserError2",
-                "ParserError3",
-                "PingedRadarBooster",
-                "SendSignalTranslator",
-                "FinishedRadarBooster"
-            ];
-
-    internal static void VideoPersist(string nodeName)
+    internal static void CheckVisualPersistance(string nodeName)
+    {
+        VideoPersist(nodeName);
+        CamPersistance(nodeName);
+    }
+    private static void VideoPersist(string nodeName)
     {
         if (isVideoPlaying && nodeName != "darmuh's videoPlayer")
         {
@@ -82,16 +45,17 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         }
     }
 
-    internal static void CamPersistance(string nodeName, TerminalNode node = null!)
+    private static void CamPersistance(string nodeName)
     {
-        if (!OpenLib.Common.Misc.DoesListHaveInvariant(excludedNames, nodeName) && HideCams())
+        // dont mess with vanilla view monitor persistance
+        if (CurrentView == ViewMode.Vanilla || (CurrentView == ViewMode.None && nodeName == "ViewInsideShipCam 1"))
+            return;
+
+        if (!OpenLib.Common.Misc.DoesListHaveInvariant(DontHideMonitoringNodes, nodeName) && CanHideCams())
         {
-            SplitViewChecks.DisableSplitView("neither");
+            CamEvents.UpdateCamsEvent.Invoke(ViewMode.None);
             Loggers.LogInfo("disabling ANY cams views");
-            return;
         }
-        else if (node == null)
-            return;
     }
 
     internal static bool IsViewNode(TerminalNode node)
@@ -110,9 +74,9 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         return false;
     }
 
-    internal static bool HideCams()
+    internal static bool CanHideCams()
     {
-        return !ConfigSettings.MonitoringNeverHide.Value;
+        return !string.IsNullOrEmpty(ConfigSettings.KeepMonitoringNodes.Value);
     }
 
     internal static Texture GetPlayerCamsFromExternalMod(int newTarget)
@@ -146,7 +110,6 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
 
     internal static Texture UpdateCamsTarget(int targetNum)
     {
-
         if (ConfigSettings.CamsUseDetectedMods.Value && (Plugin.instance.HelmetCamsMod || Plugin.instance.OpenBodyCamsMod || Plugin.instance.SolosBodyCamsMod))
             return PlayerCamsCompatibility.PlayerCamTexture();
 
@@ -162,17 +125,18 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         }
     }
 
-    private static Texture PlayerCamTexture(int targetPlayer)
+    private static RenderTexture PlayerCamTexture(int targetPlayer)
     {
-
         if (playerCam == null)
         {
+            GameObject camHolder = CamEvents.CameraHolder;
             Loggers.LogInfo("Creating home-brew PlayerCam");
-            playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref CamStuff.MyCameraHolder);
+            playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref camHolder);
+            CamEvents.CameraHolder = camHolder;
         }
 
         playerCam.orthographic = false;
-        playerCam.enabled = true;
+        ToggleCameraState(true);
         playerCam.cameraType = CameraType.Game;
 
         Transform camTransform;
@@ -195,21 +159,20 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         playerCam.nearClipPlane = 0.5f;
         playerCam.fieldOfView = 90f;
         playerCam.transform.SetParent(camTransform.transform);
-        Texture spectateTexture = playerCam.targetTexture;
-        return spectateTexture;
+        return playerCam.targetTexture;
     }
 
-    private static Texture RadarCamTexture(int targetNum)
+    private static RenderTexture RadarCamTexture(int targetNum)
     {
-
         if (playerCam == null)
         {
+            GameObject camHolder = CamEvents.CameraHolder;
             Loggers.LogInfo("Creating home-brew PlayerCam");
-            playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref CamStuff.MyCameraHolder);
+            playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref camHolder);
         }
 
         playerCam.orthographic = false;
-        playerCam.enabled = true;
+        ToggleCameraState(true);
         playerCam.cameraType = CameraType.SceneView;
         Transform camTransform = GameStuff.TerminalMapRenderer.radarTargets[targetNum].transform;
         playerCam.transform.rotation = camTransform.rotation;
@@ -219,8 +182,7 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
         playerCam.nearClipPlane = 0.4f;
         playerCam.fieldOfView = 110f;
         playerCam.transform.SetParent(camTransform.transform);
-        Texture spectateTexture = playerCam.targetTexture;
-        return spectateTexture;
+        return playerCam.targetTexture;
     }
 
     internal static int GetNextValidTarget(List<TransformAndName> targets, int initialIndex) //copied from TwoRadarMaps, slightly modified
@@ -321,5 +283,14 @@ internal class MoreCamStuff //UPDATE excludedNames to configItem Names for Nodes
             else
                 GetPlayerCamsFromExternalMod(newTarget);
         }
+    }
+
+    internal static void ToggleCameraState(bool enabled)
+    {
+        if (ConfigSettings.CamsUseDetectedMods.Value && (Plugin.instance.HelmetCamsMod || Plugin.instance.OpenBodyCamsMod || Plugin.instance.SolosBodyCamsMod))
+            return;
+
+        CamEvents.CameraHolder.SetActive(enabled);
+        CamStuff.HomebrewCameraState(enabled, playerCam);
     }
 }

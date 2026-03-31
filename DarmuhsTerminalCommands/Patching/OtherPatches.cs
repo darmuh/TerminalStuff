@@ -28,6 +28,7 @@ internal class OtherPatches
 
     //MeetsCameraEnabledConditions
     [HarmonyPatch(typeof(ManualCameraRenderer), nameof(ManualCameraRenderer.MeetsCameraEnabledConditions))]
+    [HarmonyAfter(["LethalSponge"])]
     public class CameraEnabledPatch
     {
         public static void Postfix(ManualCameraRenderer __instance, ref bool __result)

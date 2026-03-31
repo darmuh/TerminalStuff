@@ -2,14 +2,24 @@
 
 ## **For vanilla compatibility, disable ModNetworking in config (found in the "Networking" section)**  
 
+### Version 3.10+ of this mod is compatible with BOTH v73 and v80 of Lethal Company.  
+- To use this mod with v73, use Openlib version 0.4.1  
+- To use this mod with v80+, use Openlib version 0.4.2 or higher  
+
 ### Version 3.9+ of this mod has been compiled for v73 of Lethal Company.  
 - For compatibility with earlier versions of Lethal Company please use version 3.8.5 or earlier.  
+
+
+### Development on new features for this mod has ended  
+- This all-in-one project has become too much to both maintain *and* add new features.  
+- With development of Openlib ending, I will be porting features of this mod to **individual** (separate) new mods using Dawnlib.  
+- In order to utilize Dawnlib fully, work is on-going to migrate features from Openlib into Dawnlib (pending approval on review)  
+- This mod will still receive bug fixes until the new individual mods have been released in it's place.  
 
 ---
 
 ![Dynamic Regex Thunderstore Badge](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fthunderstore.io%2Fc%2Flethal-company%2Fp%2Fdarmuh%2FdarmuhsTerminalStuff%2F&search=Total%20downloads%5B%5E%5Cd%5D*(%5Cd%5B%5Cd%2C%5D*)&replace=%241&style=for-the-badge&logo=thunderstore&label=thunderstore&color=%2300BC8C&link=https%3A%2F%2Fthunderstore.io%2Fc%2Flethal-company%2Fp%2Fdarmuh%2FdarmuhsTerminalStuff%2F)
 ![Github Badge](https://img.shields.io/badge/source%20code-github?style=for-the-badge&logo=github&label=github&color=%234183C4&link=https%3A%2F%2Fgithub.com%2Fdarmuh%2FTerminalStuff)
-![Kofi Badge](https://img.shields.io/badge/darmuh-kofi?style=for-the-badge&logo=kofi&label=kofi&color=%23FF6433&link=https%3A%2F%2Fko-fi.com%2Fdarmuh)
 
 ## [ **Features** ]
 

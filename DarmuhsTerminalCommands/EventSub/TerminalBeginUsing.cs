@@ -8,6 +8,7 @@ using TerminalStuff.Networking;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
 using UnityEngine.InputSystem;
+using static TerminalStuff.CommandHandling.ViewCommands;
 using static TerminalStuff.EventSub.TerminalStart;
 using static TerminalStuff.TerminalEvents;
 
@@ -35,8 +36,13 @@ internal class TerminalBeginUsing
 
         if (Plugin.instance.Terminal.currentNode == null)
         {
-            Loggers.WARNING("WARNING: currentNode is NULL, loading home page node");
-            Plugin.instance.Terminal.LoadNewNode(Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[1]);
+            if (startNode != null)
+            {
+                Loggers.WARNING("WARNING: currentNode is NULL, loading home page node");
+                Plugin.instance.Terminal.LoadNewNode(startNode);
+            }
+            else
+                return;  
         }
 
         List<CommandManager> enabled = Commands.GetEnabledCommands();
@@ -89,8 +95,7 @@ internal class TerminalBeginUsing
         //Loading specific startpage or nothing at all
         if (terminalSettings.startPage != null)
         {
-            SplitViewChecks.DisableSplitView("neither");
-            ViewCommands.isVideoPlaying = false;
+            MoreCamStuff.CheckVisualPersistance(terminalSettings.startPage.name);
 
             if (LogicHandling.TryGetFuncFromTerminalNode(ref terminalSettings.startPage, out Func<string> supplier))
             {
@@ -104,37 +109,16 @@ internal class TerminalBeginUsing
         }
         else if (Plugin.instance.Terminal.currentNode == null)
         {
-            Loggers.WARNING("currentNode is NULL, loading home page as fail-safe");
+            Loggers.WARNING("currentNode is NULL, loading startNode as fail-safe");
             instance.LoadNewNode(startNode);
             nextNode = startNode;
         }
         else
         {
-            if (ViewCommands.AnyActiveMonitoring() || Plugin.instance.isOnMirror)
-            {
-                Loggers.LogInfo("Entering terminal and enabling any active cameras");
-                ReturnToMonitoring();
-            }
+            MoreCamStuff.CheckVisualPersistance(instance.currentNode.name);
         }
 
         if (lastText.Length > 0 && QoLConfig.SaveLastInput.Value)
             LogicHandling.SetTerminalInput(lastText);
-    }
-
-    internal static void ReturnToMonitoring()
-    {
-        int[] singleViews = [1, 5, 6];
-        int[] multiViews = [2, 3, 4];
-        int nodeNum = ViewCommands.GetCurrentNodeNum();
-
-        if (multiViews.Contains(nodeNum))
-        {
-            SplitViewChecks.CheckForSplitView("multi");
-        }
-
-        if (singleViews.Contains(nodeNum))
-        {
-            SplitViewChecks.CheckForSplitView("single");
-        }
     }
 }

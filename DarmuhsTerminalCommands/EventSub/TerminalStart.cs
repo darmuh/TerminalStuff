@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using TerminalStuff.CommandHandling;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
+using TerminalStuff.MoonsTweaks;
+using TerminalStuff.Networking;
 using TerminalStuff.SpecialStuff;
+using TerminalStuff.StoreTweaks;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
-using TerminalStuff.StoreTweaks;
-using TerminalStuff.MoonsTweaks;
 using UnityEngine;
 using static OpenLib.CoreMethods.LogicHandling;
+using static TerminalStuff.CommandHandling.ViewCommands;
 using static TerminalStuff.TerminalEvents;
-using TerminalStuff.Networking;
 
 namespace TerminalStuff.EventSub;
 
@@ -21,7 +22,7 @@ public class TerminalStart
 
     //Ignore Naming warnings since used in other mods, including OpenLib
 #pragma warning disable IDE1006
-    public static TerminalNode startNode { get; internal set; } = null!;
+    public static TerminalNode startNode { get; internal set; } = null!; //homepage
     public static TerminalNode helpNode { get; internal set; } = null!;
 #pragma warning restore IDE1006
     internal static List<TerminalNode> vanillaNodes = [];
@@ -76,7 +77,6 @@ public class TerminalStart
         }
 
         OpenLib.CoreMethods.AddingThings.AddKeywordToExistingNode("home", Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[1], true); //startNode
-
     }
 
     internal static void VanillaNodesCache()
@@ -134,9 +134,8 @@ public class TerminalStart
         yield return new WaitForSeconds(1);
         MenuBuild.CreateDarmuhsTerminalStuffMenus();
         Loggers.LogInfo("1 Second delay methods starting.");
-        SplitViewChecks.CheckForSplitView("neither");
-        Loggers.LogInfo("disabling cams views");
-        ViewCommands.isVideoPlaying = false;
+        CamEvents.UpdateCamsEvent.Invoke(ViewMode.None);
+        isVideoPlaying = false;
         //TerminalClockStuff.StartClockCoroutine();
         AlwaysOnStart(Plugin.instance.Terminal, startNode);
         MoonsPlus.MoonsPlusSetup();

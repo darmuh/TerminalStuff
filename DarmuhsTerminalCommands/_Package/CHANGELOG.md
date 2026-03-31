@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.10.0] (Long awaited fixes, Compatible with both v73 and v80!)
+ - The system behind the various monitoring view types (map, minicams, overlay, etc.) has been reworked entirely.
+	- This was mostly a detangling of this system.
+ - MoonsPlus mini preview fixes, including fixing compatibility with vanilla ``view monitor`` command.
+	- Thanks glacialstage aka Sily Wawa for their help identifying/testing issues relating to this.
+ - ShipInventory compatibility for ship loot commands has been updated to [version 2.0.8](https://thunderstore.io/c/lethal-company/p/LethalCompanyModding/ShipInventoryUpdated/)
+ - MoonsPlus & StorePlus menu size configuration items have been fixed (thanks xCore for reminding me to fix this)
+ - StorePlus new configuration item - DontAddToOther
+	- This was a requested config item to identify keywords that should *not* be added to StorePlus' Other section
+ - StorePlus new configuration item - HideFromStorePlus
+	- This was a highly requested config item to remove certain shop items from showing up in the StorePlus menus.
+	- Simply enter each store item you wish to hide followed by a comma for it to register the item as hidden. (This does not disable the item's keyword)
+ - Fixed MoonsPlus bug where unhiding a moon would not actually update the menu item name to show the level name.
+ - Added compat for Dawnlib moon lock, hide, price, and disabled status.
+	- Will use LLL when ``Allow LLL to Override Vanilla Moon Locked/Hidden Status`` is enabled.
+ - OpenLib version 0.4.2 and 0.4.3 contains generic command-related fixes that affect this mod.
+ - This version is compatible with v73 by using Openlib version 0.4.1 and compatible with v80 by using newer Openlib versions!
+
 ## [3.9.0] (V73 Update)
  - Networking updated for Lethal Company v73
 	- This included many optimizations/changes on the backend of this mod.

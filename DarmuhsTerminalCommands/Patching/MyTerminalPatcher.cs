@@ -55,8 +55,14 @@ public class AllMyTerminalPatches
     [HarmonyPatch(typeof(Terminal), nameof(TextPostProcess))]
     public class CustomReplacements : Terminal
     {
-        static void Postfix(ref string __result)
+        static void Postfix(TerminalNode node, ref string __result)
         {
+            if (node.name == "ViewInsideShipCam 1" && StartOfRound.Instance.inShipPhase && !Plugin.instance.splitViewCreated)
+            {
+                __result = "\n\n\nView monitor is not available in orbit!\n\n";
+                return;
+            }
+
             __result = __result.Replace("[leadingSpace]", " ");
             __result = __result.Replace("[leadingSpacex4]", "    ");
             if (StartOfRound.Instance != null)
@@ -232,7 +238,7 @@ public class AllMyTerminalPatches
     {
         static int replacements = 0;
         [HarmonyTranspiler]
-        private static IEnumerable<CodeInstruction> ParsePlayerSentence_Transpiler(IEnumerable<CodeInstruction> instructions)
+        private static List<CodeInstruction> ParsePlayerSentence_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             //ldc.i4.s
             CodeInstruction getter = Transpilers.EmitDelegate(ConfigGetters.GetMaxItems);
@@ -283,8 +289,9 @@ public class AllMyTerminalPatches
 
                 if ((bool)Plugin.instance.Terminal.displayingPersistentImage)
                 {
-                    MoreCamStuff.ResetPluginInstanceBools();
-                    Loggers.LogDebug("Vanilla view monitor detected, resetting plugin bools");
+                    // set current view to vanilla mode and disable any cameras/miniscreens
+                    CamEvents.UpdateCamsEvent.Invoke(ViewCommands.ViewMode.Vanilla);
+                    Loggers.LogDebug("Vanilla persistent image detected");
                 }
 
                 if (Plugin.instance.Terminal.terminalImage.enabled = shouldEnable)

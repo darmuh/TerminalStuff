@@ -14,15 +14,32 @@ public class CamEvents
     //public delegate void UpdateStyle(CamsClass cams, Texture mainTexture, Texture smallTexture = null);
     internal static CamsClass CamsThings = new();
     //public static OpenLib.Events.Events.CustomEvent UpdateTextures = new();
-    public static OpenLib.Events.Events.CustomEvent<string> UpdateCamsEvent = new();
+    public static OpenLib.Events.Events.CustomEvent<ViewMode> UpdateCamsEvent = new();
     public static OpenLib.Events.Events.CustomEvent<int> UpdateTarget = new();
+
+    internal static RawImage MiniScreenImage = null!;
+
+    private static GameObject? _playerMonitorCam;
+    internal static GameObject CameraHolder
+    {
+        get
+        {
+            if (_playerMonitorCam == null)
+                _playerMonitorCam = new("darmuhsTerminalStuff - PlayerCam Holder");
+
+            return _playerMonitorCam;
+        }
+        set
+        {
+            _playerMonitorCam = value;
+        }
+    }
 
     internal static void SetTextures(Texture texture, Texture mini = null!)
     {
         Plugin.instance.Terminal.terminalImage.texture = texture;
-
-        if (mini != null)
-            SplitViewChecks.miniScreenImage.texture = mini;
+        if(mini != null)
+            MiniScreenImage.texture = mini;
     }
 
     internal static void UpdateStyle(Texture main, float mainOpacity, Texture mini = null!, float miniOpacity = 0f, bool isOverlay = false)
@@ -32,80 +49,82 @@ public class CamEvents
             SetTextures(main);
             SetRawImageTransparency(Plugin.instance.Terminal.terminalImage, mainOpacity); // Full mainOpacity for map
             SetRawImageDimensions(Plugin.instance.Terminal.terminalImage.rectTransform, isFullScreen: true);
+            SetMiniScreenImageEnabled(false);
         }
         else
         {
+            SetMiniScreenImageEnabled(true);
             SetTextures(main, mini);
             SetRawImageTransparency(Plugin.instance.Terminal.terminalImage, mainOpacity);
-            SetRawImageTransparency(SplitViewChecks.miniScreenImage, miniOpacity);
+            SetRawImageTransparency(MiniScreenImage, miniOpacity);
 
-            SetRawImageDimensions(SplitViewChecks.miniScreenImage.rectTransform, isFullScreen: isOverlay);
+            SetRawImageDimensions(MiniScreenImage.rectTransform, isFullScreen: isOverlay);
             SetRawImageDimensions(Plugin.instance.Terminal.terminalImage.rectTransform, isFullScreen: true);
         }
     }
 
-    internal static void OnUpdateCamsEvent(string mode)
+    internal static void StyleNone()
+    {
+        Plugin.instance.Terminal.displayingPersistentImage = null!;
+        SetTextures(null!);
+        SetMiniScreenImageEnabled(false);
+        ToggleCameraState(false);
+    }
+
+    private static void SetMiniScreenImageEnabled(bool enabled)
+    {
+        if (MiniScreenImage == null)
+            return;
+
+        MiniScreenImage.enabled = enabled;
+    }
+
+    internal static void OnUpdateCamsEvent(ViewMode mode)
     {
         Loggers.LogDebug("UpdateCams Event!");
 
-        CamsThings.Mode = mode;
-        if (mode == "map")
+        switch (mode)
         {
-            CamsThings.radarTexture = UpdateRadarTexture();
-            UpdateStyle(CamsThings.radarTexture, 1f);
-            // Enable split view and update bools
-            SplitViewChecks.EnableSplitView("map");
+            case ViewMode.None:
+                StyleNone();
+                break;
+            case ViewMode.Map:
+                ToggleCameraState(false);
+                CamsThings.radarTexture = UpdateRadarTexture();
+                UpdateStyle(CamsThings.radarTexture, 1f);
+                break;
+            case ViewMode.Camera:
+                CamsThings.camsTexture = UpdateCamsTexture();
+                UpdateStyle(CamsThings.camsTexture, 1f);
+                break;
+            case ViewMode.MiniCams:
+                CamsThings.radarTexture = UpdateRadarTexture();
+                CamsThings.camsTexture = UpdateCamsTexture();
+                UpdateStyle(CamsThings.radarTexture, 1f, CamsThings.camsTexture, 0.7f);
+                break;
+            case ViewMode.MiniMap:
+                CamsThings.radarTexture = UpdateRadarTexture();
+                CamsThings.camsTexture = UpdateCamsTexture();
+                UpdateStyle(CamsThings.camsTexture, 1f, CamsThings.radarTexture, 0.7f);
+                break;
+            case ViewMode.Overlay:
+                CamsThings.radarTexture = UpdateRadarTexture();
+                CamsThings.camsTexture = UpdateCamsTexture();
+                UpdateStyle(CamsThings.radarTexture, 1f, CamsThings.camsTexture, ConfigSettings.OverlayOpacity.Value / 100f, true);
+                break;
+            case ViewMode.Mirror:
+                UpdateStyle(GetMirrorTexture(), 1f);
+                break;
+            case ViewMode.Video: 
+            case ViewMode.Vanilla:
+            default:
+                ToggleCameraState(false);
+                SetMiniScreenImageEnabled(false);
+                break;
         }
-        else if (mode == "cams")
-        {
-            SetAnyCamsTrue();
-            CamsThings.camsTexture = UpdateCamsTexture();
-            UpdateStyle(CamsThings.camsTexture, 1f);
-            // Enable split view and update bools
-        }
-        else if (mode == "minicams")
-        {
 
-            SetAnyCamsTrue(); //needs to be set before initializing textures
-            CamsThings.radarTexture = UpdateRadarTexture();
-            CamsThings.camsTexture = UpdateCamsTexture();
-            UpdateStyle(CamsThings.radarTexture, 1f, CamsThings.camsTexture, 0.7f);
-
-            // Enable split view and update bools
-            SplitViewChecks.EnableSplitView("minicams");
-        }
-        else if (mode == "minimap")
-        {
-            SetAnyCamsTrue(); //needs to be set before initializing textures
-            CamsThings.radarTexture = UpdateRadarTexture();
-            CamsThings.camsTexture = UpdateCamsTexture();
-            UpdateStyle(CamsThings.camsTexture, 1f, CamsThings.radarTexture, 0.7f);
-
-            // Enable split view and update bools
-            SplitViewChecks.EnableSplitView("minimap");
-        }
-        else if (mode == "overlay")
-        {
-            SetAnyCamsTrue(); //needs to be set before initializing textures
-            CamsThings.radarTexture = UpdateRadarTexture();
-            CamsThings.camsTexture = UpdateCamsTexture();
-            UpdateStyle(CamsThings.radarTexture, 1f, CamsThings.camsTexture, ConfigSettings.OverlayOpacity.Value / 100f, true);
-
-            // Enable split view and update bools
-            SplitViewChecks.EnableSplitView("overlay");
-        }
-        else if (mode == "mirror")
-        {
-            SetAnyCamsTrue();
-            UpdateStyle(GetMirrorTexture(), 1f);
-
-            // Enable split view and update bools
-            SplitViewChecks.EnableSplitView("mirror");
-        }
-        else
-        {
-            Loggers.WARNING($"Unexpected mode - [ {mode} ] OnUpdateCamsEvent");
-        }
+        Loggers.LogMessage($"Mode set to - [ {mode} ] OnUpdateCamsEvent");
+        CurrentView = mode;
     }
 
     private static RenderTexture UpdateRadarTexture()
@@ -116,7 +135,6 @@ public class CamEvents
 
     private static Texture UpdateCamsTexture()
     {
-
         Loggers.LogDebug("Updating Cams");
         if (IsExternalCamsPresent())
             return GetPlayerCamsFromExternalMod(GameStuff.TerminalMapRenderer.targetTransformIndex);
@@ -167,11 +185,13 @@ public class CamEvents
         if (playerCam == null)
         {
             Loggers.LogInfo("Creating home-brew PlayerCam");
-            playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref CamStuff.MyCameraHolder);
+            GameObject holder = CameraHolder;
+            playerCam = CamStuff.HomebrewCam(ref mycamTexture, ref holder);
+            CameraHolder = holder;
         }
 
         CamStuff.HomebrewCameraState(true, playerCam);
-        CamStuff.CamInitMirror(CamStuff.MyCameraHolder, playerCam, ConfigSettings.MirrorZoom.Value, ConfigSettings.Mirror2DStyle.Value);
+        CamStuff.CamInitMirror(CameraHolder, playerCam, ConfigSettings.MirrorZoom.Value, ConfigSettings.Mirror2DStyle.Value);
 
         return playerCam.targetTexture;
     }
@@ -183,6 +203,9 @@ public class CamEvents
             OpenLib.Compat.OpenBodyCamFuncs.OpenBodyCamsMirrorStatus(active, ConfigSettings.ObcResolutionMirror.Value, ConfigSettings.MirrorZoom.Value, ConfigSettings.Mirror2DStyle.Value, ref CamStuff.ObcCameraHolder);
         }
         else
+        {
             CamStuff.HomebrewCameraState(active, playerCam);
+        }
+            
     }
 }

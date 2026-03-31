@@ -42,6 +42,4 @@ public class Loggers
     {
         Log(BepInEx.Logging.LogLevel.Fatal, data);
     }
-
-
 }

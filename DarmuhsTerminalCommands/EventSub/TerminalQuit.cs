@@ -50,7 +50,7 @@ internal class TerminalQuit
                 OpenLib.Compat.OpenBodyCamFuncs.TerminalCameraStatus(status);
             }
         }
-        else if (Plugin.instance.isOnMirror)
+        else if (ViewCommands.CurrentView == ViewCommands.ViewMode.Mirror)
         {
             OpenLib.Compat.OpenBodyCamFuncs.TerminalMirrorStatus(status);
         }
@@ -60,7 +60,7 @@ internal class TerminalQuit
 
     private static void HandleRegularQuit()
     {
-        if (ViewCommands.AnyActiveMonitoring() || Plugin.instance.isOnMirror)
+        if (ViewCommands.AnyActiveMonitoring() || ViewCommands.CurrentView == ViewCommands.ViewMode.Mirror)
         {
             Loggers.LogInfo("Leaving terminal and disabling any active cameras");
             SplitViewChecks.ShowCameraView(false);

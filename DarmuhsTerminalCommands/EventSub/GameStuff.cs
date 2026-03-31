@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using TerminalStuff.CommandHandling;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.MoonsTweaks;
@@ -79,7 +80,7 @@ internal class GameStuff
         SplitViewChecks.InitSplitViewObjects(); //addSplitViewObjects
         Bools.ResetEnumBools(); // resets all enum bools
         TerminalClockStuff.SetClockVisible(false); // disable clock on game restart
-        MoreCamStuff.ResetPluginInstanceBools(); //reset view command bools
+        ViewCommands.CurrentView = ViewCommands.ViewMode.None;
     }
 
     internal static void OnPlayerSpawn()
@@ -108,40 +109,12 @@ internal class GameStuff
             BMX_LobbyCompat.SetCompat(ConfigSettings.ModNetworking.Value);
         }
 
-        if (SoftCompatibility("Rozebud.FovAdjust", ref Plugin.instance.FovAdjust))
-            Loggers.LogDebug("Rozebud's FovAdjust detected!");
-
-        if (SoftCompatibility("RickArg.lethalcompany.helmetcameras", ref Plugin.instance.HelmetCamsMod))
-            Loggers.LogDebug("Helmet Cameras by Rick Arg detected!");
-
-        if (SoftCompatibility("SolosBodycams", ref Plugin.instance.SolosBodyCamsMod))
-            Loggers.LogDebug("SolosBodyCams by CapyCat (Solo) detected!");
-
-        if (SoftCompatibility("Zaggy1024.OpenBodyCams", ref Plugin.instance.OpenBodyCamsMod))
-            Loggers.LogDebug("OpenBodyCams by Zaggy1024 detected!");
-
-        if (SoftCompatibility("Zaggy1024.TwoRadarMaps", ref Plugin.instance.TwoRadarMapsMod))
-            Loggers.LogDebug("TwoRadarMaps by Zaggy1024 detected!");
-
         if (SoftCompatibility("com.malco.lethalcompany.moreshipupgrades", ref Plugin.instance.LateGameUpgrades))
         {
             Loggers.LogDebug("Lategame Upgrades detected!");
             //manual list of commands added by LGU that do not show up in ITAPI registered commands dictionary
             otherModWords.AddRange(["demon", "lookup", "bruteforce", "initattack", "atk", "cd", "cooldown", "lategame", "lgc", "forcecredits", "load", "quantum", "intern", "interns"]);
         }
-
-
-        if (SoftCompatibility("darmuh.suitsTerminal", ref Plugin.instance.suitsTerminal))
-            Loggers.LogDebug("suitsTerminal detected!");
-
-        if (SoftCompatibility("TerminalFormatter", ref Plugin.instance.TerminalFormatter))
-            Loggers.LogDebug("Terminal Formatter by mrov detected!");
-
-        if (SoftCompatibility("com.github.darmuh.LethalConstellations", ref Plugin.instance.Constellations))
-            Loggers.LogDebug("LethalConstellations detected ^.^");
-
-        if (SoftCompatibility("ShipInventory", ref Plugin.instance.ShipInventory))
-            Loggers.LogDebug("ShipInventory compatibility enabled!");
 
         if (SoftCompatibility("mborsh.CruiserTerminal", ref Plugin.instance.CruiserTerm))
         {
@@ -153,17 +126,6 @@ internal class GameStuff
                 Loggers.WARNING("Older CruiserTerminal Mod detected! Compatibility functions are disabled!");
             }
         }
-
-        if (SoftCompatibility("WhiteSpike.InteractiveTerminalAPI", ref Plugin.instance.ITAPI))
-            Loggers.LogDebug("InteractiveTerminalAPI detected!");
-
-        //if (SoftCompatibility("imabatby.lethallevelloader", ref Plugin.instance.LethalLevelLoader))
-            //Loggers.LogDebug("LethalLevelLoader by IAmBatby detected!");
-        if (SoftCompatibility("WeatherTweaks", ref Plugin.instance.WeatherTweaks))
-            Loggers.LogDebug("WeatherTweaks by mrov detected!");
-
-        if (SoftCompatibility("ShaosilGaming.GeneralImprovements", ref Plugin.instance.GenImprovements))
-            Loggers.LogDebug("Adding compatibility for General Improvements by Shaosil!");
 
         if (OpenLib.Plugin.instance.LethalConfig)
             OpenLib.Compat.LethalConfigSoft.AddButton("Terminal Customization", "Refresh Customizations", "Press this button to refresh all terminal customizations", "Refresh", TerminalCustomizer.TerminalCustomization);
