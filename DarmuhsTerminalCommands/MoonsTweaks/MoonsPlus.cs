@@ -198,7 +198,7 @@ public class MoonsPlus
 
         CreateMoonInfos();
 
-        if (!MoonsPlusConfig.MoonsPlusKeywords.Value.Contains("moons,", System.StringComparison.InvariantCultureIgnoreCase))
+        if (!OpenLib.Common.CommonStringStuff.GetKeywordsPerConfigItem(MoonsPlusConfig.MoonsPlusKeywords.Value).Any(x => x.Equals("moons", System.StringComparison.InvariantCultureIgnoreCase)))
         {
             MoonsCommand.RegisterCommand();
             MoonsPlusMenu.MenuNode = MoonsCommand.terminalNode;

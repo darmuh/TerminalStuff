@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.10.1]
+ - Fixed MoonsPlus replacing the vanilla "moons" keyword and then deleting it after lobby reload. (bug introduced in 3.10.0)
+
 ## [3.10.0] (Long awaited fixes, Compatible with both v73 and v80!)
  - The system behind the various monitoring view types (map, minicams, overlay, etc.) has been reworked entirely.
 	- This was mostly a detangling of this system.

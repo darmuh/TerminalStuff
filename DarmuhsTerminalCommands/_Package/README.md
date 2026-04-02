@@ -1,4 +1,4 @@
-# darmuhsTerminalStuff (All-In-One Terminal Expansion Mod) *v73*  
+# darmuhsTerminalStuff (All-In-One Terminal Expansion Mod) *v73 & v80*  
 
 ## **For vanilla compatibility, disable ModNetworking in config (found in the "Networking" section)**  
 
