@@ -85,8 +85,7 @@ internal class GameStuff
 
     internal static void OnPlayerSpawn()
     {
-
-        if (screenSettings == null)
+        if (screenSettings == null || Bools.StartIsLocalPlayerNull())
             return;
 
         screenSettings.Update(QoLConfig.TerminalScreen.Value);

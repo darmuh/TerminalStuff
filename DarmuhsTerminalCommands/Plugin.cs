@@ -19,7 +19,7 @@ using TerminalStuff.SpecialStuff;
 namespace TerminalStuff;
 
 [BepInAutoPlugin("darmuh.TerminalStuff")]
-[BepInDependency("darmuh.OpenLib", "0.4.1")] //OpenLib requires latest version!
+[BepInDependency("darmuh.OpenLib", "0.4.3")] //OpenLib requires latest version!
 public partial class Plugin : BaseUnityPlugin
 {
     public static Plugin instance = null!;

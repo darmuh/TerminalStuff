@@ -39,7 +39,7 @@
 	<PackageReference Include="ShaosilGaming-GeneralImprovements" Version="*" Private="False" />
 	<PackageReference Include="LethalCompanyModding-ShipInventoryUpdated" Version="*" Private="False" />
 	<PackageReference Include="mrov-WeatherTweaks" Version="*" Private="False" Publicize="true" />
-	<PackageReference Include="TeamXiaolan-DawnLib" Version="0.8.*" Private="False" Publicize="true" />
+	<PackageReference Include="TeamXiaolan-DawnLib" Version="0.9.*" Private="False" Publicize="true" />
 
 	  <!--Compatibility with other mods I've created should be with what is public-->
 	<PackageReference Include="darmuh-LethalConstellations" Version="*" Private="False" />

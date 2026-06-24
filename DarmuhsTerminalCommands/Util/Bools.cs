@@ -19,6 +19,26 @@ namespace TerminalStuff.Util;
 
 internal class Bools
 {
+    internal static bool GameIsLocalPlayerNull()
+    {
+        if (GameNetworkManager.Instance == null)
+            return true;
+
+        if (GameNetworkManager.Instance.localPlayerController == null)
+            return true;
+
+        return false;
+    }
+
+    internal static bool StartIsLocalPlayerNull()
+    {
+        if (StartOfRound.Instance == null) return true;
+
+        if (StartOfRound.Instance.localPlayerController == null) return true;
+
+        return false;
+    }
+
     internal static bool ListenForShortCuts()
     {
         if (!QoLConfig.TerminalShortcuts.Value || keyActions.Count < 1)
@@ -93,6 +113,9 @@ internal class Bools
 
     internal static bool MapCameraUsed()
     {
+        if (StartIsLocalPlayerNull())
+            return false;
+
         if (!StartOfRound.Instance.localPlayerController.isInHangarShipRoom) //not in ship
             return false;
 

@@ -20,7 +20,7 @@ internal class TerminalQuit
             Loggers.LogDebug("grabbed lastText");
         }
 
-        if (StartOfRound.Instance.localPlayerController != null)
+        if (!Bools.StartIsLocalPlayerNull())
             ShouldLockPlayerCamera(true, StartOfRound.Instance.localPlayerController);
 
         //Plugin.Log.LogInfo($"terminuse set to {__instance.terminalInUse}");

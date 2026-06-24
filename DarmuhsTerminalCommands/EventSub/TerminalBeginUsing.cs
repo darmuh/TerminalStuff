@@ -31,7 +31,7 @@ internal class TerminalBeginUsing
 
         StartUsingTerminalCheck(Plugin.instance.Terminal);
 
-        if (StartOfRound.Instance.localPlayerController != null)
+        if (!Bools.StartIsLocalPlayerNull())
             ShouldLockPlayerCamera(false, StartOfRound.Instance.localPlayerController);
 
         if (Plugin.instance.Terminal.currentNode == null)

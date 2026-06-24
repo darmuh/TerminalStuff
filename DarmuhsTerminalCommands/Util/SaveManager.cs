@@ -14,7 +14,7 @@ internal class SaveManager
     internal static void InitMoonPlusSave()
     {
         //networking disabled
-        if (NetHandler.Instance == null)
+        if (NetHandler.Instance == null || Bools.GameIsLocalPlayerNull())
             return;
 
         if (!Commands.TerminalMoonsPlus.Value)
@@ -164,7 +164,7 @@ internal class SaveManager
     internal static void AddToTravelHistory(MoonInfo moon)
     {
         //networking disabled
-        if (NetHandler.Instance == null)
+        if (NetHandler.Instance == null || Bools.GameIsLocalPlayerNull())
             return;
 
         if (GameNetworkManager.Instance.localPlayerController == null)

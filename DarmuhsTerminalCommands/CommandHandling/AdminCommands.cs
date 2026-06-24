@@ -68,6 +68,10 @@ internal class AdminCommands
     private static string PlayerNameAndIDList()
     {
         StringBuilder message = new();
+
+        if (Bools.StartIsLocalPlayerNull())
+            return message.ToString();
+
         foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
         {
             if (StartOfRound.Instance.localPlayerController != player && player.isPlayerControlled)
@@ -82,14 +86,14 @@ internal class AdminCommands
     internal static bool AmIHost(out string displayText)
     {
         displayText = "";
-        if (GameNetworkManager.Instance.localPlayerController.IsHost)
-            return true;
-        else
+        if (Bools.GameIsLocalPlayerNull() || !GameNetworkManager.Instance.localPlayerController.IsHost)
         {
             displayText = $"You do not have permission to kick players from this lobby, you are NOT the host.\n\n";
             Plugin.Log.LogWarning("Somehow non-host player could try to kick others, error handled.");
             return false;
         }
+
+        return true;
     }
 
     internal static string KickPlayerConfirm()

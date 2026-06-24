@@ -309,6 +309,9 @@ internal class ColorCommands
 
     internal static string FlashColorRainbow()
     {
+        if (Bools.StartIsLocalPlayerNull())
+            return "";
+
         if (DoIhaveFlash(StartOfRound.Instance.localPlayerController))
         {
             NetHandler.Instance.CycleThroughRainbowFlash();

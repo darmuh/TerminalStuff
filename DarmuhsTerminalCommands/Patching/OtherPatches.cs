@@ -140,6 +140,9 @@ internal class OtherPatches
                 Loggers.LogDebug($"Null default values OR Unknown flashlight item [ {__instance.itemProperties.itemName} ]");
             }
 
+            if (Bools.StartIsLocalPlayerNull())
+                return;
+
             Loggers.LogDebug($"Color def: {def}\n{__instance.itemProperties.itemName} color: {__instance.flashlightBulb.color}");
             if (__instance.flashlightBulb.color == def)
             {

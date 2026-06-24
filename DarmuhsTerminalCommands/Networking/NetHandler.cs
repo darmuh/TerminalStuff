@@ -142,7 +142,7 @@ public class NetHandler : NetworkBehaviour
     [Rpc(SendTo.NotMe, RequireOwnership = false)]
     internal void UpdateTravelHistoryRpc(string moonName)
     {
-        if (MoonsPlus.MoonsVisited.Contains(moonName))
+        if (MoonsPlus.MoonsVisited.Contains(moonName) || Bools.GameIsLocalPlayerNull())
             return;
 
         MoonsPlus.MoonsVisited.Add(moonName);
@@ -283,7 +283,7 @@ public class NetHandler : NetworkBehaviour
 
     private IEnumerator RainbowFlashCoroutine()
     {
-        if (RainbowFlashRoutine)
+        if (RainbowFlashRoutine || Bools.StartIsLocalPlayerNull())
             yield break;
 
         RainbowFlashRoutine = true;
@@ -324,7 +324,7 @@ public class NetHandler : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     internal void QuickRestartRpc()
     {
-        GameNetworkManager.Instance.localPlayerController.DropAllHeldItemsAndSync();
+        GameNetworkManager.Instance.localPlayerController.DropAllHeldItems();
         if (GameNetworkManager.Instance.localPlayerController.currentTriggerInAnimationWith == Plugin.instance.Terminal.terminalTrigger)
             Plugin.instance.Terminal.QuitTerminal(); //quit terminal for terminal user
 

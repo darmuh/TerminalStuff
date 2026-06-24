@@ -1,13 +1,9 @@
-# darmuhsTerminalStuff (All-In-One Terminal Expansion Mod) *v73 & v80*  
+# darmuhsTerminalStuff (All-In-One Terminal Expansion Mod) *v80*  
 
 ## **For vanilla compatibility, disable ModNetworking in config (found in the "Networking" section)**  
 
-### Version 3.10+ of this mod is compatible with BOTH v73 and v80 of Lethal Company.  
-- To use this mod with v73, use Openlib version 0.4.1  
-- To use this mod with v80+, use Openlib version 0.4.2 or higher  
-
-### Version 3.9+ of this mod has been compiled for v73 of Lethal Company.  
-- For compatibility with earlier versions of Lethal Company please use version 3.8.5 or earlier.  
+### Compatibility with earlier versions of Lethal Company (v73 or earlier)  
+- For compatibility with earlier versions of Lethal Company please use version 3.10.1 or earlier.  
 
 
 ### Development on new features for this mod has ended  

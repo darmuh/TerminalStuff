@@ -185,6 +185,9 @@ public class TerminalStart
 
     private static void StartCheck(Terminal thisterm, TerminalNode startNode)
     {
+        if (Bools.GameIsLocalPlayerNull())
+            return;
+
         if (startNode == null)
             startNode = Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[13];
 

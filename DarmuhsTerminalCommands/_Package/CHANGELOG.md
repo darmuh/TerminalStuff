@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.10.2]
+ - Update DawnLib version for compat with V80 recompile.
+ - Fixed unreported issue with restart command that was introduced by V80
+ - Fixed MoonsPlus issue that caused Dawnlib transition animation not to display on ship screen.
+ - Added extra NRE handling for commonly used local player reference
+
 ## [3.10.1]
  - Fixed MoonsPlus replacing the vanilla "moons" keyword and then deleting it after lobby reload. (bug introduced in 3.10.0)
 

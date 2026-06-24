@@ -14,6 +14,9 @@ internal class AlwaysOnStuff
 
     internal static void IsPlayerDead()
     {
+        if (Bools.StartIsLocalPlayerNull())
+            return;
+
         if (StartOfRound.Instance.localPlayerController.isPlayerDead && DisableScreenOnDeath())
         {
             if (Plugin.instance.Terminal.terminalUIScreen.gameObject.activeSelf)
@@ -23,7 +26,7 @@ internal class AlwaysOnStuff
 
     internal static void OnSpecateShipCheck()
     {
-        if (DisableScreenOnDeath() || !screenSettings.Dynamic)
+        if (DisableScreenOnDeath() || !screenSettings.Dynamic || Bools.StartIsLocalPlayerNull())
             return;
 
         Loggers.LogDebug($"Spectated Player detected in ship [ {StartOfRound.Instance.localPlayerController.spectatedPlayerScript.isInHangarShipRoom} ]");
@@ -59,7 +62,7 @@ internal class AlwaysOnStuff
 
     internal static void PlayerShipChanged()
     {
-        if (StartOfRound.Instance.localPlayerController == null || screenSettings == null)
+        if (Bools.StartIsLocalPlayerNull() || screenSettings == null)
             return;
 
         Loggers.LogDebug($"Player detected in ship change - {StartOfRound.Instance.localPlayerController.isInHangarShipRoom}");
@@ -107,14 +110,19 @@ internal class AlwaysOnStuff
 
         delayOff = true;
         yield return new WaitForSeconds(delay);
+
+        if(Bools.StartIsLocalPlayerNull())
+            yield break;
+
         if (!StartOfRound.Instance.localPlayerController.isInHangarShipRoom)
             SetScreenPlus(false);
+
         delayOff = false;
     }
 
     internal static bool DisableScreenOnDeath()
     {
-        if (QoLConfig.ScreenOnWhileDead.Value)
+        if (QoLConfig.ScreenOnWhileDead.Value || Bools.StartIsLocalPlayerNull())
             return false;
 
         return StartOfRound.Instance.localPlayerController.isPlayerDead;

@@ -322,17 +322,16 @@ internal class ShipControls
 
     internal static string RestartAction()
     {
-        if (!StartOfRound.Instance.inShipPhase)
+        if (!StartOfRound.Instance.inShipPhase || Bools.GameIsLocalPlayerNull())
         {
             string displayText = "This can only be done in orbit...\n\n";
             return displayText;
         }
-        else if (!GameNetworkManager.Instance.localPlayerController.isHostPlayerObject)
+        else if (!GameNetworkManager.Instance.localPlayerController.IsHost)
         {
             string displayText = "Only the host can do this...\n";
             return displayText;
         }
-
         else
         {
             string displayText = "Restart lobby confirmed, getting new ship...\n\n";

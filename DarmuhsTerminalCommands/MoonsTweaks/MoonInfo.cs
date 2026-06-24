@@ -335,7 +335,6 @@ public class MoonInfo
         int newCreds = Plugin.instance.Terminal.groupCredits - DisplayPrice;
 
         StartOfRound.Instance.ChangeLevelServerRpc(Level.levelID, newCreds);
-        StartOfRound.Instance.SetMapScreenInfoToCurrentLevel();
     }
 
     internal void OneTimePurchaseLoadIn()
