@@ -53,16 +53,26 @@ public class StoreInfo
     public bool ShouldShowInStore()
     {
         if (IsUnlocked)
+        {
+            Util.Loggers.LogDebug($"ShouldShowInStore {name} is unlocked");
             return false;
+        }
 
         if (terminalNode.buyItemIndex != -1 && BuyableItem == null)
+        {
+            Util.Loggers.LogDebug($"ShouldShowInStore {name} has a null buyableitem with a valid buyItemIndex number");
             return false;
+        }
 
         //hide items defined by user
         if (OpenLib.Common.Misc.DoesListHaveInvariant(StorePlusConfig.HideItemListing, name))
+        {
+            Util.Loggers.LogDebug($"ShouldShowInStore {name} is configured to be hidden from the store");
             return false;
+        }
 
-        return true;
+        // respect rotation config item
+        return InRotation();
     }
 
     internal StoreInfo(TerminalNode storeNode, bool purchasePack = false)
@@ -181,6 +191,11 @@ public class StoreInfo
                 return;
 
             name = terminalNode.creatureName;
+
+            // attempt to fix empty name with unlockable name
+            if (string.IsNullOrEmpty(name))
+                name = Unlockable.unlockableName;
+            
             WaitForDelivery = false;
 
             if (Unlockable.maxNumber > 0)

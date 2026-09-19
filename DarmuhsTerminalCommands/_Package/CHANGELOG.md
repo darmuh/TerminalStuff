@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.10.3]
+ - Fixed StorePlus ``RespectStoreRotation`` config item.
+ - Fixed LLL furnitures not being added to StorePlus. (thanks Lunxara & pacoito & wesley)
+	- Moved StorePlus store item initialization from Terminal.Start() to StartOfRound.Start()
+	- Added check before adding an upgrade to the store that the terminal node's "creature name" is similar to the unlockable name
+ - Added compatibility for all modded store items regardless of *when* they are added to the store.
+ - Added support for modded items that failed to set the "creature name" of their modded unlockable's shop node.
+
 ## [3.10.2]
  - Update DawnLib version for compat with V80 recompile.
  - Fixed unreported issue with restart command that was introduced by V80

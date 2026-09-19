@@ -1,11 +1,12 @@
-﻿using HarmonyLib;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using HarmonyLib;
 using TerminalStuff.CommandHandling;
 using TerminalStuff.Compatibility;
 using TerminalStuff.Configs;
 using TerminalStuff.MoonsTweaks;
 using TerminalStuff.SpecialStuff;
+using TerminalStuff.StoreTweaks;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
 using static OpenLib.Common.StartGame;
@@ -81,6 +82,7 @@ internal class GameStuff
         Bools.ResetEnumBools(); // resets all enum bools
         TerminalClockStuff.SetClockVisible(false); // disable clock on game restart
         ViewCommands.CurrentView = ViewCommands.ViewMode.None;
+        StorePlus.GetStoreItems(); // StorePlus/StorePacks init (first run)
     }
 
     internal static void OnPlayerSpawn()

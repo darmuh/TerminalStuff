@@ -46,6 +46,11 @@ public class StorePlus
     internal static List<TerminalNode> ExcludedNodesFromAutoGen { get; set; } = [];
     internal static List<string> ManualUpgradeNames = [];
 
+    // cached item counts
+    private static int UnlockablesCount = 0;    
+    private static int BuyablesCount = 0;
+    private static int VehiclesCount = 0;
+
     public enum StartingPage
     {
         MainMenu,
@@ -159,9 +164,33 @@ public class StorePlus
 
         InitOnce = true;
     }
+    
+    // used to check if any new items have been added to the game since we last processed shop nodes
+    private static void NewItemsCheck()
+    {
+        bool newUnlock = UnlockablesCount != StartOfRound.Instance.unlockablesList.unlockables.Count;
+        bool newBuy = BuyablesCount != Plugin.instance.Terminal.buyableItemsList.Length;
+        bool newVehic = VehiclesCount != Plugin.instance.Terminal.buyableVehicles.Length;
+
+        if (newUnlock || newBuy || newVehic)
+        {
+            List<TerminalNode> nodes = LogicHandling.GetAllNodes();
+
+            if (newUnlock)
+                ProcessUnlockableNodes(nodes);
+
+            if(newBuy)
+                ProcessBuyableNodes(nodes);
+
+            if(newVehic)
+                ProcessVehicleNodes(nodes);
+        }
+
+    }
 
     internal static string EnterStoreMenu()
     {
+        NewItemsCheck(); // refresh store with any potentially new items
         StorePlusMenu.ExitAction = null!;
         StorePlusMenu.EnterAtPage(GetStartMenu());
         return "";
@@ -290,7 +319,7 @@ public class StorePlus
         StorePlusMenu.AcceptAnything = true;
         StringBuilder message = new();
 
-        message.Append($"\n");
+        message.Append('\n');
 
         foreach (StoreInfo item in StoreSelection)
         {
@@ -395,73 +424,15 @@ public class StorePlus
 
         if (OpenLib.Plugin.instance.TooManyEmotes && !OpenLib.Common.Misc.DoesListHaveInvariant(StorePlusConfig.DontAddToOtherListing, "emote"))
         {
-            StoreMenuItem emote = new("TooManyEmotes Store", "emote", ExternalMods);
+            _ = new StoreMenuItem("TooManyEmotes Store", "emote", ExternalMods);
             Loggers.LogDebug("Added TooManyEmotes menu item!");
         }
 
         ManualUpgradeNames.AddRange(["Inverse Teleporter", "Teleporter", "Signal Translator", "Loud Horn"]);
 
-        List<TerminalNode> nodes = LogicHandling.GetAllNodes();
-        List<TerminalNode> unlockables = nodes.FindAll(x => x.shipUnlockableID > -1);
-        List<TerminalNode> buyables = nodes.FindAll(n => StoreInfo.IsValidItem(n) && StoreInfo.IsItemEnabled(n.buyItemIndex));
-        List<TerminalNode> terminalVehicles = nodes.FindAll(n => n.buyVehicleIndex > -1 && n.creatureFileID == -1 && n.buyItemIndex == -1 && n.buyRerouteToMoon == -1);
+        ProcessAllTerminalNodes();
+        StoreSettings.Init();
 
-        foreach (TerminalNode node in unlockables)
-        {
-            //don't process items that cost less than 0
-            if (node.itemCost < 0)
-                continue;
-
-            //Don't process specific nodes
-            if (ExcludedNodesFromAutoGen.Contains(node))
-                continue;
-
-            //Don't process null names or empty names
-            if (node.creatureName.IsNullOrWhiteSpace())
-                continue;
-
-            StoreInfo info = AllStoreItems.FirstOrDefault(x => x.name == node.creatureName);
-            if (info != null)
-                info.UpdateNode(node);
-            else
-            {
-                info = new(node);
-                AllStoreItems.Add(info);
-            }
-        }
-
-        foreach (TerminalNode node in terminalVehicles)
-        {
-            StoreInfo item = AllStoreItems.FirstOrDefault(v => v.terminalNode.buyVehicleIndex == node.buyVehicleIndex);
-
-            if (item != null)
-                item.UpdateNode(node);
-            else
-            {
-                item = new(node);
-                AllStoreItems.Add(item);
-            }
-
-            continue;
-        }
-
-        foreach (TerminalNode buyNode in buyables)
-        {
-            StoreInfo item = AllStoreItems.FirstOrDefault(y => y.terminalNode.buyItemIndex == buyNode.buyItemIndex);
-
-            if (item != null)
-                item.UpdateNode(buyNode);
-            else
-            {
-                item = new(buyNode);
-                AllStoreItems.Add(item);
-            }
-
-            continue;
-        }
-
-        Loggers.LogDebug($"AllStoreItems count: {AllStoreItems.Count}");
-        SortStoreItems();
         CreateStorePacks();
 
         if (!StorePlusConfig.StorePlusKeywords.Value.Contains("store", System.StringComparison.InvariantCultureIgnoreCase))
@@ -483,6 +454,168 @@ public class StorePlus
         }
         else
             Loggers.ERROR("UNABLE TO GET STORE KEYWORD FOR MENU!\nUNABLE TO GET STORE KEYWORD FOR MENU!\nUNABLE TO GET STORE KEYWORD FOR MENU!");
+    }
+
+    private static void ProcessUnlockableNodes(List<TerminalNode> nodes)
+    {
+        if (StartOfRound.Instance == null)
+            return;
+
+        // update count
+        UnlockablesCount = StartOfRound.Instance.unlockablesList.unlockables.Count;
+        List<TerminalNode> unlockables = nodes.FindAll(x => x.shipUnlockableID > -1);
+
+        foreach (TerminalNode node in unlockables)
+        {
+            //don't process items that cost less than 0
+            if (node.itemCost < 0)
+                continue;
+
+            //Don't process specific nodes
+            if (ExcludedNodesFromAutoGen.Contains(node))
+                continue;
+
+            if (!IsUnlockableNodeValid(node, out string unlockableName))
+                continue;
+
+            StoreInfo info = AllStoreItems.FirstOrDefault(x => x.name == unlockableName);
+            if (info != null)
+                info.UpdateNode(node);
+            else
+            {
+                info = new(node);
+                AllStoreItems.Add(info);
+            }
+        }
+
+        Loggers.LogDebug($"AllStoreItems count: {AllStoreItems.Count}");
+        SortStoreItems();
+    }
+
+    private static void ProcessBuyableNodes(List<TerminalNode> nodes)
+    {
+        // update buyables count
+        BuyablesCount = Plugin.instance.Terminal.buyableItemsList.Length;
+
+        List<TerminalNode> buyables = nodes.FindAll(n => StoreInfo.IsValidItem(n) && StoreInfo.IsItemEnabled(n.buyItemIndex));
+
+        foreach (TerminalNode buyNode in buyables)
+        {
+            StoreInfo item = AllStoreItems.FirstOrDefault(y => y.terminalNode.buyItemIndex == buyNode.buyItemIndex);
+
+            if (item != null)
+                item.UpdateNode(buyNode);
+            else
+            {
+                item = new(buyNode);
+                AllStoreItems.Add(item);
+            }
+
+            continue;
+        }
+
+        Loggers.LogDebug($"AllStoreItems count: {AllStoreItems.Count}");
+        SortStoreItems();
+    }
+
+    private static void ProcessVehicleNodes(List<TerminalNode> nodes)
+    {
+        // update vehicles count
+        VehiclesCount = Plugin.instance.Terminal.buyableVehicles.Length;
+
+        List<TerminalNode> terminalVehicles = nodes.FindAll(n => n.buyVehicleIndex > -1 && n.creatureFileID == -1 && n.buyItemIndex == -1 && n.buyRerouteToMoon == -1);
+
+        foreach (TerminalNode node in terminalVehicles)
+        {
+            StoreInfo item = AllStoreItems.FirstOrDefault(v => v.terminalNode.buyVehicleIndex == node.buyVehicleIndex);
+
+            if (item != null)
+                item.UpdateNode(node);
+            else
+            {
+                item = new(node);
+                AllStoreItems.Add(item);
+            }
+
+            continue;
+        }
+
+        Loggers.LogDebug($"AllStoreItems count: {AllStoreItems.Count}");
+        SortStoreItems();
+    }
+
+    private static void ProcessAllTerminalNodes()
+    {
+        List<TerminalNode> nodes = LogicHandling.GetAllNodes();
+        
+        ProcessUnlockableNodes(nodes);
+        ProcessBuyableNodes(nodes);
+        ProcessVehicleNodes(nodes);
+    }
+
+    private static bool IsUnlockableNodeValid(TerminalNode node, out string name)
+    {
+        name = string.Empty;
+        if (node == null)
+            return false;
+
+        var unlockable = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID];
+
+        if (unlockable == null || string.IsNullOrEmpty(unlockable.unlockableName))
+        {
+            Loggers.WARNING($"Null unlockable for [{node.creatureName}]");
+            Loggers.LogDebug($"Null unlockable from unlockableID [{node.shipUnlockableID}]");
+            return false;
+        }
+
+        // If creatureName is empty, check if the unlockable is at least unique before discarding the item completely
+        if (node.creatureName.IsNullOrWhiteSpace())
+        {
+            if(!AllStoreItems.Any(x => x.Unlockable == unlockable))
+            {
+                name = unlockable.unlockableName;
+                Loggers.WARNING($"Returning valid node on empty creatureName because it is associated with a unique unlockable id with name -> [{unlockable.unlockableName}]");
+                return true;
+            }
+
+            // do not allow empty creature names for non-unique unlockables
+            return false;
+            
+        }
+
+        if (!AreStringsSimilar(unlockable.unlockableName, node.creatureName, true))
+        {
+            Loggers.WARNING($"unlockable name mismatch for [{node.creatureName}]");
+            return false;
+        }
+
+        name = node.creatureName;
+        return true;
+    }
+
+    private static bool AreStringsSimilar(string one, string two, bool log = false)
+    {
+        string oneSimple = GetLettersAndNumbers(one);
+        string twoSimple = GetLettersAndNumbers(two);
+
+        if (log)
+            Loggers.LogDebug($"Comparing {oneSimple} to {twoSimple}");
+
+        return oneSimple.Equals(twoSimple, System.StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    private static string GetLettersAndNumbers(string input)
+    {
+        string output = string.Empty;
+        foreach (char c in input)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                output += c;
+            }
+        }
+
+        return output;
     }
 
     internal static void ResetVars()
@@ -507,8 +640,6 @@ public class StorePlus
 
         foreach (StoreInfo item in AllStoreItems)
             SortStoreItem(item);
-
-        StoreSettings.Init();
     }
 
     private static void SortStoreItem(StoreInfo item)

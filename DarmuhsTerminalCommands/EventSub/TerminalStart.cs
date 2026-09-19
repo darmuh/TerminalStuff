@@ -6,7 +6,6 @@ using TerminalStuff.Configs;
 using TerminalStuff.MoonsTweaks;
 using TerminalStuff.Networking;
 using TerminalStuff.SpecialStuff;
-using TerminalStuff.StoreTweaks;
 using TerminalStuff.Util;
 using TerminalStuff.VisualElements;
 using UnityEngine;
@@ -48,7 +47,6 @@ public class TerminalStart
         ShortcutBindings.InitSavedShortcuts();
         TerminalCustomizer.TerminalCustomization();
         SaveManager.InitUnlocks(); // sync upgrades status for this save
-        StorePlus.GetStoreItems(); // StorePlus/StorePacks init
     }
 
     private static void OtherModWords()
