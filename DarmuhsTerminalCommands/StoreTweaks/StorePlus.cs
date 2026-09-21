@@ -559,6 +559,13 @@ public class StorePlus
         if (node == null)
             return false;
 
+        // handle ids outside the list, below 0 is already accounted for before this method is run
+        if (node.shipUnlockableID >= StartOfRound.Instance.unlockablesList.unlockables.Count)
+        {
+            Loggers.WARNING($"{node.name} has invalid shipUnlockableID [ {node.shipUnlockableID} ]"); // using node.name in case creatureName is null/empty
+            return false;
+        }
+
         var unlockable = StartOfRound.Instance.unlockablesList.unlockables[node.shipUnlockableID];
 
         if (unlockable == null || string.IsNullOrEmpty(unlockable.unlockableName))

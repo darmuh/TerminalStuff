@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 This project does NOT adhere to perfect Semantic Versioning. Mostly because I don't have the time to learn how to use it.
 
+## [3.10.4]
+ - Fixed StorePlus throwing errors from mods that add terminal nodes with invalid shipUnlockableID values 
+	- Invalid values are not -1 and greater than any corresponding unlockable item
+	- This was most notably an issue with Wesley Moons latest update
+
 ## [3.10.3]
  - Fixed StorePlus ``RespectStoreRotation`` config item.
  - Fixed LLL furnitures not being added to StorePlus. (thanks Lunxara & pacoito & wesley)
