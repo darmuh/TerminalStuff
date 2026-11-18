@@ -26,6 +26,8 @@ public static class ConfigSettings
     public static ConfigEntry<float> MirrorZoom { get; internal set; } = null!;
     public static ConfigEntry<bool> Mirror2DStyle { get; internal set; } = null!;
     public static ConfigEntry<bool> ModNetworking { get; internal set; } = null!;
+    //NetworkedNodes only means something when the networker exists
+    public static bool NodesNetworked => NetworkedNodes.Value && ModNetworking.Value;
     public static ConfigEntry<bool> NetworkedNodes { get; internal set; } = null!; //enable or disable networked terminal nodes (beta)
 
     //Strings for display messages

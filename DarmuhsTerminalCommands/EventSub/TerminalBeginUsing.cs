@@ -79,7 +79,7 @@ internal class TerminalBeginUsing
 
         ChooseStartPage(instance, ref nextNode);
 
-        if (ConfigSettings.NetworkedNodes.Value)
+        if (ConfigSettings.NodesNetworked)
         {
             if (nextNode == null) //not loading any new nodes
                 return;

@@ -163,7 +163,7 @@ public class TerminalStart
         if (AlwaysOnStuff.screenSettings.AlwaysOn && !AlwaysOnStuff.screenSettings.inUse)
         {
             Loggers.LogDebug("Setting AlwaysOn Display.");
-            if (ConfigSettings.NetworkedNodes.Value && ConfigSettings.ModNetworking.Value)
+            if (ConfigSettings.NodesNetworked)
             {
                 Loggers.LogDebug("network nodes enabled, syncing alwayson status");
                 NetHandler.Instance.AlwaysOnDisplaySyncRpc(true);
@@ -189,7 +189,7 @@ public class TerminalStart
         if (startNode == null)
             startNode = Plugin.instance.Terminal.terminalNodes.specialNodes.ToArray()[13];
 
-        if (NetHandler.Instance == null || !ConfigSettings.NetworkedNodes.Value)
+        if (NetHandler.Instance == null || !ConfigSettings.NodesNetworked)
         {
             Loggers.LogDebug("Networking disabled, returning...");
             thisterm.LoadNewNode(startNode);

@@ -269,7 +269,7 @@ public static class TerminalEvents
         Plugin.instance.Terminal.LoadNewNode(node);
         Loggers.LogDebug($"Loading node!");
 
-        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
+        if (!ConfigSettings.NodesNetworked || NetHandler.Instance == null)
             return;
 
         Loggers.LogDebug($"Syncing with TerminalStuff!");

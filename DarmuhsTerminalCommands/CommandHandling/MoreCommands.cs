@@ -198,7 +198,7 @@ internal class MoreCommands
     internal static string AlwaysOnDisplay()
     {
         string displayText;
-        if (!EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && NetHandler.Instance != null)
+        if (!EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NodesNetworked && NetHandler.Instance != null)
         {
             keepAlwaysOnDisabled = false;
             NetHandler.Instance.AlwaysOnDisplaySyncRpc(true);
@@ -206,7 +206,7 @@ internal class MoreCommands
             return displayText;
             //Plugin.Log.LogInfo("set alwaysondisplay to true");
         }
-        else if (EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NetworkedNodes.Value && NetHandler.Instance != null)
+        else if (EventSub.TerminalStart.AlwaysOnDisplay && ConfigSettings.NodesNetworked && NetHandler.Instance != null)
         {
             keepAlwaysOnDisabled = true;
             NetHandler.Instance.AlwaysOnDisplaySyncRpc(false);
@@ -214,14 +214,14 @@ internal class MoreCommands
             return displayText;
             //Plugin.Log.LogInfo("set alwaysondisplay to false");
         }
-        else if (!EventSub.TerminalStart.AlwaysOnDisplay && !ConfigSettings.NetworkedNodes.Value)
+        else if (!EventSub.TerminalStart.AlwaysOnDisplay && !ConfigSettings.NodesNetworked)
         {
             keepAlwaysOnDisabled = false;
             EventSub.TerminalStart.AlwaysOnDisplay = true;
             displayText = $"Terminal Always-on Display [ENABLED]\n";
             return displayText;
         }
-        else if (EventSub.TerminalStart.AlwaysOnDisplay && !ConfigSettings.NetworkedNodes.Value)
+        else if (EventSub.TerminalStart.AlwaysOnDisplay && !ConfigSettings.NodesNetworked)
         {
             keepAlwaysOnDisabled = true;
             EventSub.TerminalStart.AlwaysOnDisplay = false;
