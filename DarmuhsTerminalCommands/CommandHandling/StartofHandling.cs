@@ -64,7 +64,7 @@ internal class StartofHandling
 
     internal static void CheckNetNode(TerminalNode resultNode)
     {
-        if (!ConfigSettings.NetworkedNodes.Value || NetHandler.Instance == null)
+        if (!ConfigSettings.NodesNetworked || NetHandler.Instance == null)
             return;
 
         Loggers.LogInfo("Networked nodes enabled, sending result to server.");

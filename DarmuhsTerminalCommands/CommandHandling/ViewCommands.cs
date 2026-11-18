@@ -105,7 +105,7 @@ public class ViewCommands
     {
         GameStuff.TerminalMapRenderer.SwitchRadarTargetAndSync(target);
 
-        if (Plugin.instance.TwoRadarMapsMod && NetHandler.Instance != null && ConfigSettings.NetworkedNodes.Value)
+        if (Plugin.instance.TwoRadarMapsMod && NetHandler.Instance != null && ConfigSettings.NodesNetworked)
         {
             Loggers.LogDebug("Second radar requires syncing!");
             NetHandler.Instance.SyncRadarMapRpc(target);
@@ -391,7 +391,7 @@ public class ViewCommands
                 GameStuff.TerminalMapRenderer.cam.orthographicSize = GetNewZoom(ref radarZoom);
                 Loggers.LogInfo($"Radar Zoom set to {radarZoom}");
 
-                if (ConfigSettings.NetworkedNodes.Value)
+                if (ConfigSettings.NodesNetworked)
                     NetHandler.Instance.SyncRadarZoomRpc(radarZoom);
 
                 if (!Plugin.instance.splitViewCreated)
@@ -410,7 +410,7 @@ public class ViewCommands
                         GameStuff.TerminalMapRenderer.cam.orthographicSize = radarZoom;
                         Loggers.LogInfo($"Radar Zoom set to {radarZoom}");
 
-                        if (ConfigSettings.NetworkedNodes.Value)
+                        if (ConfigSettings.NodesNetworked)
                             NetHandler.Instance.SyncRadarZoomRpc(radarZoom);
 
                         if (!Plugin.instance.splitViewCreated)

@@ -96,7 +96,12 @@ public partial class Plugin : BaseUnityPlugin
 
         Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
-        Networker = new NetworkClass<NetHandler>("darmuhsTerminalStuff NetHandler", ConfigSettings.ModNetworking);
+        //OpenLib registers (AddNetworkPrefab) EVERY NetworkClass that exists, regardless of its toggle.
+        //Only create it when networking is on so a host with ModNetworking disabled keeps a vanilla-identical prefab list.
+        if (ConfigSettings.ModNetworking.Value)
+            Networker = new NetworkClass<NetHandler>("darmuhsTerminalStuff NetHandler", ConfigSettings.ModNetworking);
+        else
+            Log.LogInfo("ModNetworking is disabled, networking will not be registered (vanilla clients can join).");
     }
 
     internal void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)

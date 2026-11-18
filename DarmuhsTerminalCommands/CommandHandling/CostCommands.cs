@@ -311,9 +311,13 @@ internal class CostCommands
             Loggers.LogDebug($"new creds: {newCreds}");
             Plugin.instance.Terminal.orderedItemsFromTerminal.Clear();
             storeCart.Clear();
-            NetHandler.Instance.SyncDropShipRpc(true);
-
-            NetHandler.Instance.SyncHostCreditsRpc(newCreds, 0);
+            if (NetHandler.Instance != null)
+            {
+                NetHandler.Instance.SyncDropShipRpc(true);
+                NetHandler.Instance.SyncHostCreditsRpc(newCreds, 0);
+            }
+            else
+                Plugin.instance.Terminal.SyncGroupCreditsServerRpc(newCreds, 0); //vanilla credit sync
 
             string allitems = ListToStringBuild(returnlist);
 
@@ -368,7 +372,11 @@ internal class CostCommands
         int newCreds = getCreds - costCreds;
         frompatch.groupCredits = newCreds;
 
-        NetHandler.Instance.SyncHostCreditsRpc(newCreds, frompatch.numberOfItemsInDropship);
+        if (NetHandler.Instance != null)
+            NetHandler.Instance.SyncHostCreditsRpc(newCreds, frompatch.numberOfItemsInDropship);
+        else
+            frompatch.SyncGroupCreditsServerRpc(newCreds, frompatch.numberOfItemsInDropship); //vanilla credit sync
+
         return newCreds;
     }
 
